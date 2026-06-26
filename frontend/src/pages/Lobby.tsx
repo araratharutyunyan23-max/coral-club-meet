@@ -186,19 +186,17 @@ export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin
           <div style={{ fontSize: 23, fontWeight: 700, letterSpacing: '-.01em' }}>Ready to join?</div>
           <div style={{ fontSize: 13, color: 'var(--text-mute)', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{room}</div>
 
-          <div style={{ marginTop: 22, display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <DeviceRow icon={<CameraIcon size={17} style={{ color: 'var(--text-dim)' }} />} value={videoDeviceId} onChange={setVideoDeviceId} devices={cameras} fallback="Default camera" />
-            <DeviceRow icon={<MicIcon size={17} style={{ color: 'var(--text-dim)' }} />} value={audioDeviceId} onChange={setAudioDeviceId} devices={mics} fallback="Default microphone" />
-            <DeviceRow icon={<SpeakerGlyph />} value={speakerDeviceId} onChange={setSpeakerDeviceId} devices={speakers} fallback="Default speakers" />
-          </div>
-
-          <ToggleRow label="Background blur" on={blur} onClick={() => setBlur((v) => !v)} />
+          {/* Device pickers (camera / mic / speakers) and the Background blur
+              toggle are temporarily hidden — мы к ним вернёмся позже. Joining
+              uses the system default devices in the meantime. The supporting
+              state and helpers (DeviceRow / ToggleRow / SpeakerGlyph) are kept
+              in place for an easy restore. */}
 
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Your name"
-            style={{ width: '100%', marginTop: 14, padding: '12px 14px', background: 'var(--fill-subtle)', border: '1px solid var(--border-strong)', borderRadius: 10, color: 'var(--text)', fontFamily: 'inherit', fontSize: 14, outline: 'none' }}
+            style={{ width: '100%', marginTop: 22, padding: '12px 14px', background: 'var(--fill-subtle)', border: '1px solid var(--border-strong)', borderRadius: 10, color: 'var(--text)', fontFamily: 'inherit', fontSize: 14, outline: 'none' }}
           />
           {error &&<div style={{ color: 'var(--danger-soft)', fontSize: 13, marginTop: 10 }}>{error}</div>}
 
