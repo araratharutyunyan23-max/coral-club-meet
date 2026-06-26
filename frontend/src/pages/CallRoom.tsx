@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ConnectionQuality, ConnectionState, type Room } from 'livekit-client'
+import { ConnectionQuality, ConnectionState, type Room, Track } from 'livekit-client'
 import type { CallView, JoinInfo } from '../lib/types'
 import { useConnectionQuality, useParticipants, useRoomConnection } from '../lib/hooks'
 import { useChat, useReactions } from '../lib/datachannel'
@@ -47,6 +47,12 @@ function CallStage({ room, roomName, reconnecting, isHost }: { room: Room; roomN
   useRaiseHandChime(room)
   const participants = useParticipants(room)
   const alone = participants.length <= 1
+  // Someone presenting a screen → auto-spotlight it (Telemost-style: shared
+  // screen centred, everyone else in the right-hand filmstrip).
+  const sharing = participants.some((p) => {
+    const pub = p.getTrackPublication(Track.Source.ScreenShare)
+    return !!pub?.track && !pub.isMuted
+  })
   const poorConnection = !reconnecting && (quality === ConnectionQuality.Poor || quality === ConnectionQuality.Lost)
 
   // Unread chat badge: count incoming messages while the chat panel is closed.
@@ -89,8 +95,8 @@ function CallStage({ room, roomName, reconnecting, isHost }: { room: Room; roomN
           }}
         >
           {alone ? (
-            <SoloStage room={room} isHost={isHost} />
-          ) : view === 'sidebar' ? (
+            <SoloStage room={room} />
+          ) : sharing || view === 'sidebar' ? (
             <FocusView room={room} isHost={isHost} layout="sidebar" />
           ) : (
             <GridView room={room} isHost={isHost} />
@@ -101,7 +107,7 @@ function CallStage({ room, roomName, reconnecting, isHost }: { room: Room; roomN
 
         <ReactionsOverlay active={reactions.active} />
         {mutedByHost && <MutedByHostToast />}
-        <MeetControls room={room} activePanel={panel} onTogglePanel={togglePanel} unread={unread} view={view} onViewChange={setView} isHost={isHost} recording={recording.active} onToggleRecord={recording.toggle} onReaction={reactions.send} />
+        <MeetControls room={room} activePanel={panel} onTogglePanel={togglePanel} unread={unread} view={view} onViewChange={setView} sharing={sharing} isHost={isHost} recording={recording.active} onToggleRecord={recording.toggle} onReaction={reactions.send} />
 
         {panel && (
           <SidePanel

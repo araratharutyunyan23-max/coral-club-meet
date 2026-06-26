@@ -41,6 +41,7 @@ interface Props {
   unread: number
   view: CallView
   onViewChange: (v: CallView) => void
+  sharing?: boolean
   isHost?: boolean
   recording?: boolean
   onToggleRecord?: () => void
@@ -52,9 +53,10 @@ interface Props {
  * pickers · present · reactions · raise hand · captions · more · end-call) and a
  * bottom-right corner-chrome group (chat · people · Q&A · info). No glass.
  */
-export function MeetControls({ room, activePanel, onTogglePanel, unread, view, onViewChange, isHost = false, recording = false, onToggleRecord, onReaction }: Props) {
+export function MeetControls({ room, activePanel, onTogglePanel, unread, view, onViewChange, sharing = false, isHost = false, recording = false, onToggleRecord, onReaction }: Props) {
   useRoomEvents(room, CONTROL_EVENTS)
   const [popover, setPopover] = useState<null | 'reactions' | 'more' | 'mic' | 'cam'>(null)
+  const [confirmStopShare, setConfirmStopShare] = useState(false)
   const lp = room.localParticipant
 
   const micOn = lp.isMicrophoneEnabled
@@ -69,6 +71,13 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
   const toggleHand = () => void lp.setAttributes({ handRaised: handRaised ? '' : String(Date.now()) }).catch(() => {})
   const leave = () => void room.disconnect()
   const close = () => setPopover(null)
+
+  // If the share ends another way (e.g. the browser's native "Stop sharing"
+  // bar) while the confirm dialog is open, close it — otherwise its button
+  // would toggle the share back ON.
+  useEffect(() => {
+    if (!screenOn && confirmStopShare) setConfirmStopShare(false)
+  }, [screenOn, confirmStopShare])
 
   return (
     <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 92, zIndex: 30, fontFamily: 'var(--font)' }}>
@@ -93,14 +102,21 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
 
         <Divider />
 
-        <RoundBtn title="Present now" accent={screenOn} onClick={toggleScreen}><ScreenShareIcon /></RoundBtn>
+        <RoundBtn
+          title={screenOn ? 'You are presenting — click to stop' : sharing ? 'Someone is already presenting' : 'Present now'}
+          accent={screenOn}
+          disabled={sharing && !screenOn}
+          onClick={() => (screenOn ? setConfirmStopShare(true) : toggleScreen())}
+        >
+          <ScreenShareIcon />
+        </RoundBtn>
         <div style={{ position: 'relative' }}>
           <RoundBtn title="Reactions" active={popover === 'reactions'} onClick={() => setPopover((p) => (p === 'reactions' ? null : 'reactions'))}><ReactIcon /></RoundBtn>
           {popover === 'reactions' && (
             <Popover>
               <div style={{ display: 'flex', gap: 4 }}>
                 {REACTIONS.map((emoji) => (
-                  <button key={emoji} onClick={() => { onReaction?.(emoji); close() }} title={`Send ${emoji}`} style={{ width: 40, height: 40, borderRadius: 10, border: 'none', background: 'transparent', fontSize: 22, cursor: 'pointer' }}>{emoji}</button>
+                  <button key={emoji} onClick={() => onReaction?.(emoji)} title={`Send ${emoji}`} style={{ width: 40, height: 40, borderRadius: 10, border: 'none', background: 'transparent', fontSize: 22, cursor: 'pointer' }}>{emoji}</button>
                 ))}
               </div>
             </Popover>
@@ -152,6 +168,35 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
         <CornerBtn title="Q&A" active={activePanel === 'qa'} onClick={() => onTogglePanel('qa')}><QAIcon size={19} /></CornerBtn>
         <CornerBtn title="Meeting info" active={activePanel === 'info'} onClick={() => onTogglePanel('info')}><InfoGlyph /></CornerBtn>
       </div>
+
+      {confirmStopShare && (
+        <div
+          onClick={() => setConfirmStopShare(false)}
+          style={{ position: 'fixed', inset: 0, zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,.45)' }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ width: 380, maxWidth: '90vw', background: 'var(--bg-elev)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 24, boxShadow: '0 24px 70px rgba(0,0,0,.5)' }}
+          >
+            <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)' }}>Stop sharing your screen?</div>
+            <div style={{ fontSize: 13.5, color: 'var(--text-dim)', marginTop: 8, lineHeight: 1.5 }}>Others will no longer see your screen.</div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 22 }}>
+              <button
+                onClick={() => setConfirmStopShare(false)}
+                style={{ padding: '10px 18px', borderRadius: 11, border: '1px solid var(--border-strong)', background: 'transparent', color: 'var(--text)', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => { void lp.setScreenShareEnabled(false).catch(() => {}); setConfirmStopShare(false) }}
+                style={{ padding: '10px 18px', borderRadius: 11, border: 'none', background: 'var(--danger)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
+              >
+                Stop sharing
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -179,11 +224,13 @@ function SplitButton({ danger, icon, title, onMain, onChevron, popover }: { dang
   )
 }
 
-function RoundBtn({ active, accent, coral, danger, onClick, title, children }: { active?: boolean; accent?: boolean; coral?: boolean; danger?: boolean; onClick: () => void; title: string; children: ReactNode }) {
-  const bg = danger ? 'rgba(239,75,67,.18)' : accent ? (coral ? 'rgba(255,126,99,.18)' : 'var(--teal-tint)') : active ? 'var(--fill-hover)' : 'transparent'
-  const color = danger ? 'var(--danger-soft)' : accent ? (coral ? 'var(--coral)' : 'var(--teal-soft)') : active ? 'var(--text)' : 'var(--text-dim)'
+function RoundBtn({ active, accent, coral, danger, disabled, onClick, title, children }: { active?: boolean; accent?: boolean; coral?: boolean; danger?: boolean; disabled?: boolean; onClick: () => void; title: string; children: ReactNode }) {
+  // Non-coral accent (screen-share active) is a solid teal fill so "you are
+  // presenting" is unmistakable; coral accent (raise hand) stays a soft tint.
+  const bg = danger ? 'rgba(239,75,67,.18)' : accent ? (coral ? 'rgba(255,126,99,.18)' : 'var(--teal)') : active ? 'var(--fill-hover)' : 'transparent'
+  const color = danger ? 'var(--danger-soft)' : accent ? (coral ? 'var(--coral)' : '#04211e') : active ? 'var(--text)' : 'var(--text-dim)'
   return (
-    <button onClick={onClick} title={title} style={{ width: 46, height: 46, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 23, border: 'none', background: bg, color, cursor: 'pointer' }}>{children}</button>
+    <button onClick={onClick} title={title} disabled={disabled} style={{ width: 46, height: 46, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 23, border: 'none', background: bg, color, cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.38 : 1 }}>{children}</button>
   )
 }
 

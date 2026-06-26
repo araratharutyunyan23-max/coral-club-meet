@@ -218,6 +218,25 @@ input {
   }
 }
 
+/* Floating reaction: rises a short way (kept to the lower band) with a
+   per-element horizontal drift (--drift). */
+@keyframes floatreact {
+  0% {
+    transform: translate(0, 0) scale(0.7);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--drift, 0px), -190px) scale(1.04);
+    opacity: 0;
+  }
+}
+
 @keyframes ripple {
   0% {
     transform: scale(0.5);

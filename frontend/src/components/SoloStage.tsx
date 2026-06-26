@@ -10,7 +10,7 @@ import { initialsFor } from './Avatar'
  * lives in the corner-chrome Info panel.) The caller renders this only while
  * alone, so it gives way to the participant grid the moment someone joins.
  */
-export function SoloStage({ room, isHost = false }: { room: Room; isHost?: boolean }) {
+export function SoloStage({ room }: { room: Room }) {
   useParticipants(room) // re-render on local camera toggles
   const videoRef = useRef<HTMLVideoElement>(null)
 
@@ -85,10 +85,6 @@ export function SoloStage({ room, isHost = false }: { room: Room; isHost?: boole
           </div>
         </div>
       )}
-
-      <div style={{ position: 'absolute', left: 18, bottom: 15, display: 'flex', alignItems: 'center', gap: 7, fontSize: 14, fontWeight: 500, color: 'var(--text)', textShadow: showVideo ? '0 1px 6px rgba(0,0,0,.6)' : undefined }}>
-        You{isHost && <span style={{ color: 'var(--text-mute)', fontWeight: 500 }}>· Host</span>}
-      </div>
     </div>
   )
 }

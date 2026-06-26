@@ -1,6 +1,5 @@
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react'
 import { fetchToken } from '../lib/api'
-import { meetingUrl } from '../lib/rooms'
 import type { JoinInfo, Role } from '../lib/types'
 import { Logo } from '../components/Logo'
 import { ThemeToggle } from '../components/ThemeToggle'
@@ -20,7 +19,6 @@ const selectStyle: CSSProperties = {
 
 export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin: (info: JoinInfo) => void }) {
   const [name, setName] = useState('')
-  const [copied, setCopied] = useState(false)
   const [camOn, setCamOn] = useState(false)
   const [micOn, setMicOn] = useState(false)
   const [blur, setBlur] = useState(false)
@@ -116,16 +114,6 @@ export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin
 
   useEffect(() => () => teardown(), [])
 
-  const copyLink = () => {
-    navigator.clipboard
-      .writeText(meetingUrl(room))
-      .then(() => {
-        setCopied(true)
-        window.setTimeout(() => setCopied(false), 1500)
-      })
-      .catch(() => {})
-  }
-
   async function handleJoin() {
     if (!name.trim()) {
       setError('Enter your name')
@@ -194,7 +182,7 @@ export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin
         </div>
 
         {/* join card */}
-        <div style={{ flex: '0 0 380px', maxWidth: '100%', background: 'var(--bg-elev)', border: '1px solid var(--border)', borderRadius: 16, padding: 26 }}>
+        <div style={{ flex: '0 0 300px', maxWidth: '100%', background: 'var(--bg-elev)', border: '1px solid var(--border)', borderRadius: 16, padding: 20 }}>
           <div style={{ fontSize: 23, fontWeight: 700, letterSpacing: '-.01em' }}>Ready to join?</div>
           <div style={{ fontSize: 13, color: 'var(--text-mute)', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{room}</div>
 
@@ -212,18 +200,7 @@ export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin
             placeholder="Your name"
             style={{ width: '100%', marginTop: 14, padding: '12px 14px', background: 'var(--fill-subtle)', border: '1px solid var(--border-strong)', borderRadius: 10, color: 'var(--text)', fontFamily: 'inherit', fontSize: 14, outline: 'none' }}
           />
-          <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8, padding: '9px 10px 9px 12px', background: 'var(--fill-subtle)', border: '1px solid var(--border)', borderRadius: 10 }}>
-            <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, color: 'var(--text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{meetingUrl(room)}</span>
-            <button
-              onClick={copyLink}
-              title="Copy meeting link"
-              style={{ flex: '0 0 auto', padding: '6px 12px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'transparent', color: copied ? 'var(--teal-soft)' : 'var(--text)', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}
-            >
-              {copied ? 'Copied ✓' : 'Copy link'}
-            </button>
-          </div>
-
-          {error && <div style={{ color: 'var(--danger-soft)', fontSize: 13, marginTop: 10 }}>{error}</div>}
+          {error &&<div style={{ color: 'var(--danger-soft)', fontSize: 13, marginTop: 10 }}>{error}</div>}
 
           <button onClick={handleJoin} disabled={busy} style={{ width: '100%', marginTop: 14, padding: 14, borderRadius: 11, border: 'none', background: 'linear-gradient(135deg, var(--teal), var(--teal-bright))', color: '#04211e', fontSize: 15, fontWeight: 700, cursor: 'pointer', opacity: busy ? 0.6 : 1, boxShadow: '0 10px 28px rgba(37,208,192,0.4), inset 0 1px 0 rgba(255,255,255,0.35)' }}>
             {busy ? 'Joining…' : 'Join now'}

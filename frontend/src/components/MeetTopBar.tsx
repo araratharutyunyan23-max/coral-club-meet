@@ -47,16 +47,16 @@ export function MeetTopBar({ room, roomName, recording = false }: { room: Room; 
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '5px 7px 5px 13px', borderRadius: 99, background: 'var(--fill-subtle)', border: '1px solid var(--border)' }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text)', fontSize: 12.5, fontWeight: 600 }}>
-            <PeopleIcon size={15} style={{ color: 'var(--text-dim)' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '7px 9px 7px 16px', borderRadius: 99, background: 'var(--fill-subtle)', border: '1px solid var(--border)' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 7, color: 'var(--text)', fontSize: 14.5, fontWeight: 600 }}>
+            <PeopleIcon size={18} style={{ color: 'var(--text-dim)' }} />
             {participants.length}
           </span>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             {avatars.map((t, i) => (
               <div
                 key={i}
-                style={{ width: 25, height: 25, borderRadius: '50%', background: 'var(--teal-tint)', border: '2px solid var(--surround)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 600, color: 'var(--teal-soft)', marginLeft: i === 0 ? 0 : -9 }}
+                style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--teal-tint)', border: '2px solid var(--surround)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11.5, fontWeight: 600, color: 'var(--teal-soft)', marginLeft: i === 0 ? 0 : -10 }}
               >
                 {t}
               </div>
