@@ -21,28 +21,32 @@ function playJoinChime(): void {
     const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
     const ctx = new Ctx()
     const now = ctx.currentTime
-    // A soft, mellow rising "woop": a triangle wave that glides up in pitch,
-    // with a faint sub-octave underneath for warmth. Deliberately different in
-    // both timbre (triangle vs sine) and shape (one gliding gesture vs two
-    // discrete beeps) from the raise-hand chime, so the two are easy to tell
-    // apart by ear.
-    const voice = (type: OscillatorType, from: number, to: number, peak: number) => {
-      const osc = ctx.createOscillator()
-      const gain = ctx.createGain()
-      osc.type = type
-      osc.frequency.setValueAtTime(from, now)
-      osc.frequency.exponentialRampToValueAtTime(to, now + 0.16)
-      osc.connect(gain)
-      gain.connect(ctx.destination)
-      gain.gain.setValueAtTime(0.0001, now)
-      gain.gain.exponentialRampToValueAtTime(peak, now + 0.025)
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5)
-      osc.start(now)
-      osc.stop(now + 0.55)
+    // A soft "ding-dong" doorbell: two descending bell notes (E5 → C5), each
+    // built from a fundamental plus a couple of partials for a bell-like timbre
+    // with a fast attack and long tail. Clearly different from the raise-hand
+    // chime and the earlier rising tone, and instantly reads as "someone here".
+    const bell = (freq: number, at: number, peak: number) => {
+      ;[
+        [1, peak],
+        [2.01, peak * 0.4],
+        [3.0, peak * 0.14],
+      ].forEach(([mult, vol]) => {
+        const osc = ctx.createOscillator()
+        const gain = ctx.createGain()
+        osc.type = 'sine'
+        osc.frequency.value = freq * mult
+        osc.connect(gain)
+        gain.connect(ctx.destination)
+        gain.gain.setValueAtTime(0.0001, at)
+        gain.gain.exponentialRampToValueAtTime(vol, at + 0.008)
+        gain.gain.exponentialRampToValueAtTime(0.0001, at + 0.7)
+        osc.start(at)
+        osc.stop(at + 0.75)
+      })
     }
-    voice('triangle', 440, 659.25, 0.13) // A4 → E5, the body of the tone
-    voice('sine', 220, 329.63, 0.05) // sub-octave for warmth
-    window.setTimeout(() => ctx.close().catch(() => {}), 1200)
+    bell(659.25, now, 0.12) // "ding" — E5
+    bell(523.25, now + 0.2, 0.12) // "dong" — C5
+    window.setTimeout(() => ctx.close().catch(() => {}), 1400)
   } catch {
     /* audio unavailable — silent */
   }
