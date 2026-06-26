@@ -21,22 +21,27 @@ function playJoinChime(): void {
     const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
     const ctx = new Ctx()
     const now = ctx.currentTime
-    // A warm rising perfect fifth (C5 → G5) — friendlier and distinct from the
-    // brighter raise-hand chime so the two are easy to tell apart.
-    ;[523.25, 783.99].forEach((freq, i) => {
+    // A soft, mellow rising "woop": a triangle wave that glides up in pitch,
+    // with a faint sub-octave underneath for warmth. Deliberately different in
+    // both timbre (triangle vs sine) and shape (one gliding gesture vs two
+    // discrete beeps) from the raise-hand chime, so the two are easy to tell
+    // apart by ear.
+    const voice = (type: OscillatorType, from: number, to: number, peak: number) => {
       const osc = ctx.createOscillator()
       const gain = ctx.createGain()
-      osc.type = 'sine'
-      osc.frequency.value = freq
+      osc.type = type
+      osc.frequency.setValueAtTime(from, now)
+      osc.frequency.exponentialRampToValueAtTime(to, now + 0.16)
       osc.connect(gain)
       gain.connect(ctx.destination)
-      const t = now + i * 0.14
-      gain.gain.setValueAtTime(0.0001, t)
-      gain.gain.exponentialRampToValueAtTime(0.1, t + 0.02)
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.4)
-      osc.start(t)
-      osc.stop(t + 0.45)
-    })
+      gain.gain.setValueAtTime(0.0001, now)
+      gain.gain.exponentialRampToValueAtTime(peak, now + 0.025)
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5)
+      osc.start(now)
+      osc.stop(now + 0.55)
+    }
+    voice('triangle', 440, 659.25, 0.13) // A4 → E5, the body of the tone
+    voice('sine', 220, 329.63, 0.05) // sub-octave for warmth
     window.setTimeout(() => ctx.close().catch(() => {}), 1200)
   } catch {
     /* audio unavailable — silent */
