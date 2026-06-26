@@ -46,6 +46,7 @@ interface Props {
   recording?: boolean
   onToggleRecord?: () => void
   onReaction?: (emoji: string) => void
+  onOpenPip?: () => void
 }
 
 /**
@@ -53,7 +54,7 @@ interface Props {
  * pickers · present · reactions · raise hand · captions · more · end-call) and a
  * bottom-right corner-chrome group (chat · people · Q&A · info). No glass.
  */
-export function MeetControls({ room, activePanel, onTogglePanel, unread, view, onViewChange, sharing = false, isHost = false, recording = false, onToggleRecord, onReaction }: Props) {
+export function MeetControls({ room, activePanel, onTogglePanel, unread, view, onViewChange, sharing = false, isHost = false, onReaction, onOpenPip }: Props) {
   useRoomEvents(room, CONTROL_EVENTS)
   const [popover, setPopover] = useState<null | 'reactions' | 'more' | 'mic' | 'cam'>(null)
   const [confirmStopShare, setConfirmStopShare] = useState(false)
@@ -140,13 +141,24 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
                     </button>
                   ))}
                 </div>
+                {onOpenPip && (
+                  <button
+                    onClick={() => { onOpenPip(); close() }}
+                    style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 9, padding: '10px', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, background: 'var(--fill-subtle)', color: 'var(--text)' }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--teal-soft)" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="14" rx="2" /><rect x="12" y="11" width="7" height="5" rx="1" fill="var(--teal-soft)" stroke="none" /></svg>
+                    Mini window
+                  </button>
+                )}
                 {isHost && (
                   <button
-                    onClick={() => { onToggleRecord?.(); close() }}
-                    style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 9, padding: '10px', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, background: recording ? 'rgba(239,75,67,.14)' : 'var(--fill-subtle)', color: recording ? 'var(--danger-soft)' : 'var(--text)' }}
+                    disabled
+                    title="Recording isn't available yet"
+                    style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 9, padding: '10px', borderRadius: 9, border: 'none', cursor: 'not-allowed', fontSize: 13, fontWeight: 600, background: 'var(--fill-subtle)', color: 'var(--text-mute)', opacity: 0.55 }}
                   >
                     <RecordIcon size={16} />
-                    {recording ? 'Stop recording' : 'Record meeting'}
+                    Record meeting
+                    <span style={{ marginLeft: 'auto', fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '.08em', color: 'var(--text-mute)' }}>SOON</span>
                   </button>
                 )}
               </div>

@@ -182,7 +182,7 @@ export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin
         </div>
 
         {/* join card */}
-        <div style={{ flex: '0 0 300px', maxWidth: '100%', background: 'var(--bg-elev)', border: '1px solid var(--border)', borderRadius: 16, padding: 20 }}>
+        <div style={{ flex: '0 0 360px', maxWidth: '100%', background: 'var(--bg-elev)', border: '1px solid var(--border)', borderRadius: 16, padding: 24 }}>
           <div style={{ fontSize: 23, fontWeight: 700, letterSpacing: '-.01em' }}>Ready to join?</div>
           <div style={{ fontSize: 13, color: 'var(--text-mute)', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{room}</div>
 

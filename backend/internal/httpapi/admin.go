@@ -3,6 +3,7 @@ package httpapi
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"strings"
 
@@ -30,6 +31,7 @@ func (s *Server) handleMute(w http.ResponseWriter, r *http.Request) {
 			writeError(w, http.StatusNotFound, "participant not found")
 			return
 		}
+		log.Printf("admin mute %q/%q failed: %v", req.Room, req.Identity, err)
 		writeError(w, http.StatusBadGateway, "failed to mute participant")
 		return
 	}
@@ -75,6 +77,7 @@ func (s *Server) handleMuteAll(w http.ResponseWriter, r *http.Request) {
 	}
 	muted, err := s.moderator.MuteAll(req.Room, strings.TrimSpace(req.Except))
 	if err != nil {
+		log.Printf("admin mute-all %q failed: %v", req.Room, err)
 		writeError(w, http.StatusBadGateway, "failed to mute participants")
 		return
 	}

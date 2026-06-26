@@ -7,6 +7,7 @@ import { useQA } from '../lib/qa'
 import { useMutedByHost } from '../lib/moderation'
 import { useRecording } from '../lib/recording'
 import { useRaiseHandChime } from '../lib/raisehand'
+import { useCallPip } from '../lib/callpip'
 import { RippleLoader } from '../components/RippleLoader'
 import { MeetTopBar } from '../components/MeetTopBar'
 import { MeetControls } from '../components/MeetControls'
@@ -45,6 +46,7 @@ function CallStage({ room, roomName, reconnecting, isHost }: { room: Room; roomN
   const quality = useConnectionQuality(room)
   const mutedByHost = useMutedByHost(room)
   useRaiseHandChime(room)
+  const pip = useCallPip(room, () => void room.disconnect())
   const participants = useParticipants(room)
   const alone = participants.length <= 1
   // Someone presenting a screen → auto-spotlight it (Telemost-style: shared
@@ -107,7 +109,7 @@ function CallStage({ room, roomName, reconnecting, isHost }: { room: Room; roomN
 
         <ReactionsOverlay active={reactions.active} />
         {mutedByHost && <MutedByHostToast />}
-        <MeetControls room={room} activePanel={panel} onTogglePanel={togglePanel} unread={unread} view={view} onViewChange={setView} sharing={sharing} isHost={isHost} recording={recording.active} onToggleRecord={recording.toggle} onReaction={reactions.send} />
+        <MeetControls room={room} activePanel={panel} onTogglePanel={togglePanel} unread={unread} view={view} onViewChange={setView} sharing={sharing} isHost={isHost} recording={recording.active} onToggleRecord={recording.toggle} onReaction={reactions.send} onOpenPip={pip.supported ? pip.open : undefined} />
 
         {panel && (
           <SidePanel
