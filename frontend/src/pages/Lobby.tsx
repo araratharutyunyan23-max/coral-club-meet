@@ -22,6 +22,7 @@ export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin
   const [camOn, setCamOn] = useState(false)
   const [micOn, setMicOn] = useState(false)
   const [blur, setBlur] = useState(false)
+  const [remember, setRemember] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -114,6 +115,21 @@ export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin
 
   useEffect(() => () => teardown(), [])
 
+  // Restore a previously remembered display name so returning users don't have
+  // to type it again (the "Remember my name" checkbox controls whether we keep
+  // storing it).
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('coral-meet-name')
+      if (saved) {
+        setName(saved)
+        setRemember(true)
+      }
+    } catch {
+      // localStorage unavailable (private mode / blocked) — just skip.
+    }
+  }, [])
+
   async function handleJoin() {
     if (!name.trim()) {
       setError('Enter your name')
@@ -121,6 +137,12 @@ export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin
     }
     setBusy(true)
     setError(null)
+    try {
+      if (remember) localStorage.setItem('coral-meet-name', name.trim())
+      else localStorage.removeItem('coral-meet-name')
+    } catch {
+      // localStorage unavailable — joining still proceeds.
+    }
     teardown()
     try {
       const slug = name.trim().toLowerCase().replace(/\s+/g, '-')
@@ -198,6 +220,11 @@ export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin
             placeholder="Your name"
             style={{ width: '100%', marginTop: 22, padding: '12px 14px', background: 'var(--fill-subtle)', border: '1px solid var(--border-strong)', borderRadius: 10, color: 'var(--text)', fontFamily: 'inherit', fontSize: 14, outline: 'none' }}
           />
+
+          <label style={{ display: 'flex', alignItems: 'center', gap: 9, marginTop: 12, cursor: 'pointer', fontSize: 13, color: 'var(--text-dim)', userSelect: 'none' }}>
+            <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} style={{ width: 16, height: 16, accentColor: 'var(--teal)', cursor: 'pointer' }} />
+            Remember my name
+          </label>
           {error &&<div style={{ color: 'var(--danger-soft)', fontSize: 13, marginTop: 10 }}>{error}</div>}
 
           <button onClick={handleJoin} disabled={busy} style={{ width: '100%', marginTop: 14, padding: 14, borderRadius: 11, border: 'none', background: 'linear-gradient(135deg, var(--teal), var(--teal-bright))', color: '#04211e', fontSize: 15, fontWeight: 700, cursor: 'pointer', opacity: busy ? 0.6 : 1, boxShadow: '0 10px 28px rgba(37,208,192,0.4), inset 0 1px 0 rgba(255,255,255,0.35)' }}>
