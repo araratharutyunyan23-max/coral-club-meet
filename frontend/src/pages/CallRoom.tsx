@@ -7,6 +7,7 @@ import { useQA } from '../lib/qa'
 import { useMutedByHost } from '../lib/moderation'
 import { useRecording } from '../lib/recording'
 import { useRaiseHandChime } from '../lib/raisehand'
+import { useJoinChime } from '../lib/joinchime'
 import { useCallPip } from '../lib/callpip'
 import { RippleLoader } from '../components/RippleLoader'
 import { MeetTopBar } from '../components/MeetTopBar'
@@ -46,6 +47,7 @@ function CallStage({ room, roomName, reconnecting, isHost }: { room: Room; roomN
   const quality = useConnectionQuality(room)
   const mutedByHost = useMutedByHost(room)
   useRaiseHandChime(room)
+  useJoinChime(room)
   const pip = useCallPip(room, () => void room.disconnect())
   const participants = useParticipants(room)
   const alone = participants.length <= 1
