@@ -1,0 +1,22 @@
+# dependencies / build output
+node_modules/
+frontend/dist/
+backend/bin/
+
+# env / secrets
+.env
+*.local
+
+# logs / os
+*.log
+.DS_Store
+
+# recordings output (keep the folder, ignore the files)
+/recordings/*
+!/recordings/.gitkeep
+
+# local docker overrides (e.g. tunnel exposure)
+docker-compose.override.yml
+
+# generated design previews
+/design-previews/

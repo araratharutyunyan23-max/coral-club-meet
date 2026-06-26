@@ -1,0 +1,268 @@
+/* Coral Club Meet — design tokens and global styles.
+   Palette and type mirror the approved design (teal/aqua primary, warm coral
+   secondary, Hanken Grotesk + JetBrains Mono on a near-black surface). */
+
+:root {
+  --bg: #0a0b0d;
+  --bg-elev: #0e1116;
+  --surface: #15181d;
+  --surface-2: #13161b;
+
+  --border: rgba(255, 255, 255, 0.06);
+  --border-strong: rgba(255, 255, 255, 0.12);
+
+  --text: #eef1f3;
+  --text-dim: #9aa3ad;
+  --text-mute: #8b949e;
+
+  --teal: #25d0c0;
+  --teal-bright: #34e6d3;
+  --teal-soft: #7fe6db;
+  --teal-tint: rgba(37, 208, 192, 0.16);
+
+  --coral: #ff7e63;
+  --danger: #ef4b43;
+  --danger-soft: #ff6b61;
+
+  --font: 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --radius: 14px;
+  --radius-sm: 10px;
+
+  /* ===== Coral Club atmosphere =====
+     Deep petrol base + off-center teal/coral ambient glow + vignette + fine
+     grain (anti-banding). Swap the rgba teal/coral when official hex arrives. */
+  --atmo-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  --atmosphere: var(--atmo-grain) repeat,
+    radial-gradient(125% 90% at 84% 6%, rgba(37, 208, 192, 0.14), transparent 52%),
+    radial-gradient(90% 80% at 8% 98%, rgba(255, 126, 99, 0.07), transparent 55%),
+    radial-gradient(150% 130% at 50% 40%, transparent 55%, rgba(2, 7, 8, 0.6)),
+    linear-gradient(160deg, #070a0c 0%, #091014 46%, #08161a 100%);
+
+  /* Milder, content-first depth for the in-call stage (video stays the hero). */
+  --atmosphere-mild: radial-gradient(70% 55% at 88% 2%, rgba(37, 208, 192, 0.06), transparent 58%),
+    linear-gradient(165deg, #080b0e 0%, #0a1216 60%, #0a1519 100%);
+
+  /* Semantic fills + floating-chrome glass (themeable). */
+  --fill-subtle: rgba(255, 255, 255, 0.04);
+  --fill-hover: rgba(255, 255, 255, 0.07);
+  --glass: rgba(16, 18, 22, 0.72);
+
+  /* Gentle, quiet Ripple rings in the solo/waiting stage. */
+  --ripple-ring: rgba(37, 208, 192, 0.6);
+
+  /* Flat near-black surround the inset call stage floats on (Meet-restraint). */
+  --surround: #0b0d0f;
+
+  color-scheme: dark;
+}
+
+/* ===== Tide — the light theme ===== */
+/* Warm paper base, white surfaces, deepened teal for AA contrast, coral kept
+   for moments. Designed, not inverted. */
+[data-theme='light'] {
+  --bg: #eef3f1;
+  --bg-elev: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f1f5f3;
+
+  --border: rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.14);
+
+  --text: #0e1a18;
+  --text-dim: #46555c;
+  --text-mute: #5d6c69;
+
+  --teal: #0f9c8d;
+  --teal-bright: #16b3a2;
+  --teal-soft: #0c7d70;
+  --teal-tint: rgba(15, 156, 141, 0.14);
+
+  --coral: #ff6f55;
+  --danger: #e5483f;
+  --danger-soft: #c23a32;
+
+  --fill-subtle: rgba(0, 0, 0, 0.04);
+  --fill-hover: rgba(0, 0, 0, 0.06);
+  --glass: rgba(255, 255, 255, 0.72);
+
+  --ripple-ring: rgba(15, 156, 141, 0.55);
+  --surround: #e8efeb;
+
+  --atmosphere: radial-gradient(120% 80% at 86% 2%, rgba(15, 156, 141, 0.1), transparent 55%),
+    linear-gradient(165deg, #eef3f1 0%, #e7efec 60%, #e3edea 100%);
+  --atmosphere-mild: radial-gradient(70% 55% at 88% 2%, rgba(15, 156, 141, 0.07), transparent 58%),
+    linear-gradient(165deg, #eef3f1 0%, #e9f1ee 100%);
+
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--atmosphere);
+  background-attachment: fixed;
+  color: var(--text);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Living depth: a slow-breathing teal glow behind the app (compositor-only). */
+body::before {
+  content: '';
+  position: fixed;
+  inset: -20%;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(40% 38% at 84% 8%, rgba(37, 208, 192, 0.1), transparent 60%);
+  animation: drift 22s ease-in-out infinite;
+}
+
+/* Native <select> dropdown options are drawn by the browser; force readable
+   dark styling so they aren't light-on-light in the dark theme. */
+select option {
+  background: var(--bg-elev);
+  color: var(--text);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform 0.12s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+button:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+button:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+input {
+  font-family: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@keyframes speak {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px rgba(37, 208, 192, 0.16), 0 0 20px rgba(37, 208, 192, 0.26);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(37, 208, 192, 0.24), 0 0 30px rgba(37, 208, 192, 0.36);
+  }
+}
+
+@keyframes recblink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes slidein {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes floatup {
+  0% {
+    transform: translateY(0) scale(0.8);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-300px) scale(1.05);
+    opacity: 0;
+  }
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0.5);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+/* Slow, quiet expanding ring for the solo/waiting avatar (centered via translate). */
+@keyframes rippleSlow {
+  0% {
+    transform: translate(-50%, -50%) scale(0.85);
+    opacity: 0.6;
+  }
+  65% {
+    opacity: 0.14;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2.6);
+    opacity: 0;
+  }
+}
+
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: translate3d(-3%, 2%, 0) scale(1.08);
+    opacity: 1;
+  }
+}
+
+/* Respect users who prefer reduced motion: drop the ambient/looping animations. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

@@ -1,0 +1,53 @@
+name: coral-club-meet
+
+# Local development stack. Host networking so WebRTC media (UDP) works without
+# enumerating port ranges (Linux-only convenience). The frontend runs separately
+# with `npm run dev` (see the Makefile / README).
+
+services:
+  redis:
+    image: redis:7-alpine
+    command: ['redis-server', '--port', '6399']
+    network_mode: host
+    restart: unless-stopped
+
+  livekit:
+    image: livekit/livekit-server:latest
+    command: --config /etc/livekit.yaml
+    volumes:
+      - ./infra/livekit.yaml:/etc/livekit.yaml:ro
+    network_mode: host
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  egress:
+    image: livekit/egress:latest
+    environment:
+      EGRESS_CONFIG_FILE: /etc/egress.yaml
+    volumes:
+      - ./infra/egress.yaml:/etc/egress.yaml:ro
+      - ./recordings:/out
+    cap_add:
+      - SYS_ADMIN
+    network_mode: host
+    depends_on:
+      - redis
+      - livekit
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    network_mode: host
+    environment:
+      PORT: "8080"
+      LIVEKIT_URL: "ws://localhost:7880"
+      LIVEKIT_DEV: "true"
+      ALLOWED_ORIGINS: "http://localhost:5173"
+      RECORDINGS_DIR: "/recordings"
+      EGRESS_OUT_DIR: "/out"
+    volumes:
+      - ./recordings:/recordings
+    depends_on:
+      - livekit
+    restart: unless-stopped
