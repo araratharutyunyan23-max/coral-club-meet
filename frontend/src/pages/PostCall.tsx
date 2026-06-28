@@ -40,61 +40,7 @@ export function PostCall({ summary, onRejoin, onExit }: { summary: CallSummary; 
         {summary.room} · Duration {formatDuration(summary.durationSec)}
       </div>
 
-      <div
-        style={{
-          width: 420,
-          maxWidth: '90%',
-          marginTop: 30,
-          background: 'var(--bg-elev)',
-          border: '1px solid var(--border)',
-          borderRadius: 14,
-          padding: 22,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left' }}>
-          <div
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 10,
-              background: 'var(--teal-tint)',
-              border: '1px solid rgba(37,208,192,.25)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--teal-soft)',
-              flex: '0 0 auto',
-            }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M23 7l-7 5 7 5z" />
-              <rect x="1" y="5" width="15" height="14" rx="2" />
-            </svg>
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 13.5, fontWeight: 600 }}>Recording</div>
-            <div style={{ fontSize: 12, color: 'var(--text-mute)' }}>Ready in a few minutes</div>
-          </div>
-          <button
-            onClick={() => window.open('/recordings/', '_blank', 'noopener')}
-            title="Open recordings"
-            style={{
-              padding: '8px 14px',
-              borderRadius: 9,
-              border: '1px solid rgba(37,208,192,.4)',
-              background: 'rgba(37,208,192,.1)',
-              color: 'var(--teal-soft)',
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
-          >
-            View recording
-          </button>
-        </div>
-      </div>
-
-      <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
+      <div style={{ display: 'flex', gap: 12, marginTop: 28 }}>
         <button
           onClick={onRejoin}
           style={{
