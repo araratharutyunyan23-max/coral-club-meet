@@ -39,12 +39,10 @@ export function MeetTopBar({ room, roomName, recording = false }: { room: Room; 
   const avatars = participants.slice(0, 3).map((p) => initialsFor(p.name || p.identity))
 
   return (
-    <header style={{ height: 56, flex: '0 0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 22px' }}>
+    <header style={{ height: 56, flex: '0 0 auto', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 22px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--text-dim)', fontSize: 12.5 }}>
         <RippleMark size={19} />
         <div style={{ width: 1, height: 15, background: 'var(--border-strong)' }} />
-        <span style={{ fontFamily: 'var(--mono)', fontSize: 12.5, color: 'var(--text)' }} title="Call duration">{elapsed}</span>
-        <span style={{ opacity: 0.4 }}>·</span>
         <span style={{ fontFamily: 'var(--mono)', fontSize: 12.5, letterSpacing: '.02em' }}>{roomName}</span>
         {recording && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 4, padding: '3px 9px', background: 'rgba(239,75,67,.13)', border: '1px solid rgba(239,75,67,.3)', borderRadius: 7 }}>
@@ -53,6 +51,14 @@ export function MeetTopBar({ room, roomName, recording = false }: { room: Room; 
           </div>
         )}
       </div>
+
+      {/* Call duration, centred in the bar */}
+      <span
+        style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', fontFamily: 'var(--mono)', fontSize: 17, fontWeight: 500, letterSpacing: '.06em', color: 'var(--text)' }}
+        title="Call duration"
+      >
+        {elapsed}
+      </span>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '7px 9px 7px 16px', borderRadius: 99, background: 'var(--fill-subtle)', border: '1px solid var(--border)' }}>
