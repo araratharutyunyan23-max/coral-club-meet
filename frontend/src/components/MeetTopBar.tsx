@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Room } from 'livekit-client'
 import { RippleMark } from './Logo'
 import { ThemeToggle } from './ThemeToggle'
@@ -6,28 +6,36 @@ import { PeopleIcon } from '../lib/icons'
 import { useParticipants } from '../lib/hooks'
 import { initialsFor } from './Avatar'
 
-function formatNow(): string {
-  const d = new Date()
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+/** Elapsed call time as MM:SS (or H:MM:SS once past an hour). */
+function formatElapsed(ms: number): string {
+  const total = Math.max(0, Math.floor(ms / 1000))
+  const h = Math.floor(total / 3600)
+  const m = Math.floor((total % 3600) / 60)
+  const s = total % 60
+  const mm = String(m).padStart(2, '0')
+  const ss = String(s).padStart(2, '0')
+  return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`
 }
 
-function useClock(): string {
-  const [time, setTime] = useState(formatNow)
+/** Live call duration, ticking every second from when the call UI mounted. */
+function useElapsed(): string {
+  const start = useRef(Date.now())
+  const [, tick] = useState(0)
   useEffect(() => {
-    const id = setInterval(() => setTime(formatNow()), 1000)
+    const id = setInterval(() => tick((n) => n + 1), 1000)
     return () => clearInterval(id)
   }, [])
-  return time
+  return formatElapsed(Date.now() - start.current)
 }
 
 /**
- * Minimal Meet-style top line: Ripple mark · clock · meeting code · info on the
+ * Minimal Meet-style top line: Ripple mark · call timer · meeting code · info on the
  * left; a participant-count pill with stacked avatars (plus the theme toggle and
  * a REC indicator) on the right. Flat — no glass.
  */
 export function MeetTopBar({ room, roomName, recording = false }: { room: Room; roomName: string; recording?: boolean }) {
   const participants = useParticipants(room)
-  const clock = useClock()
+  const elapsed = useElapsed()
   const avatars = participants.slice(0, 3).map((p) => initialsFor(p.name || p.identity))
 
   return (
@@ -35,7 +43,7 @@ export function MeetTopBar({ room, roomName, recording = false }: { room: Room; 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--text-dim)', fontSize: 12.5 }}>
         <RippleMark size={19} />
         <div style={{ width: 1, height: 15, background: 'var(--border-strong)' }} />
-        <span style={{ fontFamily: 'var(--mono)', fontSize: 12.5, color: 'var(--text)' }}>{clock}</span>
+        <span style={{ fontFamily: 'var(--mono)', fontSize: 12.5, color: 'var(--text)' }} title="Call duration">{elapsed}</span>
         <span style={{ opacity: 0.4 }}>·</span>
         <span style={{ fontFamily: 'var(--mono)', fontSize: 12.5, letterSpacing: '.02em' }}>{roomName}</span>
         {recording && (
