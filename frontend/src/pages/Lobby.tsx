@@ -205,9 +205,6 @@ export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin
 
         {/* join card */}
         <div style={{ flex: '0 0 360px', maxWidth: '100%', background: 'var(--bg-elev)', border: '1px solid var(--border)', borderRadius: 16, padding: 24 }}>
-          <div style={{ fontSize: 23, fontWeight: 700, letterSpacing: '-.01em' }}>Ready to join?</div>
-          <div style={{ fontSize: 13, color: 'var(--text-mute)', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{room}</div>
-
           {/* Device pickers (camera / mic / speakers) and the Background blur
               toggle are temporarily hidden — мы к ним вернёмся позже. Joining
               uses the system default devices in the meantime. The supporting
@@ -218,7 +215,7 @@ export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Your name"
-            style={{ width: '100%', marginTop: 22, padding: '12px 14px', background: 'var(--fill-subtle)', border: '1px solid var(--border-strong)', borderRadius: 10, color: 'var(--text)', fontFamily: 'inherit', fontSize: 14, outline: 'none' }}
+            style={{ width: '100%', padding: '12px 14px', background: 'var(--fill-subtle)', border: '1px solid var(--border-strong)', borderRadius: 10, color: 'var(--text)', fontFamily: 'inherit', fontSize: 14, outline: 'none' }}
           />
 
           <label style={{ display: 'flex', alignItems: 'center', gap: 9, marginTop: 12, cursor: 'pointer', fontSize: 13, color: 'var(--text-dim)', userSelect: 'none' }}>
