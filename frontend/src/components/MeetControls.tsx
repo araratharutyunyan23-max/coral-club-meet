@@ -13,7 +13,6 @@ import {
   MicOffIcon,
   MoreIcon,
   PeopleIcon,
-  QAIcon,
   ReactIcon,
   RecordIcon,
   ScreenShareIcon,
@@ -52,7 +51,7 @@ interface Props {
 /**
  * Flat Meet-style control bar: a centered cluster (mic & camera with device
  * pickers · present · reactions · raise hand · captions · more · end-call) and a
- * bottom-right corner-chrome group (chat · people · Q&A · info). No glass.
+ * bottom-right corner-chrome group (chat · people). No glass.
  */
 export function MeetControls({ room, activePanel, onTogglePanel, unread, view, onViewChange, sharing = false, isHost = false, onReaction, onOpenPip }: Props) {
   useRoomEvents(room, CONTROL_EVENTS)
@@ -177,8 +176,6 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
       <div style={{ position: 'absolute', right: 20, top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', gap: 3 }}>
         <CornerBtn title="Chat" active={activePanel === 'chat'} badge={unread} onClick={() => onTogglePanel('chat')}><ChatIcon size={19} /></CornerBtn>
         <CornerBtn title="People" active={activePanel === 'participants'} onClick={() => onTogglePanel('participants')}><PeopleIcon size={19} /></CornerBtn>
-        <CornerBtn title="Q&A" active={activePanel === 'qa'} onClick={() => onTogglePanel('qa')}><QAIcon size={19} /></CornerBtn>
-        <CornerBtn title="Meeting info" active={activePanel === 'info'} onClick={() => onTogglePanel('info')}><InfoGlyph /></CornerBtn>
       </div>
 
       {confirmStopShare && (
@@ -303,14 +300,4 @@ function DevicePicker({ room, kind, onClose }: { room: Room; kind: 'audioinput' 
 
 function Divider() {
   return <div style={{ width: 1, height: 26, background: 'var(--border-strong)', margin: '0 3px' }} />
-}
-
-function InfoGlyph() {
-  return (
-    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="9" />
-      <line x1="12" y1="11" x2="12" y2="16" />
-      <line x1="12" y1="8" x2="12.01" y2="8" />
-    </svg>
-  )
 }
