@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { Room } from 'livekit-client'
 import { RippleMark } from './Logo'
 import { ThemeToggle } from './ThemeToggle'
@@ -17,15 +17,25 @@ function formatElapsed(ms: number): string {
   return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`
 }
 
-/** Live call duration, ticking every second from when the call UI mounted. */
-function useElapsed(): string {
-  const start = useRef(Date.now())
+/** Meeting start = the earliest still-present participant's server-assigned join
+ *  time, so every client (including late joiners) shows the same running
+ *  duration instead of counting from their own arrival. */
+function meetingStartMs(room: Room): number {
+  const all = [room.localParticipant, ...room.remoteParticipants.values()]
+  const times = all
+    .map((p) => p.joinedAt?.getTime())
+    .filter((t): t is number => typeof t === 'number' && Number.isFinite(t) && t > 0)
+  return times.length ? Math.min(...times) : Date.now()
+}
+
+/** Live meeting duration (shared across participants), ticking every second. */
+function useElapsed(room: Room): string {
   const [, tick] = useState(0)
   useEffect(() => {
     const id = setInterval(() => tick((n) => n + 1), 1000)
     return () => clearInterval(id)
   }, [])
-  return formatElapsed(Date.now() - start.current)
+  return formatElapsed(Date.now() - meetingStartMs(room))
 }
 
 /**
@@ -35,7 +45,7 @@ function useElapsed(): string {
  */
 export function MeetTopBar({ room, roomName, recording = false }: { room: Room; roomName: string; recording?: boolean }) {
   const participants = useParticipants(room)
-  const elapsed = useElapsed()
+  const elapsed = useElapsed(room)
   const isMobile = useIsMobile()
   const avatars = participants.slice(0, 3).map((p) => initialsFor(p.name || p.identity))
 
