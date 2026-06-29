@@ -44,13 +44,6 @@ export function Home({ onCreate, onJoinCode }: { onCreate: () => void; onJoinCod
       <div className="home-stage">
         <div className="home-hero">
           <div className="copy">
-            <div className="eyebrow">Coral Club · Meet</div>
-            <h1>
-              Gather
-              <br />
-              the club.
-            </h1>
-            <p className="lede">Spin up a room and share one link. Everyone you invite ripples in — calm, fast, beautifully simple.</p>
             <div className="cta-row">
               <button className="cta" onClick={onCreate}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -59,7 +52,6 @@ export function Home({ onCreate, onJoinCode }: { onCreate: () => void; onJoinCod
                 </svg>
                 Create video meeting
               </button>
-              <span className="helper">Get a link to share</span>
             </div>
             <div className="subjoin">
               {showCode ? (
