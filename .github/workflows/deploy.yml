@@ -1,0 +1,55 @@
+name: Deploy to prod
+
+# Push to main -> sync code to the Hetzner box, rebuild the frontend and restart
+# the prod stack (docker-compose.prod.yml). Secrets: SSH_HOST, SSH_PRIVATE_KEY.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Sync code to server
+        run: |
+          rsync -az --delete \
+            --exclude='.git' \
+            --exclude='node_modules' \
+            --exclude='frontend/node_modules' \
+            --exclude='frontend/dist' \
+            --exclude='.env' \
+            --exclude='recordings/*' \
+            -e "ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new" \
+            ./ "root@${{ secrets.SSH_HOST }}:/opt/coral-club-meet/"
+
+      - name: Build frontend + restart stack
+        run: |
+          ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new \
+            "root@${{ secrets.SSH_HOST }}" '
+              set -e
+              cd /opt/coral-club-meet
+              ( cd frontend && npm ci && npm run build )
+              docker compose -f docker-compose.prod.yml up -d --build
+              docker image prune -f >/dev/null 2>&1 || true
+            '
+
+      - name: Report public URL
+        run: |
+          ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new \
+            "root@${{ secrets.SSH_HOST }}" \
+            "docker compose -f /opt/coral-club-meet/docker-compose.prod.yml logs tunnel 2>&1 | grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' | tail -1" \
+            || echo "(tunnel URL not found in logs)"
