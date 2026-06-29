@@ -169,6 +169,22 @@ export function useIsMobile(breakpoint = 768): boolean {
   return mobile
 }
 
+/** True when the viewport is taller than it is wide (portrait). Reactive. */
+export function useIsPortrait(): boolean {
+  const [portrait, setPortrait] = useState(() => typeof window !== 'undefined' && window.innerHeight >= window.innerWidth)
+  useEffect(() => {
+    const onResize = () => setPortrait(window.innerHeight >= window.innerWidth)
+    onResize()
+    window.addEventListener('resize', onResize)
+    window.addEventListener('orientationchange', onResize)
+    return () => {
+      window.removeEventListener('resize', onResize)
+      window.removeEventListener('orientationchange', onResize)
+    }
+  }, [])
+  return portrait
+}
+
 const QUALITY_EVENTS = [RoomEvent.ConnectionQualityChanged] as const
 
 /** Live connection quality for the local participant. */

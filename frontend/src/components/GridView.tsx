@@ -1,5 +1,5 @@
 import type { Room } from 'livekit-client'
-import { useIsMobile, useParticipants } from '../lib/hooks'
+import { useIsMobile, useIsPortrait, useParticipants } from '../lib/hooks'
 import { stageContainer } from '../lib/styles'
 import { ParticipantTile } from './ParticipantTile'
 
@@ -16,7 +16,12 @@ function columnsFor(count: number): number {
 export function GridView({ room, isHost = false }: { room: Room; isHost?: boolean }) {
   const participants = useParticipants(room)
   const isMobile = useIsMobile()
-  const cols = isMobile ? Math.min(2, columnsFor(participants.length)) : columnsFor(participants.length)
+  const portrait = useIsPortrait()
+  const n = participants.length
+  // On a phone in portrait, stack tiles in one column for small calls so each
+  // tile is wide (two side-by-side columns look like skinny strips); use two
+  // columns once there are more people. Landscape/desktop keep the square grid.
+  const cols = isMobile ? (portrait ? (n <= 2 ? 1 : 2) : Math.min(2, columnsFor(n))) : columnsFor(n)
 
   return (
     <div
