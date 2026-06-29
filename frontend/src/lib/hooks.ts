@@ -1,6 +1,4 @@
 import { useEffect, useReducer, useRef, useState } from 'react'
-import { BackgroundBlur } from '@livekit/track-processors'
-import { KrispNoiseFilter, isKrispNoiseFilterSupported } from '@livekit/krisp-noise-filter'
 import {
   AudioPresets,
   ConnectionQuality,
@@ -110,27 +108,26 @@ export function useRoomConnection(join: JoinInfo, onLeave: () => void): Connecti
     void (async () => {
       try {
         await r.connect(join.url, join.token)
-        await r.localParticipant.setMicrophoneEnabled(
-          join.audioEnabled,
-          join.audioDeviceId ? { deviceId: join.audioDeviceId } : undefined,
-        )
-        await r.localParticipant.setCameraEnabled(
-          join.videoEnabled,
-          join.videoDeviceId ? { deviceId: join.videoDeviceId } : undefined,
-        )
-        if (join.blur && join.videoEnabled) {
-          // Best-effort: loads an ML segmentation model; silently skip if unavailable.
-          await applyBackgroundBlur(r).catch(() => {})
-        }
-        if (join.speakerDeviceId) {
-          await r.switchActiveDevice('audiooutput', join.speakerDeviceId).catch(() => {})
-        }
-        if (join.krisp !== false && join.audioEnabled) {
-          // Krisp AI noise cancellation, on by default. Loads a model; falls back
-          // to the browser's noise suppression if unsupported/unavailable.
-          await applyNoiseFilter(r).catch(() => {})
-        }
+        // Publish mic + camera in parallel and show the room as soon as the user
+        // is connected and publishing — don't make them stare at the spinner.
+        await Promise.all([
+          r.localParticipant.setMicrophoneEnabled(
+            join.audioEnabled,
+            join.audioDeviceId ? { deviceId: join.audioDeviceId } : undefined,
+          ),
+          r.localParticipant.setCameraEnabled(
+            join.videoEnabled,
+            join.videoDeviceId ? { deviceId: join.videoDeviceId } : undefined,
+          ),
+        ])
         setRoom(r)
+
+        // Best-effort enhancements, applied to the already-live tracks AFTER the
+        // room renders so they never gate entry (the processor swaps transparently;
+        // Krisp's model / blur's segmenter just turn on a beat later).
+        if (join.speakerDeviceId) void r.switchActiveDevice('audiooutput', join.speakerDeviceId).catch(() => {})
+        if (join.krisp !== false && join.audioEnabled) void applyNoiseFilter(r).catch(() => {})
+        if (join.blur && join.videoEnabled) void applyBackgroundBlur(r).catch(() => {})
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Could not connect to the call')
       }
@@ -193,13 +190,20 @@ export function useConnectionQuality(room: Room): ConnectionQuality {
   return room.localParticipant.connectionQuality
 }
 
+// These pull in heavy WASM/ML bundles (MediaPipe for blur, a ~6MB Krisp model),
+// so they're imported dynamically — they split into their own chunks and are
+// only fetched when the feature is actually applied, not on first page load.
 async function applyBackgroundBlur(room: Room) {
   const track = room.localParticipant.getTrackPublication(Track.Source.Camera)?.track as LocalVideoTrack | undefined
-  if (track) await track.setProcessor(BackgroundBlur(10))
+  if (!track) return
+  const { BackgroundBlur } = await import('@livekit/track-processors')
+  await track.setProcessor(BackgroundBlur(10))
 }
 
 async function applyNoiseFilter(room: Room) {
-  if (!isKrispNoiseFilterSupported()) return
   const track = room.localParticipant.getTrackPublication(Track.Source.Microphone)?.track as LocalAudioTrack | undefined
-  if (track) await track.setProcessor(KrispNoiseFilter())
+  if (!track) return
+  const { KrispNoiseFilter, isKrispNoiseFilterSupported } = await import('@livekit/krisp-noise-filter')
+  if (!isKrispNoiseFilterSupported()) return
+  await track.setProcessor(KrispNoiseFilter())
 }
