@@ -11,11 +11,14 @@
 		reverse_proxy localhost:7880
 	}
 
-	# Token + admin API, and health
+	# Token + admin API, health, and finished recordings (served by the backend)
 	handle /api/* {
 		reverse_proxy localhost:8080
 	}
 	handle /healthz {
+		reverse_proxy localhost:8080
+	}
+	handle /recordings/* {
 		reverse_proxy localhost:8080
 	}
 

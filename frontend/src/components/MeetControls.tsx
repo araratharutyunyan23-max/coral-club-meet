@@ -53,7 +53,7 @@ interface Props {
  * pickers · present · reactions · raise hand · captions · more · end-call) and a
  * bottom-right corner-chrome group (chat · people). No glass.
  */
-export function MeetControls({ room, activePanel, onTogglePanel, unread, view, onViewChange, sharing = false, isHost = false, onReaction, onOpenPip }: Props) {
+export function MeetControls({ room, activePanel, onTogglePanel, unread, view, onViewChange, sharing = false, isHost = false, recording = false, onToggleRecord, onReaction, onOpenPip }: Props) {
   useRoomEvents(room, CONTROL_EVENTS)
   const isMobile = useIsMobile()
   const [popover, setPopover] = useState<null | 'reactions' | 'more' | 'mic' | 'cam'>(null)
@@ -226,13 +226,13 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
                 )}
                 {isHost && (
                   <button
-                    disabled
-                    title="Recording isn't available yet"
-                    style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 9, padding: '10px', borderRadius: 9, border: 'none', cursor: 'not-allowed', fontSize: 13, fontWeight: 600, background: 'var(--fill-subtle)', color: 'var(--text-mute)', opacity: 0.55 }}
+                    onClick={() => { onToggleRecord?.(); close() }}
+                    title={recording ? 'Stop recording' : 'Record this meeting'}
+                    style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 9, padding: '10px', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, background: recording ? 'rgba(239,75,67,.14)' : 'var(--fill-subtle)', color: recording ? 'var(--danger-soft)' : 'var(--text)' }}
                   >
                     <RecordIcon size={16} />
-                    Record meeting
-                    <span style={{ marginLeft: 'auto', fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '.08em', color: 'var(--text-mute)' }}>SOON</span>
+                    {recording ? 'Stop recording' : 'Record meeting'}
+                    {recording && <span style={{ marginLeft: 'auto', width: 8, height: 8, borderRadius: '50%', background: 'var(--danger)', animation: 'recblink 1.4s infinite' }} />}
                   </button>
                 )}
               </div>
