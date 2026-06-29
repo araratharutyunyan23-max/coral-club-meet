@@ -704,40 +704,34 @@ input {
   min-height: 0;
   border-radius: var(--radius);
   overflow: hidden;
-  /* faint teal brand tint so an empty tile reads as a Coral Club surface, not flat black */
-  background: radial-gradient(130% 100% at 50% -18%, rgba(37, 208, 192, 0.06), transparent 55%), var(--surface);
+  /* teal brand wash so an empty tile reads as a Coral Club surface */
+  background: radial-gradient(120% 105% at 50% 40%, rgba(37, 208, 192, 0.1), transparent 62%), var(--surface);
   border: 1px solid var(--border-strong);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
-/* Coral Club watermark across the top of each tile (behind the avatar). */
+/* Big "Coral / Club" brand wordmark filling the tile background (behind the
+   avatar): "Coral" up top, "Club" down low, with the avatar between them. */
 .pt-brand {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+  inset: 0;
   z-index: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  padding-top: clamp(12px, 11cqmin, 26px);
   pointer-events: none;
-  opacity: 0.6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: clamp(10px, 9cqmin, 32px) 8px;
 }
-.pt-brand .pt-brand-mark {
-  width: clamp(14px, 12cqmin, 24px);
-  height: auto;
-  flex: 0 0 auto;
-}
-.pt-brand .pt-brand-text {
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--text-mute);
-  font-size: clamp(10px, 9cqmin, 15px);
-  white-space: nowrap;
+.pt-brand span {
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  font-size: clamp(20px, 24cqmin, 76px);
+  color: var(--teal-soft);
+  opacity: 0.22;
 }
 .pt-avatar {
   position: relative;
