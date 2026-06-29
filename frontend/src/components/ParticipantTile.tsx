@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { type Participant, type Room, Track } from 'livekit-client'
-import { Avatar } from './Avatar'
+import { Avatar, initialsFor } from './Avatar'
 import { MicOffIcon } from '../lib/icons'
 import { admin } from '../lib/api'
 import { notifyModeration } from '../lib/moderation'
@@ -11,6 +11,8 @@ interface Props {
   isLocal?: boolean
   room?: Room
   isHost?: boolean
+  /** Gallery style: a large circular avatar (video circle-cropped / initials). */
+  circular?: boolean
 }
 
 /**
@@ -18,7 +20,7 @@ interface Props {
  * otherwise an initials avatar, plus name, mute and speaking indicators. Hosts
  * get mute / remove quick actions on hover.
  */
-export function ParticipantTile({ participant, isLocal = false, room, isHost = false }: Props) {
+export function ParticipantTile({ participant, isLocal = false, room, isHost = false, circular = false }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [hovered, setHovered] = useState(false)
   const showHostActions = isHost && !isLocal && !!room
@@ -55,6 +57,59 @@ export function ParticipantTile({ participant, isLocal = false, room, isHost = f
   }
   const removeParticipant = () => {
     if (room) void admin.remove(room.name, participant.identity).catch(() => {})
+  }
+
+  // Gallery style: large circular avatar (video circle-cropped, or brand-gradient
+  // initials when the camera is off), glass name pill, top-right mute badge, and
+  // a pulsing teal ring on the active speaker. (Styles in theme.css.)
+  if (circular) {
+    return (
+      <div className={`pt-tile${speaking ? ' speaking' : ''}${showHostActions ? ' pt-host' : ''}`}>
+        <div className={showVideo ? 'pt-avatar is-video' : 'pt-avatar is-initials'}>
+          {/* video stays mounted so a mute/unmute toggle never tears down the track */}
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            style={{ display: showVideo ? 'block' : 'none', transform: isLocal && !isScreen ? 'scaleX(-1)' : undefined }}
+          />
+          {!showVideo && initialsFor(name)}
+        </div>
+
+        {micMuted && (
+          <div className="pt-mute" title="Muted">
+            <MicOffIcon />
+          </div>
+        )}
+
+        {handRaised && (
+          <div className="pt-hand" title={handRank != null ? `Raised hand · #${handRank} in queue` : 'Hand raised'}>
+            <span>✋</span>
+            {handRank != null && <span>{handRank}</span>}
+          </div>
+        )}
+
+        {showHostActions && (
+          <div className="pt-actions">
+            <button onClick={muteParticipant} title="Mute">
+              <MicOffIcon />
+            </button>
+            <button className="danger" onClick={removeParticipant} title="Remove">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="6" y1="6" x2="18" y2="18" />
+                <line x1="18" y1="6" x2="6" y2="18" />
+              </svg>
+            </button>
+          </div>
+        )}
+
+        <div className="pt-name">
+          {speaking && <span className="live-dot" />}
+          <span className="nm">{isLocal ? `${name} (You)` : name}</span>
+        </div>
+      </div>
+    )
   }
 
   return (

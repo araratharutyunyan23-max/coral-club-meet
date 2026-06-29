@@ -35,7 +35,7 @@ export function GridView({ room, isHost = false }: { room: Room; isHost?: boolea
       }}
     >
       {participants.map((p) => (
-        <ParticipantTile key={p.sid || p.identity} participant={p} isLocal={p === room.localParticipant} room={room} isHost={isHost} />
+        <ParticipantTile key={p.sid || p.identity} participant={p} isLocal={p === room.localParticipant} room={room} isHost={isHost} circular />
       ))}
     </div>
   )

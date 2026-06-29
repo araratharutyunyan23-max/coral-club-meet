@@ -689,3 +689,196 @@ input {
     animation: none;
   }
 }
+
+/* ===== Participant tile — circular-avatar gallery style (GridView) =====
+   Big circular avatar is the hero of each tile: live video circle-cropped when
+   the camera is on, brand-gradient + initials when off. Name in a glass pill
+   (bottom-left), muted badge (top-right), active speaker gets a pulsing teal
+   ring + tile outline. Host hover reveals mute/remove. Avatar size scales with
+   the tile via container queries. */
+.pt-tile {
+  container-type: size;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.pt-avatar {
+  position: relative;
+  width: clamp(46px, 44cqmin, 156px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  overflow: hidden;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.32);
+}
+[data-theme='light'] .pt-avatar {
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 6px 18px rgba(20, 40, 38, 0.16);
+}
+.pt-avatar.is-initials {
+  background: linear-gradient(150deg, #34e6d3, #0f9c8d);
+  color: #04211e;
+  font-weight: 700;
+  font-size: clamp(19px, 21cqmin, 60px);
+  letter-spacing: 0.01em;
+}
+.pt-avatar.is-video {
+  background: #16242b;
+}
+.pt-avatar video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.pt-tile.speaking {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 1px var(--teal), 0 0 26px rgba(37, 208, 192, 0.22);
+}
+.pt-tile.speaking .pt-avatar {
+  animation: ptRing 1.9s ease-in-out infinite;
+}
+@keyframes ptRing {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px var(--teal), 0 0 0 7px rgba(37, 208, 192, 0.18), 0 0 22px rgba(37, 208, 192, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 4px var(--teal), 0 0 0 10px rgba(37, 208, 192, 0.26), 0 0 34px rgba(37, 208, 192, 0.55);
+  }
+}
+.pt-name {
+  position: absolute;
+  left: 9px;
+  bottom: 9px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: calc(100% - 54px);
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--glass);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  font-size: clamp(11px, 11cqmin, 13.5px);
+  font-weight: 500;
+  color: var(--text);
+}
+.pt-name .nm {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pt-name .live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--teal);
+  flex: 0 0 auto;
+  box-shadow: 0 0 8px var(--teal);
+}
+.pt-mute {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  z-index: 2;
+  width: clamp(22px, 13cqmin, 32px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--glass);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--danger-soft);
+  transition: opacity 0.15s ease;
+}
+.pt-mute svg {
+  width: 58%;
+  height: 58%;
+}
+.pt-hand {
+  position: absolute;
+  top: 9px;
+  left: 9px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--coral);
+  color: #241008;
+  font-size: 12px;
+  font-weight: 700;
+}
+.pt-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 3;
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transform: translateY(-5px);
+  transition: opacity 0.16s ease, transform 0.16s ease;
+  pointer-events: none;
+}
+.pt-actions button {
+  width: clamp(26px, 15cqmin, 34px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1px solid var(--border-strong);
+  background: var(--glass);
+  backdrop-filter: blur(10px);
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.pt-actions button svg {
+  width: 54%;
+  height: 54%;
+}
+.pt-actions button:hover {
+  color: var(--text);
+}
+.pt-actions button.danger:hover {
+  color: var(--danger-soft);
+  border-color: rgba(239, 75, 67, 0.5);
+}
+.pt-tile.pt-host:hover .pt-actions {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+.pt-tile.pt-host:hover .pt-mute {
+  opacity: 0;
+}
+.pt-tile.pt-host:hover {
+  border-color: var(--border-strong);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pt-tile.speaking .pt-avatar {
+    animation: none;
+    box-shadow: 0 0 0 3px var(--teal), 0 0 0 8px rgba(37, 208, 192, 0.2), 0 0 24px rgba(37, 208, 192, 0.45);
+  }
+}
