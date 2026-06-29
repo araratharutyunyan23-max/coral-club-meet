@@ -131,6 +131,28 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
           {popover === 'more' && (
             <Popover align="center">
               <div style={{ width: 220, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {isMobile && (
+                  <>
+                    <button
+                      onClick={() => { onTogglePanel('chat'); close() }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '10px', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, background: 'var(--fill-subtle)', color: 'var(--text)' }}
+                    >
+                      <ChatIcon size={16} />
+                      Chat
+                      {unread > 0 && (
+                        <span style={{ marginLeft: 'auto', minWidth: 18, height: 18, padding: '0 5px', borderRadius: 9, background: 'var(--coral)', color: '#241008', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{unread > 9 ? '9+' : unread}</span>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => { onTogglePanel('participants'); close() }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '10px', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, background: 'var(--fill-subtle)', color: 'var(--text)' }}
+                    >
+                      <PeopleIcon size={16} />
+                      People
+                    </button>
+                    <div style={{ height: 1, background: 'var(--border)', margin: '2px 0 4px' }} />
+                  </>
+                )}
                 <div style={{ fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '.12em', color: 'var(--text-mute)', padding: '2px 8px 6px' }}>LAYOUT</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4 }}>
                   {LAYOUTS.map(({ id, label }) => (
@@ -175,11 +197,13 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
         </button>
       </div>
 
-      {/* Bottom-right corner chrome */}
-      <div style={{ position: 'absolute', right: isMobile ? 10 : 20, top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', gap: 3 }}>
-        <CornerBtn title="Chat" active={activePanel === 'chat'} badge={unread} onClick={() => onTogglePanel('chat')}><ChatIcon size={19} /></CornerBtn>
-        <CornerBtn title="People" active={activePanel === 'participants'} onClick={() => onTogglePanel('participants')}><PeopleIcon size={19} /></CornerBtn>
-      </div>
+      {/* Bottom-right corner chrome (desktop only — on mobile Chat/People live in the ⋮ menu). */}
+      {!isMobile && (
+        <div style={{ position: 'absolute', right: 20, top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', gap: 3 }}>
+          <CornerBtn title="Chat" active={activePanel === 'chat'} badge={unread} onClick={() => onTogglePanel('chat')}><ChatIcon size={19} /></CornerBtn>
+          <CornerBtn title="People" active={activePanel === 'participants'} onClick={() => onTogglePanel('participants')}><PeopleIcon size={19} /></CornerBtn>
+        </div>
+      )}
 
       {confirmStopShare && (
         <div
