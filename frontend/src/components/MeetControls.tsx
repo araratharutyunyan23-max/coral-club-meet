@@ -59,6 +59,7 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
   const [popover, setPopover] = useState<null | 'reactions' | 'more' | 'mic' | 'cam'>(null)
   const [confirmStopShare, setConfirmStopShare] = useState(false)
   const [mediaError, setMediaError] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
   const lp = room.localParticipant
 
   const micOn = lp.isMicrophoneEnabled
@@ -83,6 +84,29 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
   const toggleHand = () => void lp.setAttributes({ handRaised: handRaised ? '' : String(Date.now()) }).catch(() => {})
   const leave = () => void room.disconnect()
   const close = () => setPopover(null)
+  // Copy the meeting link (the room URL) to the clipboard, with a fallback for
+  // browsers without the async clipboard API.
+  const copyLink = () => {
+    const url = window.location.href
+    try {
+      if (navigator.clipboard?.writeText) {
+        void navigator.clipboard.writeText(url).catch(() => {})
+      } else {
+        const ta = document.createElement('textarea')
+        ta.value = url
+        ta.style.position = 'fixed'
+        ta.style.opacity = '0'
+        document.body.appendChild(ta)
+        ta.select()
+        document.execCommand('copy')
+        document.body.removeChild(ta)
+      }
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1600)
+    } catch {
+      /* ignore */
+    }
+  }
 
   // If the share ends another way (e.g. the browser's native "Stop sharing"
   // bar) while the confirm dialog is open, close it — otherwise its button
@@ -149,6 +173,14 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
           {popover === 'more' && (
             <Popover align="center">
               <div style={{ width: 220, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <button
+                  onClick={copyLink}
+                  style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '10px', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, background: copied ? 'var(--teal-tint)' : 'var(--fill-subtle)', color: copied ? 'var(--teal-soft)' : 'var(--text)' }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
+                  {copied ? 'Link copied' : 'Copy link'}
+                </button>
+                <div style={{ height: 1, background: 'var(--border)', margin: '2px 0 4px' }} />
                 {isMobile && (
                   <>
                     <button
