@@ -285,3 +285,114 @@ input {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* ===== Lobby ambient background — "Signal" =====
+   The Ripple mark made ambient: slow concentric ripples emanate from behind the
+   centre across a deep-petrol "water" field, with a soft coral core. The ripples
+   are masked out of the middle and a calm radial pulls --surround back over the
+   centre, so the preview tile + join card always stay legible. Pure CSS, both
+   themes, GPU-cheap (transform/opacity only). */
+.lobby-ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.lobby-ambient::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 78% at 50% 14%, rgba(37, 208, 192, 0.1), transparent 56%),
+    radial-gradient(140% 120% at 50% 52%, transparent 46%, rgba(2, 7, 8, 0.72) 100%),
+    linear-gradient(168deg, #070a0c 0%, #091014 48%, #08161a 100%);
+}
+[data-theme='light'] .lobby-ambient::before {
+  background:
+    radial-gradient(120% 78% at 50% 14%, rgba(15, 156, 141, 0.12), transparent 56%),
+    radial-gradient(140% 120% at 50% 52%, transparent 52%, rgba(170, 196, 190, 0.55) 100%),
+    linear-gradient(168deg, #eef4f1 0%, #e8f1ee 48%, #dfeeea 100%);
+}
+.lobby-ambient .sig-field {
+  position: absolute;
+  inset: 0;
+  -webkit-mask: radial-gradient(closest-side at 50% 47%, transparent 0, transparent 300px, #000 470px);
+  mask: radial-gradient(closest-side at 50% 47%, transparent 0, transparent 300px, #000 470px);
+}
+.lobby-ambient .sig-ripple {
+  position: absolute;
+  top: 47%;
+  left: 50%;
+  width: 44vmax;
+  height: 44vmax;
+  margin: -22vmax 0 0 -22vmax;
+  border-radius: 50%;
+  border: 1.5px solid var(--ripple-ring);
+  opacity: 0;
+  transform: scale(0.12);
+  will-change: transform, opacity;
+  animation: signalRipple 15s linear infinite;
+}
+.lobby-ambient .sig-ripple:nth-child(2) {
+  animation-delay: -3.75s;
+}
+.lobby-ambient .sig-ripple:nth-child(3) {
+  animation-delay: -7.5s;
+}
+.lobby-ambient .sig-ripple:nth-child(4) {
+  animation-delay: -11.25s;
+}
+@keyframes signalRipple {
+  0% {
+    transform: scale(0.12);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.42;
+  }
+  100% {
+    transform: scale(4.4);
+    opacity: 0;
+  }
+}
+.lobby-ambient .sig-core {
+  position: absolute;
+  top: 47%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 54vmax;
+  height: 54vmax;
+  background: radial-gradient(closest-side, rgba(255, 126, 99, 0.12), transparent 70%);
+}
+[data-theme='light'] .lobby-ambient .sig-core {
+  background: radial-gradient(closest-side, rgba(255, 111, 85, 0.14), transparent 70%);
+}
+.lobby-calm {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(56% 60% at 50% 50%, var(--surround) 0%,
+    color-mix(in srgb, var(--surround) 62%, transparent) 40%, transparent 74%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .lobby-ambient .sig-ripple {
+    animation: none;
+    opacity: 0.16;
+  }
+  .lobby-ambient .sig-ripple:nth-child(1) {
+    transform: scale(1.5);
+  }
+  .lobby-ambient .sig-ripple:nth-child(2) {
+    transform: scale(2.6);
+    opacity: 0.11;
+  }
+  .lobby-ambient .sig-ripple:nth-child(3) {
+    transform: scale(3.7);
+    opacity: 0.06;
+  }
+  .lobby-ambient .sig-ripple:nth-child(4) {
+    display: none;
+  }
+}

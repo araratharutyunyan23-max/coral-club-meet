@@ -167,12 +167,27 @@ export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin
 
   return (
     <div style={{ position: 'fixed', inset: 0, display: 'flex', flexDirection: 'column', padding: '24px 32px', overflow: 'auto', background: 'var(--surround)', color: 'var(--text)', fontFamily: 'var(--font)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      {/* "Signal" ambient background: concentric ripples emanating from behind the
+          centre across a deep-petrol field — the Ripple mark made ambient. Masked
+          out of the middle and topped by a calm radial so the preview + card stay
+          legible. (Styles in theme.css.) */}
+      <div className="lobby-ambient" aria-hidden="true">
+        <div className="sig-core" />
+        <div className="sig-field">
+          <span className="sig-ripple" />
+          <span className="sig-ripple" />
+          <span className="sig-ripple" />
+          <span className="sig-ripple" />
+        </div>
+      </div>
+      <div className="lobby-calm" aria-hidden="true" />
+
+      <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Logo size={34} />
         <ThemeToggle />
       </div>
 
-      <div style={{ display: 'flex', gap: 28, alignItems: 'center', justifyContent: 'center', margin: 'auto 0', maxWidth: 1040, width: '100%', alignSelf: 'center', flexWrap: 'wrap' }}>
+      <div style={{ position: 'relative', zIndex: 2, display: 'flex', gap: 28, alignItems: 'center', justifyContent: 'center', margin: 'auto 0', maxWidth: 1040, width: '100%', alignSelf: 'center', flexWrap: 'wrap' }}>
         {/* preview */}
         <div style={{ flex: '1.5 1 420px', minWidth: 320, position: 'relative', aspectRatio: '16 / 10', borderRadius: 18, overflow: 'hidden', background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: '0 24px 60px rgba(0,0,0,0.4)' }}>
           {camOn ? (
