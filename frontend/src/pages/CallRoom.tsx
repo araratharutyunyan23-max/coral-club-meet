@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { ConnectionQuality, ConnectionState, type Room, Track } from 'livekit-client'
 import type { CallView, JoinInfo } from '../lib/types'
 import { useConnectionQuality, useIsMobile, useParticipants, useRoomConnection } from '../lib/hooks'
@@ -77,10 +77,30 @@ function CallStage({ room, roomName, reconnecting, isHost }: { room: Room; roomN
   const togglePanel = (p: PanelName) => setPanel((cur) => (cur === p ? null : p))
 
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--surround)' }}>
-      <MeetTopBar room={room} roomName={roomName} recording={recording.active} />
+    <div style={{ position: 'relative', height: '100vh', overflow: 'hidden', background: 'var(--surround)' }}>
+      {/* Signal Field — the call stage floats on the brand's calm water (origin
+          beneath the stage so ripples arc up; quietest tuning + strong centre calm). */}
+      <div
+        className="sf"
+        aria-hidden="true"
+        style={{ '--ox': '50%', '--oy': '116%', '--sf-rip': '0.2', '--sf-con': '0.55', '--sf-bloom': '0.55', '--sf-dur': '22s', '--sf-spread': '2.6' } as CSSProperties}
+      >
+        <div className="sf-depth" />
+        <div className="sf-contours" />
+        <div className="sf-core" />
+        <div className="sf-signal">
+          <span className="rp" />
+          <span className="rp" />
+          <span className="rp" />
+          <span className="rp" />
+        </div>
+      </div>
+      <div className="sf-calm" data-calm="center-strong" aria-hidden="true" />
 
-      <main style={{ flex: 1, minHeight: 0, position: 'relative' }}>
+      <div style={{ position: 'relative', zIndex: 2, height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+        <MeetTopBar room={room} roomName={roomName} recording={recording.active} />
+
+        <main style={{ flex: 1, minHeight: 0, position: 'relative' }}>
         {/* One inset, rounded stage floating on the flat surround (Meet-restraint).
             Views + banners render inside it; reactions, toasts and the control
             bar sit over the surround so they're never clipped. The stage shrinks
@@ -125,9 +145,10 @@ function CallStage({ room, roomName, reconnecting, isHost }: { room: Room; roomN
             onClose={() => setPanel(null)}
           />
         )}
-      </main>
+        </main>
 
-      <RemoteAudio room={room} />
+        <RemoteAudio room={room} />
+      </div>
     </div>
   )
 }

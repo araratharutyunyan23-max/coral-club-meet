@@ -893,3 +893,111 @@ input {
     box-shadow: 0 0 0 3px var(--teal), 0 0 0 8px rgba(37, 208, 192, 0.2), 0 0 24px rgba(37, 208, 192, 0.45);
   }
 }
+
+/* ===== Signal Field — unified ambient background (reusable on any surface) =====
+   One "calm body of water" language: a deep-petrol depth, frozen reef contours,
+   a coral core, and slow live ripples — all emitted from ONE origin (--ox/--oy),
+   tuned per surface via --sf-rip/--sf-con/--sf-bloom/--sf-dur/--sf-spread. Drop a
+   <div class="sf"> (with the 4 layers) + a <div class="sf-calm"> as the first
+   children of a position:relative host, content above with z-index >= 2. */
+.sf {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  container-type: size;
+  --ox: 50%;
+  --oy: 50%;
+  --sf-rip: 0.36;
+  --sf-con: 0.6;
+  --sf-bloom: 0.85;
+  --sf-dur: 16s;
+  --sf-spread: 2.4;
+}
+.sf-depth {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(72% 64% at var(--ox) var(--oy), rgba(37, 208, 192, 0.13), transparent 60%),
+    radial-gradient(150% 130% at 50% 46%, transparent 48%, rgba(2, 7, 8, 0.74) 100%),
+    linear-gradient(168deg, #070a0c 0%, #091014 48%, #08161a 100%);
+}
+[data-theme='light'] .sf-depth {
+  background:
+    radial-gradient(72% 64% at var(--ox) var(--oy), rgba(15, 156, 141, 0.16), transparent 60%),
+    radial-gradient(150% 130% at 50% 46%, transparent 52%, rgba(170, 196, 190, 0.5) 100%),
+    linear-gradient(168deg, #eef4f1 0%, #e8f1ee 48%, #dfeeea 100%);
+}
+.sf-contours {
+  position: absolute;
+  inset: -2px;
+  opacity: var(--sf-con);
+  background: repeating-radial-gradient(circle at var(--ox) var(--oy), transparent 0 27px, rgba(37, 208, 192, 0.07) 27px 28.4px);
+  -webkit-mask: radial-gradient(circle at var(--ox) var(--oy), transparent 4%, #000 22%, #000 46%, transparent 82%);
+  mask: radial-gradient(circle at var(--ox) var(--oy), transparent 4%, #000 22%, #000 46%, transparent 82%);
+}
+[data-theme='light'] .sf-contours {
+  background: repeating-radial-gradient(circle at var(--ox) var(--oy), transparent 0 27px, rgba(15, 156, 141, 0.1) 27px 28.4px);
+}
+.sf-core {
+  position: absolute;
+  top: var(--oy);
+  left: var(--ox);
+  transform: translate(-50%, -50%);
+  width: 62cqmax;
+  height: 62cqmax;
+  opacity: var(--sf-bloom);
+  background: radial-gradient(closest-side, rgba(255, 126, 99, 0.5), transparent 70%);
+}
+[data-theme='light'] .sf-core {
+  background: radial-gradient(closest-side, rgba(255, 111, 85, 0.4), transparent 70%);
+}
+.sf-signal {
+  position: absolute;
+  inset: 0;
+}
+.sf-signal .rp {
+  position: absolute;
+  top: var(--oy);
+  left: var(--ox);
+  width: 100cqmax;
+  height: 100cqmax;
+  margin: -50cqmax 0 0 -50cqmax;
+  border-radius: 50%;
+  border: 1.5px solid var(--ripple-ring);
+  opacity: 0;
+  transform: scale(0.1);
+  will-change: transform, opacity;
+  animation: sfSignal var(--sf-dur) linear infinite;
+}
+.sf-signal .rp:nth-child(2) { animation-delay: calc(var(--sf-dur) * -0.25); }
+.sf-signal .rp:nth-child(3) { animation-delay: calc(var(--sf-dur) * -0.5); }
+.sf-signal .rp:nth-child(4) { animation-delay: calc(var(--sf-dur) * -0.75); }
+@keyframes sfSignal {
+  0% { transform: scale(0.08); opacity: 0; }
+  10% { opacity: var(--sf-rip); }
+  100% { transform: scale(var(--sf-spread)); opacity: 0; }
+}
+.sf-calm {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+.sf-calm[data-calm='center'] {
+  background: radial-gradient(58% 62% at 50% 52%, var(--surround) 0%, color-mix(in srgb, var(--surround) 64%, transparent) 40%, transparent 74%);
+}
+.sf-calm[data-calm='center-strong'] {
+  background: radial-gradient(64% 70% at 50% 50%, var(--surround) 0%, color-mix(in srgb, var(--surround) 78%, transparent) 44%, transparent 80%);
+}
+.sf-calm[data-calm='left'] {
+  background: linear-gradient(102deg, var(--surround) 2%, color-mix(in srgb, var(--surround) 60%, transparent) 36%, transparent 64%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .sf-signal .rp { animation: none; opacity: calc(var(--sf-rip) * 0.55); }
+  .sf-signal .rp:nth-child(1) { transform: scale(calc(var(--sf-spread) * 0.42)); }
+  .sf-signal .rp:nth-child(2) { transform: scale(calc(var(--sf-spread) * 0.66)); opacity: calc(var(--sf-rip) * 0.35); }
+  .sf-signal .rp:nth-child(3) { transform: scale(calc(var(--sf-spread) * 0.9)); opacity: calc(var(--sf-rip) * 0.2); }
+  .sf-signal .rp:nth-child(4) { display: none; }
+}
