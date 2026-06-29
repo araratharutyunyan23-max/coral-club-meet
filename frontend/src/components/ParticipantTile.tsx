@@ -65,14 +65,6 @@ export function ParticipantTile({ participant, isLocal = false, room, isHost = f
   if (circular) {
     return (
       <div className={`pt-tile${speaking ? ' speaking' : ''}${showHostActions ? ' pt-host' : ''}`}>
-        {/* Coral Club brand wordmark filling the tile background — shown when the
-            camera is off so an empty tile reads as branded rather than a black box. */}
-        {!showVideo && (
-          <div className="pt-brand" aria-hidden="true">
-            <span>Coral</span>
-            <span>Club</span>
-          </div>
-        )}
         <div className={showVideo ? 'pt-avatar is-video' : 'pt-avatar is-initials'}>
           {/* video stays mounted so a mute/unmute toggle never tears down the track */}
           <video

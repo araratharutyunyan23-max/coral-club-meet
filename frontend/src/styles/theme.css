@@ -704,38 +704,15 @@ input {
   min-height: 0;
   border-radius: var(--radius);
   overflow: hidden;
-  /* teal brand wash so an empty tile reads as a Coral Club surface */
-  background: radial-gradient(120% 105% at 50% 40%, rgba(37, 208, 192, 0.1), transparent 62%), var(--surface);
+  background: var(--surface);
   border: 1px solid var(--border-strong);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
-/* Big "Coral / Club" brand wordmark filling the tile background (behind the
-   avatar): "Coral" up top, "Club" down low, with the avatar between them. */
-.pt-brand {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  padding: clamp(10px, 9cqmin, 32px) 8px;
-}
-.pt-brand span {
-  font-weight: 800;
-  letter-spacing: 0.01em;
-  line-height: 1;
-  font-size: clamp(20px, 24cqmin, 76px);
-  color: var(--teal-soft);
-  opacity: 0.22;
-}
 .pt-avatar {
   position: relative;
-  z-index: 1;
   width: clamp(46px, 44cqmin, 156px);
   aspect-ratio: 1;
   border-radius: 50%;
