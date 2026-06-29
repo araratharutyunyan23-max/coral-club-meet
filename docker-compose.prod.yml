@@ -1,38 +1,59 @@
 name: coral-club-meet
 
-# Production stack:
-#   backend  — issues LiveKit tokens (talks to LiveKit Cloud)
-#   web      — nginx: serves frontend/dist + proxies /api -> backend
-#   tunnel   — Cloudflare quick-tunnel for public HTTPS (until a real domain)
+# Production stack — fully self-hosted media (own LiveKit SFU, like Meet/Telemost):
+#   redis    — LiveKit's coordination store
+#   livekit  — the SFU; media over the box's public IP (UDP 50000-50100 + TCP 7881)
+#   backend  — issues LiveKit tokens + host moderation (talks to LiveKit on localhost)
+#   caddy    — edge: auto-HTTPS (Let's Encrypt), serves the SPA, proxies /api and /rtc
 #
-# Media flows browser <-> LiveKit Cloud directly, so there is no SFU/redis/egress
-# here. Secrets (LiveKit Cloud key/secret) live in ./.env (gitignored) — see
-# DEPLOY.md. Build the frontend (frontend/dist) before `docker compose up`.
+# All services use host networking so WebRTC media + external-IP advertisement work
+# without port gymnastics. Secrets (LiveKit key/secret) live in ./.env (gitignored);
+# compose injects them as LIVEKIT_KEYS for the SFU. Build frontend/dist before up.
+# Required .env: LIVEKIT_URL=wss://<host>  LIVEKIT_API_KEY=...  LIVEKIT_API_SECRET=...
+#                ALLOWED_ORIGINS=*
 
 services:
+  redis:
+    image: redis:7-alpine
+    command: ['redis-server', '--port', '6399', '--save', '', '--appendonly', 'no']
+    network_mode: host
+    restart: unless-stopped
+
+  livekit:
+    image: livekit/livekit-server:latest
+    command: --config /etc/livekit.yaml
+    environment:
+      LIVEKIT_KEYS: '${LIVEKIT_API_KEY}: ${LIVEKIT_API_SECRET}'
+    volumes:
+      - ./infra/livekit.prod.yaml:/etc/livekit.yaml:ro
+    network_mode: host
+    depends_on:
+      - redis
+    restart: unless-stopped
+
   backend:
     build: ./backend
     env_file: .env
     environment:
       PORT: '8080'
-    expose:
-      - '8080'
+      LIVEKIT_HOST_URL: 'http://localhost:7880'
+    network_mode: host
+    depends_on:
+      - livekit
     restart: unless-stopped
 
-  web:
-    image: nginx:alpine
-    ports:
-      - '80:80'
+  caddy:
+    image: caddy:2-alpine
+    network_mode: host
     volumes:
-      - ./frontend/dist:/usr/share/nginx/html:ro
-      - ./infra/nginx.prod.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./infra/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./frontend/dist:/srv:ro
+      - caddy_data:/data
+      - caddy_config:/config
     depends_on:
       - backend
     restart: unless-stopped
 
-  tunnel:
-    image: cloudflare/cloudflared:latest
-    command: tunnel --no-autoupdate --url http://web:80
-    depends_on:
-      - web
-    restart: unless-stopped
+volumes:
+  caddy_data:
+  caddy_config:

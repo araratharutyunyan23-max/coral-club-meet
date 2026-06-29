@@ -1,0 +1,33 @@
+# Caddy edge: auto-HTTPS (Let's Encrypt) for the public host, serves the SPA,
+# proxies /api -> backend and the LiveKit signaling (/rtc) -> the local SFU.
+# Swap the hostname here when a real domain (e.g. meet.coralclub.online) is pointed
+# at this box. Everything runs on host networking, so upstreams are on localhost.
+178-105-107-69.sslip.io {
+	encode zstd gzip
+
+	# LiveKit signaling: WebSocket (/rtc) + validation (/rtc/validate) -> local SFU
+	@livekit path /rtc /rtc/*
+	handle @livekit {
+		reverse_proxy localhost:7880
+	}
+
+	# Token + admin API, and health
+	handle /api/* {
+		reverse_proxy localhost:8080
+	}
+	handle /healthz {
+		reverse_proxy localhost:8080
+	}
+
+	# Static SPA frontend
+	handle {
+		root * /srv
+		header /assets/* Cache-Control "public, max-age=31536000, immutable"
+		header /manifest.webmanifest Content-Type "application/manifest+json"
+		header /manifest.webmanifest Cache-Control "no-store"
+		header /sw.js Cache-Control "no-store"
+		header /index.html Cache-Control "no-store"
+		try_files {path} /index.html
+		file_server
+	}
+}
