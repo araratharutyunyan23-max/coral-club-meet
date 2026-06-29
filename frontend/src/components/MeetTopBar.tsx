@@ -4,6 +4,7 @@ import { RippleMark } from './Logo'
 import { ThemeToggle } from './ThemeToggle'
 import { PeopleIcon } from '../lib/icons'
 import { useParticipants, useIsMobile } from '../lib/hooks'
+import { raisedHandQueue } from '../lib/raisehand'
 import { initialsFor } from './Avatar'
 
 /** Elapsed call time as MM:SS (or H:MM:SS once past an hour). */
@@ -48,6 +49,11 @@ export function MeetTopBar({ room, roomName, recording = false }: { room: Room; 
   const elapsed = useElapsed(room)
   const isMobile = useIsMobile()
   const avatars = participants.slice(0, 3).map((p) => initialsFor(p.name || p.identity))
+  // Raised hands (oldest first) → show the first raiser in the top bar.
+  const raised = raisedHandQueue(participants)
+  const firstRaiser = raised[0]
+  const raiserName = firstRaiser ? (firstRaiser === room.localParticipant ? 'You' : firstRaiser.name || firstRaiser.identity) : ''
+  const extraHands = raised.length - 1
 
   return (
     <header style={{ height: 56, flex: '0 0 auto', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: isMobile ? '0 12px' : '0 22px' }}>
@@ -72,6 +78,19 @@ export function MeetTopBar({ room, roomName, recording = false }: { room: Room; 
       </span>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        {firstRaiser && (
+          <div
+            title={`${raiserName} raised a hand`}
+            style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '6px 12px', borderRadius: 999, background: 'rgba(255,126,99,.16)', border: '1px solid rgba(255,126,99,.4)', maxWidth: isMobile ? 150 : 320 }}
+          >
+            <span style={{ fontSize: 14, lineHeight: 1, flex: '0 0 auto' }}>✋</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {raiserName}
+              {!isMobile && ' raised a hand'}
+              {extraHands > 0 ? ` +${extraHands}` : ''}
+            </span>
+          </div>
+        )}
         <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '7px 9px 7px 16px', borderRadius: 99, background: 'var(--fill-subtle)', border: '1px solid var(--border)' }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: 7, color: 'var(--text)', fontSize: 14.5, fontWeight: 600 }}>
             <PeopleIcon size={18} style={{ color: 'var(--text-dim)' }} />
