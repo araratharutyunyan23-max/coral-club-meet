@@ -3,7 +3,7 @@ import type { Room } from 'livekit-client'
 import { RippleMark } from './Logo'
 import { ThemeToggle } from './ThemeToggle'
 import { PeopleIcon } from '../lib/icons'
-import { useParticipants } from '../lib/hooks'
+import { useParticipants, useIsMobile } from '../lib/hooks'
 import { initialsFor } from './Avatar'
 
 /** Elapsed call time as MM:SS (or H:MM:SS once past an hour). */
@@ -36,14 +36,15 @@ function useElapsed(): string {
 export function MeetTopBar({ room, roomName, recording = false }: { room: Room; roomName: string; recording?: boolean }) {
   const participants = useParticipants(room)
   const elapsed = useElapsed()
+  const isMobile = useIsMobile()
   const avatars = participants.slice(0, 3).map((p) => initialsFor(p.name || p.identity))
 
   return (
-    <header style={{ height: 56, flex: '0 0 auto', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 22px' }}>
+    <header style={{ height: 56, flex: '0 0 auto', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: isMobile ? '0 12px' : '0 22px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--text-dim)', fontSize: 12.5 }}>
         <RippleMark size={19} />
-        <div style={{ width: 1, height: 15, background: 'var(--border-strong)' }} />
-        <span style={{ fontFamily: 'var(--mono)', fontSize: 12.5, letterSpacing: '.02em' }}>{roomName}</span>
+        {!isMobile && <div style={{ width: 1, height: 15, background: 'var(--border-strong)' }} />}
+        {!isMobile && <span style={{ fontFamily: 'var(--mono)', fontSize: 12.5, letterSpacing: '.02em' }}>{roomName}</span>}
         {recording && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 4, padding: '3px 9px', background: 'rgba(239,75,67,.13)', border: '1px solid rgba(239,75,67,.3)', borderRadius: 7 }}>
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--danger)', animation: 'recblink 1.4s infinite' }} />
@@ -54,7 +55,7 @@ export function MeetTopBar({ room, roomName, recording = false }: { room: Room; 
 
       {/* Call duration, centred in the bar */}
       <span
-        style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', fontFamily: 'var(--mono)', fontSize: 17, fontWeight: 500, letterSpacing: '.06em', color: 'var(--text)' }}
+        style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', fontFamily: 'var(--mono)', fontSize: isMobile ? 15 : 17, fontWeight: 500, letterSpacing: '.06em', color: 'var(--text)' }}
         title="Call duration"
       >
         {elapsed}
@@ -66,7 +67,7 @@ export function MeetTopBar({ room, roomName, recording = false }: { room: Room; 
             <PeopleIcon size={18} style={{ color: 'var(--text-dim)' }} />
             {participants.length}
           </span>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+          {!isMobile && <div style={{ display: 'flex', alignItems: 'center' }}>
             {avatars.map((t, i) => (
               <div
                 key={i}
@@ -75,7 +76,7 @@ export function MeetTopBar({ room, roomName, recording = false }: { room: Room; 
                 {t}
               </div>
             ))}
-          </div>
+          </div>}
         </div>
         <ThemeToggle />
       </div>

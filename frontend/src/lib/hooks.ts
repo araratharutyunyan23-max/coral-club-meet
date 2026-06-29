@@ -149,6 +149,26 @@ export function useRoomConnection(join: JoinInfo, onLeave: () => void): Connecti
   return { room, state, error }
 }
 
+/**
+ * True when the viewport is phone-sized (narrower than `breakpoint`, default
+ * 768px). Reactive to resize and orientation changes — components call this
+ * directly to switch to their mobile layout (no prop threading).
+ */
+export function useIsMobile(breakpoint = 768): boolean {
+  const [mobile, setMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < breakpoint)
+  useEffect(() => {
+    const onResize = () => setMobile(window.innerWidth < breakpoint)
+    onResize()
+    window.addEventListener('resize', onResize)
+    window.addEventListener('orientationchange', onResize)
+    return () => {
+      window.removeEventListener('resize', onResize)
+      window.removeEventListener('orientationchange', onResize)
+    }
+  }, [breakpoint])
+  return mobile
+}
+
 const QUALITY_EVENTS = [RoomEvent.ConnectionQualityChanged] as const
 
 /** Live connection quality for the local participant. */

@@ -1,5 +1,5 @@
 import type { Room } from 'livekit-client'
-import { useParticipants } from '../lib/hooks'
+import { useIsMobile, useParticipants } from '../lib/hooks'
 import { stageContainer } from '../lib/styles'
 import { ParticipantTile } from './ParticipantTile'
 
@@ -15,16 +15,18 @@ function columnsFor(count: number): number {
 /** Gallery view — every participant in an evenly sized grid. */
 export function GridView({ room, isHost = false }: { room: Room; isHost?: boolean }) {
   const participants = useParticipants(room)
-  const cols = columnsFor(participants.length)
+  const isMobile = useIsMobile()
+  const cols = isMobile ? Math.min(2, columnsFor(participants.length)) : columnsFor(participants.length)
 
   return (
     <div
       style={{
         ...stageContainer,
+        ...(isMobile ? { padding: 6 } : null),
         display: 'grid',
         gridTemplateColumns: `repeat(${cols}, 1fr)`,
         gridAutoRows: '1fr',
-        gap: 12,
+        gap: isMobile ? 6 : 12,
       }}
     >
       {participants.map((p) => (

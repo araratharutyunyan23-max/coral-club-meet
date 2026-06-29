@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { type Participant, type Room, Track } from 'livekit-client'
-import { useActiveSpeaker, useParticipants } from '../lib/hooks'
+import { useActiveSpeaker, useIsMobile, useParticipants } from '../lib/hooks'
 import { useAnnotations } from '../lib/annotations'
 import { stageContainer } from '../lib/styles'
 import { ParticipantTile } from './ParticipantTile'
@@ -17,6 +17,7 @@ import { AnnotationLayer } from './AnnotationLayer'
 export function FocusView({ room, isHost = false, layout = 'spotlight' }: { room: Room; isHost?: boolean; layout?: 'spotlight' | 'sidebar' }) {
   const participants = useParticipants(room)
   const activeSpeaker = useActiveSpeaker(room)
+  const isMobile = useIsMobile()
   const [pinnedSid, setPinnedSid] = useState<string | null>(null)
 
   const isSharing = (p: Participant) => {
@@ -93,17 +94,29 @@ export function FocusView({ room, isHost = false, layout = 'spotlight' }: { room
   }
 
   // Sidebar: lead on the stage, everyone else in a right-hand filmstrip.
+  // On mobile (portrait) stack instead: lead on top, filmstrip a horizontal,
+  // horizontally-scrolling strip below.
   return (
-    <div style={{ ...stageContainer, display: 'flex', flexDirection: 'row', gap: 14 }}>
+    <div style={{ ...stageContainer, display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 14 }}>
       {leadTile}
       {others.length > 0 && (
-        <div style={{ flex: '0 0 auto', width: 208, display: 'flex', flexDirection: 'column', gap: 10, overflow: 'auto' }}>
+        <div
+          style={
+            isMobile
+              ? { flex: '0 0 auto', height: 84, display: 'flex', flexDirection: 'row', gap: 10, overflowX: 'auto', overflowY: 'hidden' }
+              : { flex: '0 0 auto', width: 208, display: 'flex', flexDirection: 'column', gap: 10, overflow: 'auto' }
+          }
+        >
           {others.map((p) => (
             <div
               key={p.sid || p.identity}
               onClick={() => setPinnedSid(p.sid || null)}
               title="Pin"
-              style={{ flex: '0 0 auto', cursor: 'pointer', aspectRatio: '16 / 10' }}
+              style={
+                isMobile
+                  ? { flex: '0 0 auto', cursor: 'pointer', width: 134, aspectRatio: '16 / 10' }
+                  : { flex: '0 0 auto', cursor: 'pointer', aspectRatio: '16 / 10' }
+              }
             >
               <ParticipantTile participant={p} isLocal={p === local} room={room} isHost={isHost} />
             </div>

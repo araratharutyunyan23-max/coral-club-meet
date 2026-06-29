@@ -1,6 +1,6 @@
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react'
 import { type Room, RoomEvent } from 'livekit-client'
-import { useRoomEvents } from '../lib/hooks'
+import { useRoomEvents, useIsMobile } from '../lib/hooks'
 import type { PanelName } from './SidePanel'
 import type { CallView } from '../lib/types'
 import {
@@ -55,6 +55,7 @@ interface Props {
  */
 export function MeetControls({ room, activePanel, onTogglePanel, unread, view, onViewChange, sharing = false, isHost = false, onReaction, onOpenPip }: Props) {
   useRoomEvents(room, CONTROL_EVENTS)
+  const isMobile = useIsMobile()
   const [popover, setPopover] = useState<null | 'reactions' | 'more' | 'mic' | 'cam'>(null)
   const [confirmStopShare, setConfirmStopShare] = useState(false)
   const lp = room.localParticipant
@@ -82,8 +83,9 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
   return (
     <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 92, zIndex: 30, fontFamily: 'var(--font)' }}>
       {/* Centered cluster */}
-      <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', display: 'flex', alignItems: 'center', gap: isMobile ? 5 : 8 }}>
         <SplitButton
+          compact={isMobile}
           danger={!micOn}
           onMain={toggleMic}
           title={micOn ? 'Mute' : 'Unmute'}
@@ -92,6 +94,7 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
           popover={popover === 'mic' ? <DevicePicker room={room} kind="audioinput" onClose={close} /> : null}
         />
         <SplitButton
+          compact={isMobile}
           danger={!camOn}
           onMain={toggleCam}
           title={camOn ? 'Turn off camera' : 'Turn on camera'}
@@ -100,7 +103,7 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
           popover={popover === 'cam' ? <DevicePicker room={room} kind="videoinput" onClose={close} /> : null}
         />
 
-        <Divider />
+        <Divider compact={isMobile} />
 
         <RoundBtn
           title={screenOn ? 'You are presenting — click to stop' : sharing ? 'Someone is already presenting' : 'Present now'}
@@ -165,15 +168,15 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
           )}
         </div>
 
-        <Divider />
+        <Divider compact={isMobile} />
 
-        <button onClick={leave} title="Leave call" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 60, height: 46, borderRadius: 23, background: 'var(--danger)', color: '#fff', border: 'none', cursor: 'pointer' }}>
+        <button onClick={leave} title="Leave call" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: isMobile ? 54 : 60, height: 46, borderRadius: 23, background: 'var(--danger)', color: '#fff', border: 'none', cursor: 'pointer' }}>
           <LeaveIcon />
         </button>
       </div>
 
       {/* Bottom-right corner chrome */}
-      <div style={{ position: 'absolute', right: 20, top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', gap: 3 }}>
+      <div style={{ position: 'absolute', right: isMobile ? 10 : 20, top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', gap: 3 }}>
         <CornerBtn title="Chat" active={activePanel === 'chat'} badge={unread} onClick={() => onTogglePanel('chat')}><ChatIcon size={19} /></CornerBtn>
         <CornerBtn title="People" active={activePanel === 'participants'} onClick={() => onTogglePanel('participants')}><PeopleIcon size={19} /></CornerBtn>
       </div>
@@ -215,10 +218,17 @@ function controlColors() {
 }
 
 /** Mic / camera: a main toggle joined to a device-picker chevron. */
-function SplitButton({ danger, icon, title, onMain, onChevron, popover }: { danger?: boolean; icon: ReactNode; title: string; onMain: () => void; onChevron: () => void; popover: ReactNode }) {
+function SplitButton({ compact, danger, icon, title, onMain, onChevron, popover }: { compact?: boolean; danger?: boolean; icon: ReactNode; title: string; onMain: () => void; onChevron: () => void; popover: ReactNode }) {
   const { neutralBg, neutral } = controlColors()
   const bg = danger ? 'rgba(239,75,67,.18)' : neutralBg
   const color = danger ? 'var(--danger-soft)' : neutral
+  // On mobile we drop the device-picker chevron + divider so each control is a
+  // single ~44px round toggle, keeping the whole cluster in one row.
+  if (compact) {
+    return (
+      <button onClick={onMain} title={title} style={{ width: 46, height: 46, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 23, border: 'none', background: bg, color, cursor: 'pointer' }}>{icon}</button>
+    )
+  }
   return (
     <div style={{ position: 'relative' }}>
       <div style={{ display: 'flex', alignItems: 'center', height: 46, borderRadius: 23, overflow: 'hidden', background: bg, color }}>
@@ -298,6 +308,6 @@ function DevicePicker({ room, kind, onClose }: { room: Room; kind: 'audioinput' 
   )
 }
 
-function Divider() {
-  return <div style={{ width: 1, height: 26, background: 'var(--border-strong)', margin: '0 3px' }} />
+function Divider({ compact }: { compact?: boolean }) {
+  return <div style={{ width: 1, height: compact ? 22 : 26, background: 'var(--border-strong)', margin: compact ? '0 1px' : '0 3px' }} />
 }

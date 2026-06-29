@@ -5,6 +5,7 @@ import { Logo } from '../components/Logo'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { initialsFor } from '../components/Avatar'
 import { CameraIcon, CameraOffIcon, MicIcon, MicOffIcon } from '../lib/icons'
+import { useIsMobile } from '../lib/hooks'
 
 const selectStyle: CSSProperties = {
   flex: 1,
@@ -18,6 +19,7 @@ const selectStyle: CSSProperties = {
 }
 
 export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin: (info: JoinInfo) => void }) {
+  const isMobile = useIsMobile()
   const [name, setName] = useState('')
   const [camOn, setCamOn] = useState(false)
   const [micOn, setMicOn] = useState(false)
@@ -166,7 +168,7 @@ export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, display: 'flex', flexDirection: 'column', padding: '24px 32px', overflow: 'auto', background: 'var(--surround)', color: 'var(--text)', fontFamily: 'var(--font)' }}>
+    <div style={{ position: 'fixed', inset: 0, display: 'flex', flexDirection: 'column', padding: isMobile ? '16px' : '24px 32px', overflow: 'auto', background: 'var(--surround)', color: 'var(--text)', fontFamily: 'var(--font)' }}>
       {/* "Signal" ambient background: concentric ripples emanating from behind the
           centre across a deep-petrol field — the Ripple mark made ambient. Masked
           out of the middle and topped by a calm radial so the preview + card stay
@@ -187,7 +189,7 @@ export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin
         <ThemeToggle />
       </div>
 
-      <div style={{ position: 'relative', zIndex: 2, display: 'flex', gap: 28, alignItems: 'center', justifyContent: 'center', margin: 'auto 0', maxWidth: 1040, width: '100%', alignSelf: 'center', flexWrap: 'wrap' }}>
+      <div style={{ position: 'relative', zIndex: 2, display: 'flex', gap: isMobile ? 16 : 28, alignItems: 'center', justifyContent: 'center', margin: 'auto 0', maxWidth: 1040, width: '100%', alignSelf: 'center', flexWrap: 'wrap' }}>
         {/* preview */}
         <div style={{ flex: '1.5 1 420px', minWidth: 320, position: 'relative', aspectRatio: '16 / 10', borderRadius: 18, overflow: 'hidden', background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: '0 24px 60px rgba(0,0,0,0.4)' }}>
           {camOn ? (

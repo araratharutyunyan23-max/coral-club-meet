@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ConnectionQuality, ConnectionState, type Room, Track } from 'livekit-client'
 import type { CallView, JoinInfo } from '../lib/types'
-import { useConnectionQuality, useParticipants, useRoomConnection } from '../lib/hooks'
+import { useConnectionQuality, useIsMobile, useParticipants, useRoomConnection } from '../lib/hooks'
 import { useChat, useReactions } from '../lib/datachannel'
 import { useQA } from '../lib/qa'
 import { useMutedByHost } from '../lib/moderation'
@@ -38,6 +38,7 @@ export function CallRoom({ join, onLeave }: { join: JoinInfo; onLeave: () => voi
 
 /** The in-call UI, mounted once we have a connected Room. */
 function CallStage({ room, roomName, reconnecting, isHost }: { room: Room; roomName: string; reconnecting: boolean; isHost: boolean }) {
+  const isMobile = useIsMobile()
   const [view, setView] = useState<CallView>('tiled')
   const [panel, setPanel] = useState<PanelName | null>(null)
   const chat = useChat(room)
@@ -87,11 +88,11 @@ function CallStage({ room, roomName, reconnecting, isHost }: { room: Room; roomN
         <div
           style={{
             position: 'absolute',
-            left: 20,
-            right: panel ? 366 : 20,
-            top: 8,
-            bottom: 92,
-            borderRadius: 18,
+            left: isMobile ? 8 : 20,
+            right: isMobile ? 8 : (panel ? 366 : 20),
+            top: isMobile ? 6 : 8,
+            bottom: isMobile ? 84 : 92,
+            borderRadius: isMobile ? 12 : 18,
             overflow: 'hidden',
             background: 'var(--surface)',
             border: '1px solid var(--border)',

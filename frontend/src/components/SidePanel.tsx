@@ -3,6 +3,7 @@ import type { Room } from 'livekit-client'
 import type { ChatMessage } from '../lib/datachannel'
 import type { QAApi } from '../lib/qa'
 import { CloseIcon } from '../lib/icons'
+import { useIsMobile } from '../lib/hooks'
 import { meetingUrl } from '../lib/rooms'
 import { ChatPanel } from './ChatPanel'
 import { ParticipantsPanel } from './ParticipantsPanel'
@@ -32,23 +33,46 @@ interface Props {
  * stage — it never floats over the video. Matches the inset stage's rounding.
  */
 export function SidePanel({ room, panel, isHost, messages, qa, onSend, onClose }: Props) {
+  const isMobile = useIsMobile()
   return (
     <aside
-      style={{
-        position: 'absolute',
-        top: 8,
-        bottom: 92,
-        right: 20,
-        width: 326,
-        display: 'flex',
-        flexDirection: 'column',
-        background: 'var(--bg-elev)',
-        border: '1px solid var(--border)',
-        borderRadius: 18,
-        overflow: 'hidden',
-        zIndex: 35,
-        animation: 'slidein 0.18s ease-out',
-      }}
+      style={
+        isMobile
+          ? {
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              maxWidth: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              background: 'var(--bg-elev)',
+              border: '1px solid var(--border)',
+              borderRadius: 0,
+              overflow: 'hidden',
+              zIndex: 50,
+              animation: 'slidein 0.18s ease-out',
+            }
+          : {
+              position: 'absolute',
+              top: 8,
+              bottom: 92,
+              right: 20,
+              width: 326,
+              display: 'flex',
+              flexDirection: 'column',
+              background: 'var(--bg-elev)',
+              border: '1px solid var(--border)',
+              borderRadius: 18,
+              overflow: 'hidden',
+              zIndex: 35,
+              animation: 'slidein 0.18s ease-out',
+            }
+      }
     >
       <div
         style={{
