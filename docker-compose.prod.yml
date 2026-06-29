@@ -1,0 +1,38 @@
+name: coral-club-meet
+
+# Production stack:
+#   backend  — issues LiveKit tokens (talks to LiveKit Cloud)
+#   web      — nginx: serves frontend/dist + proxies /api -> backend
+#   tunnel   — Cloudflare quick-tunnel for public HTTPS (until a real domain)
+#
+# Media flows browser <-> LiveKit Cloud directly, so there is no SFU/redis/egress
+# here. Secrets (LiveKit Cloud key/secret) live in ./.env (gitignored) — see
+# DEPLOY.md. Build the frontend (frontend/dist) before `docker compose up`.
+
+services:
+  backend:
+    build: ./backend
+    env_file: .env
+    environment:
+      PORT: '8080'
+    expose:
+      - '8080'
+    restart: unless-stopped
+
+  web:
+    image: nginx:alpine
+    ports:
+      - '80:80'
+    volumes:
+      - ./frontend/dist:/usr/share/nginx/html:ro
+      - ./infra/nginx.prod.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate --url http://web:80
+    depends_on:
+      - web
+    restart: unless-stopped
