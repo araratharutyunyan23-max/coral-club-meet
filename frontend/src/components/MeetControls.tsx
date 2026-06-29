@@ -58,6 +58,7 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
   const isMobile = useIsMobile()
   const [popover, setPopover] = useState<null | 'reactions' | 'more' | 'mic' | 'cam'>(null)
   const [confirmStopShare, setConfirmStopShare] = useState(false)
+  const [mediaError, setMediaError] = useState<string | null>(null)
   const lp = room.localParticipant
 
   const micOn = lp.isMicrophoneEnabled
@@ -65,8 +66,18 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
   const screenOn = lp.isScreenShareEnabled
   const handRaised = !!lp.attributes?.handRaised
 
-  const toggleMic = () => void lp.setMicrophoneEnabled(!micOn).catch(() => {})
-  const toggleCam = () => void lp.setCameraEnabled(!camOn).catch(() => {})
+  // Surface getUserMedia failures (denied permission, or in-app browsers like
+  // Telegram/Instagram that block media) instead of silently swallowing them.
+  const mediaFail = (what: string) => () =>
+    setMediaError(`Couldn't turn on the ${what}. Allow access in the browser, or open the link in Safari/Chrome — in-app browsers (Telegram, Instagram…) often block the camera & mic.`)
+  const toggleMic = () => {
+    setMediaError(null)
+    void lp.setMicrophoneEnabled(!micOn).catch(mediaFail('microphone'))
+  }
+  const toggleCam = () => {
+    setMediaError(null)
+    void lp.setCameraEnabled(!camOn).catch(mediaFail('camera'))
+  }
   const toggleScreen = () => void lp.setScreenShareEnabled(!screenOn).catch(() => {})
   // Store the raise time so everyone can show the queue order (1, 2, 3…).
   const toggleHand = () => void lp.setAttributes({ handRaised: handRaised ? '' : String(Date.now()) }).catch(() => {})
@@ -79,6 +90,13 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
   useEffect(() => {
     if (!screenOn && confirmStopShare) setConfirmStopShare(false)
   }, [screenOn, confirmStopShare])
+
+  // Auto-dismiss the media-error toast.
+  useEffect(() => {
+    if (!mediaError) return
+    const t = window.setTimeout(() => setMediaError(null), 7000)
+    return () => window.clearTimeout(t)
+  }, [mediaError])
 
   return (
     <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 92, zIndex: 30, fontFamily: 'var(--font)' }}>
@@ -202,6 +220,13 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
         <div style={{ position: 'absolute', right: 20, top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', gap: 3 }}>
           <CornerBtn title="Chat" active={activePanel === 'chat'} badge={unread} onClick={() => onTogglePanel('chat')}><ChatIcon size={19} /></CornerBtn>
           <CornerBtn title="People" active={activePanel === 'participants'} onClick={() => onTogglePanel('participants')}><PeopleIcon size={19} /></CornerBtn>
+        </div>
+      )}
+
+      {mediaError && (
+        <div style={{ position: 'fixed', left: '50%', bottom: 100, transform: 'translateX(-50%)', zIndex: 45, maxWidth: 'min(92vw, 440px)', display: 'flex', alignItems: 'flex-start', gap: 10, padding: '11px 14px', background: 'rgba(239,75,67,.16)', border: '1px solid rgba(239,75,67,.4)', borderRadius: 12, color: '#ff8a82', fontSize: 13, lineHeight: 1.4, boxShadow: '0 14px 40px rgba(0,0,0,.4)' }}>
+          <span>{mediaError}</span>
+          <button onClick={() => setMediaError(null)} title="Dismiss" style={{ marginLeft: 'auto', background: 'transparent', border: 'none', color: 'inherit', cursor: 'pointer', fontSize: 16, lineHeight: 1, flex: '0 0 auto' }}>✕</button>
         </div>
       )}
 
