@@ -41,7 +41,13 @@ docker compose -f docker-compose.prod.yml logs tunnel | grep -o 'https://[a-z0-9
 The site is also reachable on the box's `http://<server-ip>` (port 80) for when a
 real domain + TLS is added later.
 
-## Redeploy after code changes
+## CI/CD
+
+Pushing to `main` auto-deploys via GitHub Actions (`.github/workflows/deploy.yml`):
+it rsyncs the repo to the box, rebuilds the frontend and restarts the prod stack.
+Requires repo secrets `SSH_HOST` and `SSH_PRIVATE_KEY` (a dedicated deploy key).
+
+## Redeploy after code changes (manual)
 
 ```bash
 cd /opt/coral-club-meet
