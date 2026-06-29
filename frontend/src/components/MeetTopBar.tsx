@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { Room } from 'livekit-client'
 import { RippleMark } from './Logo'
 import { ThemeToggle } from './ThemeToggle'
-import { PeopleIcon } from '../lib/icons'
+import { HandIcon, PeopleIcon } from '../lib/icons'
 import { useParticipants, useIsMobile } from '../lib/hooks'
 import { raisedHandQueue } from '../lib/raisehand'
 import { initialsFor } from './Avatar'
@@ -83,7 +83,7 @@ export function MeetTopBar({ room, roomName, recording = false }: { room: Room; 
             title={`${raiserName} raised a hand`}
             style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '6px 12px', borderRadius: 999, background: 'rgba(255,126,99,.16)', border: '1px solid rgba(255,126,99,.4)', maxWidth: isMobile ? 150 : 320 }}
           >
-            <span style={{ fontSize: 14, lineHeight: 1, flex: '0 0 auto' }}>✋</span>
+            <HandIcon size={15} style={{ color: 'var(--coral)', flex: '0 0 auto' }} />
             <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {raiserName}
               {!isMobile && ' raised a hand'}

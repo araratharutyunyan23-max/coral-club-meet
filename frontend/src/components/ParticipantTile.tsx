@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { type Participant, type Room, Track } from 'livekit-client'
 import { Avatar, initialsFor } from './Avatar'
-import { MicOffIcon } from '../lib/icons'
+import { HandIcon, MicOffIcon } from '../lib/icons'
 import { admin } from '../lib/api'
 import { notifyModeration } from '../lib/moderation'
 import { raiseRank } from '../lib/raisehand'
@@ -85,7 +85,7 @@ export function ParticipantTile({ participant, isLocal = false, room, isHost = f
 
         {handRaised && (
           <div className="pt-hand" title={handRank != null ? `Raised hand · #${handRank} in queue` : 'Hand raised'}>
-            <span className="hand-emoji">✋</span>
+            <HandIcon size={17} />
             {handRank != null && <span>{handRank}</span>}
           </div>
         )}
@@ -212,7 +212,7 @@ export function ParticipantTile({ participant, isLocal = false, room, isHost = f
           }}
           title={handRank ? `Raised hand · #${handRank} in queue` : 'Hand raised'}
         >
-          <span style={{ fontSize: 13, lineHeight: 1 }}>✋</span>
+          <HandIcon size={14} />
           {handRank != null && <span>{handRank}</span>}
         </div>
       )}

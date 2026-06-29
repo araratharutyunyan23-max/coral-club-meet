@@ -5,7 +5,7 @@ import { admin } from '../lib/api'
 import { notifyModeration } from '../lib/moderation'
 import { raiseRank } from '../lib/raisehand'
 import { initialsFor } from './Avatar'
-import { MicIcon, MicOffIcon } from '../lib/icons'
+import { HandIcon, MicIcon, MicOffIcon } from '../lib/icons'
 
 /** Live roster with host moderation actions (mute, promote, remove, mute-all, lock). */
 export function ParticipantsPanel({ room, isHost }: { room: Room; isHost: boolean }) {
@@ -109,7 +109,8 @@ function ParticipantRow({ room, participant, isLocal, isHost }: { room: Room; pa
 
       {handRaised && (
         <span title={handRank ? `Raised hand · #${handRank} in queue` : 'Hand raised'} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 14, fontWeight: 700, color: 'var(--coral)' }}>
-          ✋{handRank != null && <span style={{ fontSize: 12 }}>{handRank}</span>}
+          <HandIcon size={15} />
+          {handRank != null && <span style={{ fontSize: 12 }}>{handRank}</span>}
         </span>
       )}
 

@@ -729,11 +729,17 @@ input {
   box-shadow: 0 6px 18px rgba(20, 40, 38, 0.16);
 }
 .pt-avatar.is-initials {
-  background: linear-gradient(150deg, #34e6d3, #0f9c8d);
-  color: #04211e;
+  /* calm resting avatar (matches the Avatar atom) so camera-off tiles recede
+     and the saturated teal speak-ring stays the only loud teal in the grid */
+  background: var(--teal-tint);
+  border-color: rgba(37, 208, 192, 0.28);
+  color: var(--teal-soft);
   font-weight: 700;
   font-size: clamp(19px, 21cqmin, 60px);
   letter-spacing: 0.01em;
+}
+[data-theme='light'] .pt-avatar.is-initials {
+  border-color: rgba(15, 156, 141, 0.3);
 }
 .pt-avatar.is-video {
   background: #16242b;
