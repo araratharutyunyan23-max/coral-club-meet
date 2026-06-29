@@ -67,7 +67,7 @@ export function SidePanel({ room, panel, isHost, messages, qa, onSend, onClose }
               flexDirection: 'column',
               background: 'var(--bg-elev)',
               border: '1px solid var(--border)',
-              borderRadius: 18,
+              borderRadius: 'var(--radius-lg)',
               overflow: 'hidden',
               zIndex: 35,
               animation: 'slidein 0.18s ease-out',

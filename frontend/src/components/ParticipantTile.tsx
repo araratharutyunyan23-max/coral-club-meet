@@ -220,16 +220,20 @@ export function ParticipantTile({ participant, isLocal = false, room, isHost = f
       <div
         style={{
           position: 'absolute',
-          left: 12,
+          left: 10,
           bottom: 10,
           display: 'flex',
           alignItems: 'center',
           gap: 6,
-          fontSize: 13,
+          maxWidth: 'calc(100% - 20px)',
+          padding: '5px 10px',
+          borderRadius: 999,
+          background: 'var(--glass)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid var(--border)',
+          fontSize: 12.5,
           fontWeight: 500,
-          maxWidth: '90%',
           color: 'var(--text)',
-          textShadow: '0 1px 4px var(--surround)',
         }}
       >
         {micMuted && <MicOffIcon size={13} style={{ color: 'var(--danger-soft)' }} />}

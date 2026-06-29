@@ -1,3 +1,4 @@
+import { RippleMark } from '../components/Logo'
 import type { CallSummary } from '../lib/types'
 
 function formatDuration(totalSec: number): string {
@@ -10,6 +11,7 @@ export function PostCall({ summary, onRejoin, onExit }: { summary: CallSummary; 
   return (
     <div
       style={{
+        position: 'relative',
         minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
@@ -17,30 +19,34 @@ export function PostCall({ summary, onRejoin, onExit }: { summary: CallSummary; 
         justifyContent: 'center',
         padding: 32,
         textAlign: 'center',
+        overflow: 'hidden',
         background: 'transparent',
         color: 'var(--text)',
         fontFamily: 'var(--font)',
       }}
     >
-      <div
-        style={{
-          position: 'relative',
-          width: 30,
-          height: 30,
-          borderRadius: '50%',
-          background: 'linear-gradient(140deg, var(--teal-bright), #13a596)',
-          marginBottom: 22,
-        }}
-      >
-        <div style={{ position: 'absolute', width: 11, height: 11, borderRadius: '50%', background: 'var(--bg)', right: 6, bottom: 6 }} />
+      {/* "Signal" ambient — the meeting settling out, so leaving still feels Coral Club. */}
+      <div className="lobby-ambient" aria-hidden="true">
+        <div className="sig-core" />
+        <div className="sig-field">
+          <span className="sig-ripple" />
+          <span className="sig-ripple" />
+          <span className="sig-ripple" />
+          <span className="sig-ripple" />
+        </div>
+      </div>
+      <div className="lobby-calm" aria-hidden="true" />
+
+      <div style={{ position: 'relative', zIndex: 2, marginBottom: 22 }}>
+        <RippleMark size={52} />
       </div>
 
-      <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-.01em' }}>You left the meeting</div>
-      <div style={{ fontSize: 14, color: 'var(--text-mute)', marginTop: 8 }}>
+      <div style={{ position: 'relative', zIndex: 2, fontSize: 28, fontWeight: 700, letterSpacing: '-.01em' }}>You left the meeting</div>
+      <div style={{ position: 'relative', zIndex: 2, fontSize: 14, color: 'var(--text-mute)', marginTop: 8 }}>
         {summary.room} · Duration {formatDuration(summary.durationSec)}
       </div>
 
-      <div style={{ display: 'flex', gap: 12, marginTop: 28 }}>
+      <div style={{ position: 'relative', zIndex: 2, display: 'flex', gap: 12, marginTop: 28 }}>
         <button
           onClick={onRejoin}
           style={{

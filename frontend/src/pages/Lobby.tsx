@@ -191,7 +191,7 @@ export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin
 
       <div style={{ position: 'relative', zIndex: 2, display: 'flex', gap: isMobile ? 16 : 28, alignItems: 'center', justifyContent: 'center', margin: 'auto 0', maxWidth: 1040, width: '100%', alignSelf: 'center', flexWrap: 'wrap' }}>
         {/* preview */}
-        <div style={{ flex: '1.5 1 420px', minWidth: 320, position: 'relative', aspectRatio: '16 / 10', borderRadius: 18, overflow: 'hidden', background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: '0 24px 60px rgba(0,0,0,0.4)' }}>
+        <div style={{ flex: '1.5 1 420px', minWidth: 320, position: 'relative', aspectRatio: '16 / 10', borderRadius: 'var(--radius-lg)', overflow: 'hidden', background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: '0 24px 60px rgba(0,0,0,0.4)' }}>
           {camOn ? (
             <video ref={videoRef} autoPlay playsInline muted style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)', filter: blur ? 'blur(8px)' : undefined }} />
           ) : (
