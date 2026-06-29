@@ -85,7 +85,7 @@ export function ParticipantTile({ participant, isLocal = false, room, isHost = f
 
         {handRaised && (
           <div className="pt-hand" title={handRank != null ? `Raised hand · #${handRank} in queue` : 'Hand raised'}>
-            <span>✋</span>
+            <span className="hand-emoji">✋</span>
             {handRank != null && <span>{handRank}</span>}
           </div>
         )}

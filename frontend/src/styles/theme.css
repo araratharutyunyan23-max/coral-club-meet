@@ -820,13 +820,17 @@ input {
   z-index: 2;
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
+  gap: 6px;
+  padding: 6px 12px;
   border-radius: 999px;
   background: var(--coral);
   color: #241008;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
+}
+.pt-hand .hand-emoji {
+  font-size: 19px;
+  line-height: 1;
 }
 .pt-actions {
   position: absolute;
