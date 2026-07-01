@@ -68,20 +68,30 @@ export function ParticipantTile({ participant, isLocal = false, room, isHost = f
         className={`pt-tile${speaking ? ' speaking' : ''}${showHostActions ? ' pt-host' : ''}`}
         style={showVideo ? undefined : { background: tileTint(name) }}
       >
-        <div
-          className={showVideo ? 'pt-avatar is-video' : 'pt-avatar is-initials'}
-          style={showVideo ? undefined : userTint(name, true)}
-        >
-          {/* video stays mounted so a mute/unmute toggle never tears down the track */}
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            style={{ display: showVideo ? 'block' : 'none', transform: isLocal && !isScreen ? 'scaleX(-1)' : undefined }}
-          />
-          {!showVideo && initialsFor(name)}
-        </div>
+        {/* Camera on → video fills the whole tile; camera off → circular colour
+            avatar. The video stays mounted (display toggled) so a mute/unmute
+            never tears down the attached track. */}
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: isScreen ? 'contain' : 'cover',
+            background: '#000',
+            transform: isLocal && !isScreen ? 'scaleX(-1)' : undefined,
+            display: showVideo ? 'block' : 'none',
+          }}
+        />
+        {!showVideo && (
+          <div className="pt-avatar is-initials" style={userTint(name, true)}>
+            {initialsFor(name)}
+          </div>
+        )}
 
         {micMuted && (
           <div className="pt-mute" title="Muted">
