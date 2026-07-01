@@ -84,12 +84,19 @@ export const ReactIcon = ({ size = 20, style }: IconProps) => (
   </svg>
 )
 
+// Bold, solid raised hand — a filled palm with thick round-capped fingers so it
+// stays legible at small sizes and on the coral chip/badge (the old thin outline
+// blended into the background).
 export const HandIcon = ({ size = 20, style }: IconProps) => (
-  <svg {...base(size)} style={style}>
-    <path d="M7 11V6.5a1.5 1.5 0 0 1 3 0V10" />
-    <path d="M10 10V4.5a1.5 1.5 0 0 1 3 0V10" />
-    <path d="M13 10.5V6a1.5 1.5 0 0 1 3 0v6" />
-    <path d="M16 9.5a1.5 1.5 0 0 1 3 0V14a6 6 0 0 1-6 6h-1.5a6 6 0 0 1-4.8-2.4L4 14.5" />
+  <svg width={size} height={size} viewBox="0 0 24 24" style={style}>
+    <path d="M6.3 12H17.2V16.4A5.45 5.45 0 0 1 11.75 21.85A5.45 5.45 0 0 1 6.3 16.4Z" fill="currentColor" />
+    <g stroke="currentColor" strokeWidth={2.3} strokeLinecap="round" fill="none">
+      <path d="M8 13.2V6.4" />
+      <path d="M10.75 13.2V4.7" />
+      <path d="M13.5 13.2V5.7" />
+      <path d="M16 13.2V8" />
+      <path d="M7.1 14 4.5 16.5" />
+    </g>
   </svg>
 )
 
