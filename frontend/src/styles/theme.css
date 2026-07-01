@@ -880,6 +880,30 @@ input {
     transform: rotate(-3deg);
   }
 }
+/* Raised-hand chip (top bar): spring in from the side while a coral signal-ring
+   ripples out of it — a clear, on-brand "hand went up" beat. */
+@keyframes chipIn {
+  0% {
+    opacity: 0;
+    transform: translateX(16px) scale(0.78);
+  }
+  55% {
+    opacity: 1;
+    transform: translateX(0) scale(1.07);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+@keyframes chipGlow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 126, 99, 0.55);
+  }
+  100% {
+    box-shadow: 0 0 0 15px rgba(255, 126, 99, 0);
+  }
+}
 .pt-actions {
   position: absolute;
   top: 8px;
