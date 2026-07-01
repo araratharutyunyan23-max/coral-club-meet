@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { type Participant, type Room, Track } from 'livekit-client'
-import { Avatar, initialsFor } from './Avatar'
+import { Avatar, initialsFor, userTint, tileTint } from './Avatar'
 import { HandIcon, MicOffIcon } from '../lib/icons'
 import { admin } from '../lib/api'
 import { notifyModeration } from '../lib/moderation'
@@ -64,8 +64,14 @@ export function ParticipantTile({ participant, isLocal = false, room, isHost = f
   // a pulsing teal ring on the active speaker. (Styles in theme.css.)
   if (circular) {
     return (
-      <div className={`pt-tile${speaking ? ' speaking' : ''}${showHostActions ? ' pt-host' : ''}`}>
-        <div className={showVideo ? 'pt-avatar is-video' : 'pt-avatar is-initials'}>
+      <div
+        className={`pt-tile${speaking ? ' speaking' : ''}${showHostActions ? ' pt-host' : ''}`}
+        style={showVideo ? undefined : { background: tileTint(name) }}
+      >
+        <div
+          className={showVideo ? 'pt-avatar is-video' : 'pt-avatar is-initials'}
+          style={showVideo ? undefined : userTint(name, true)}
+        >
           {/* video stays mounted so a mute/unmute toggle never tears down the track */}
           <video
             ref={videoRef}
@@ -174,7 +180,7 @@ export function ParticipantTile({ participant, isLocal = false, room, isHost = f
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'var(--surface-2)',
+            background: tileTint(name),
           }}
         >
           <Avatar name={name} />

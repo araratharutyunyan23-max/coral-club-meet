@@ -4,7 +4,7 @@ import { useWebinarLive } from '../lib/webinar'
 import { admin } from '../lib/api'
 import { stageContainer } from '../lib/styles'
 import { ParticipantTile } from './ParticipantTile'
-import { initialsFor } from './Avatar'
+import { initialsFor, userTint } from './Avatar'
 
 /** Webinar/stage view: presenters (publishers) on stage, view-only audience below
  *  with host "promote to stage". */
@@ -58,7 +58,7 @@ export function WebinarView({ room, isHost }: { room: Room; isHost: boolean }) {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
             {audience.map((a) => (
               <div key={a.sid || a.identity} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '7px 9px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 9 }}>
-                <div style={{ width: 30, height: 30, flex: '0 0 auto', borderRadius: '50%', background: 'var(--teal-tint)', border: '1px solid rgba(37,208,192,.22)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, color: 'var(--teal-soft)' }}>
+                <div style={{ ...userTint(a.name || a.identity), width: 30, height: 30, flex: '0 0 auto', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600 }}>
                   {initialsFor(a.name || a.identity)}
                 </div>
                 <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.name || a.identity}</span>

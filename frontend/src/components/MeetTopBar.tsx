@@ -5,7 +5,7 @@ import { ThemeToggle } from './ThemeToggle'
 import { HandIcon, PeopleIcon } from '../lib/icons'
 import { useParticipants, useIsMobile } from '../lib/hooks'
 import { raisedHandQueue } from '../lib/raisehand'
-import { initialsFor } from './Avatar'
+import { initialsFor, userTint } from './Avatar'
 
 /** Elapsed call time as MM:SS (or H:MM:SS once past an hour). */
 function formatElapsed(ms: number): string {
@@ -49,7 +49,10 @@ export function MeetTopBar({ room, roomName, recording = false }: { room: Room; 
   const participants = useParticipants(room)
   const elapsed = useElapsed(room)
   const isMobile = useIsMobile()
-  const avatars = participants.slice(0, 3).map((p) => initialsFor(p.name || p.identity))
+  const avatars = participants.slice(0, 3).map((p) => {
+    const key = p.name || p.identity
+    return { key, initials: initialsFor(key) }
+  })
   // Raised hands (oldest first) → show the first raiser in the top bar.
   const raised = raisedHandQueue(participants)
   const firstRaiser = raised[0]
@@ -103,12 +106,12 @@ export function MeetTopBar({ room, roomName, recording = false }: { room: Room; 
             {participants.length}
           </span>
           {!isMobile && <div style={{ display: 'flex', alignItems: 'center' }}>
-            {avatars.map((t, i) => (
+            {avatars.map((a, i) => (
               <div
                 key={i}
-                style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--teal-tint)', border: '2px solid var(--surround)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11.5, fontWeight: 600, color: 'var(--teal-soft)', marginLeft: i === 0 ? 0 : -10 }}
+                style={{ ...userTint(a.key), width: 30, height: 30, borderRadius: '50%', border: '2px solid var(--surround)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11.5, fontWeight: 600, marginLeft: i === 0 ? 0 : -10 }}
               >
-                {t}
+                {a.initials}
               </div>
             ))}
           </div>}

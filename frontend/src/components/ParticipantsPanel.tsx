@@ -4,7 +4,7 @@ import { canPublish, useParticipants } from '../lib/hooks'
 import { admin } from '../lib/api'
 import { notifyModeration } from '../lib/moderation'
 import { raiseRank } from '../lib/raisehand'
-import { initialsFor } from './Avatar'
+import { initialsFor, userTint } from './Avatar'
 import { HandIcon, MicIcon, MicOffIcon } from '../lib/icons'
 
 /** Live roster with host moderation actions (mute, promote, remove, mute-all, lock). */
@@ -86,18 +86,16 @@ function ParticipantRow({ room, participant, isLocal, isHost }: { room: Room; pa
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 8, borderRadius: 9 }}>
       <div
         style={{
+          ...userTint(name),
           width: 34,
           height: 34,
           flex: '0 0 auto',
           borderRadius: '50%',
-          background: 'var(--teal-tint)',
-          border: '1px solid rgba(37, 208, 192, 0.22)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           fontSize: 12,
           fontWeight: 600,
-          color: 'var(--teal-soft)',
         }}
       >
         {initialsFor(name)}
