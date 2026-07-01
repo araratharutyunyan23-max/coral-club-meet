@@ -33,11 +33,11 @@ export function CallRoom({ join, onLeave }: { join: JoinInfo; onLeave: () => voi
 
   const reconnecting = state === ConnectionState.Reconnecting || state === ConnectionState.SignalReconnecting
 
-  return <CallStage room={room} roomName={join.room} reconnecting={reconnecting} isHost={join.role === 'host'} />
+  return <CallStage room={room} roomName={join.room} reconnecting={reconnecting} isHost={join.role === 'host'} onLeave={onLeave} />
 }
 
 /** The in-call UI, mounted once we have a connected Room. */
-function CallStage({ room, roomName, reconnecting, isHost }: { room: Room; roomName: string; reconnecting: boolean; isHost: boolean }) {
+function CallStage({ room, roomName, reconnecting, isHost, onLeave }: { room: Room; roomName: string; reconnecting: boolean; isHost: boolean; onLeave: () => void }) {
   const isMobile = useIsMobile()
   const [view, setView] = useState<CallView>('tiled')
   const [panel, setPanel] = useState<PanelName | null>(null)
@@ -49,7 +49,7 @@ function CallStage({ room, roomName, reconnecting, isHost }: { room: Room; roomN
   const mutedByHost = useMutedByHost(room)
   useRaiseHandChime(room)
   useJoinChime(room)
-  const pip = useCallPip(room, () => void room.disconnect())
+  const pip = useCallPip(room, onLeave)
   const participants = useParticipants(room)
   const alone = participants.length <= 1
   // Someone presenting a screen → auto-spotlight it (Telemost-style: shared
@@ -132,7 +132,7 @@ function CallStage({ room, roomName, reconnecting, isHost }: { room: Room; roomN
 
         <ReactionsOverlay active={reactions.active} />
         {mutedByHost && <MutedByHostToast />}
-        <MeetControls room={room} activePanel={panel} onTogglePanel={togglePanel} unread={unread} view={view} onViewChange={setView} sharing={sharing} isHost={isHost} recording={recording.active} onToggleRecord={recording.toggle} onReaction={reactions.send} onOpenPip={pip.supported ? pip.open : undefined} />
+        <MeetControls room={room} activePanel={panel} onTogglePanel={togglePanel} unread={unread} view={view} onViewChange={setView} sharing={sharing} isHost={isHost} recording={recording.active} onToggleRecord={recording.toggle} onReaction={reactions.send} onOpenPip={pip.supported ? pip.open : undefined} onLeave={onLeave} />
 
         {panel && (
           <SidePanel

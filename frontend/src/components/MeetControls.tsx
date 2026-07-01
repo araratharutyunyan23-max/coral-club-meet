@@ -46,6 +46,7 @@ interface Props {
   onToggleRecord?: () => void
   onReaction?: (emoji: string) => void
   onOpenPip?: () => void
+  onLeave: () => void
 }
 
 /**
@@ -53,7 +54,7 @@ interface Props {
  * pickers · present · reactions · raise hand · captions · more · end-call) and a
  * bottom-right corner-chrome group (chat · people). No glass.
  */
-export function MeetControls({ room, activePanel, onTogglePanel, unread, view, onViewChange, sharing = false, isHost = false, recording = false, onToggleRecord, onReaction, onOpenPip }: Props) {
+export function MeetControls({ room, activePanel, onTogglePanel, unread, view, onViewChange, sharing = false, isHost = false, recording = false, onToggleRecord, onReaction, onOpenPip, onLeave }: Props) {
   useRoomEvents(room, CONTROL_EVENTS)
   const isMobile = useIsMobile()
   const [popover, setPopover] = useState<null | 'reactions' | 'more' | 'mic' | 'cam'>(null)
@@ -82,7 +83,9 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
   const toggleScreen = () => void lp.setScreenShareEnabled(!screenOn).catch(() => {})
   // Store the raise time so everyone can show the queue order (1, 2, 3…).
   const toggleHand = () => void lp.setAttributes({ handRaised: handRaised ? '' : String(Date.now()) }).catch(() => {})
-  const leave = () => void room.disconnect()
+  // Switch to the post-call screen immediately; unmounting CallRoom tears the
+  // LiveKit room down in the background, so the tap never waits on disconnect().
+  const leave = () => onLeave()
   const close = () => setPopover(null)
   // Copy the meeting link (the room URL) to the clipboard, with a fallback for
   // browsers without the async clipboard API.
