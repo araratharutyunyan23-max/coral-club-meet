@@ -40,9 +40,10 @@ function useElapsed(room: Room): string {
 }
 
 /**
- * Minimal Meet-style top line: Ripple mark · call timer · meeting code · info on the
+ * Minimal Meet-style top line: Ripple mark · "Coral Club" brand · call timer on the
  * left; a participant-count pill with stacked avatars (plus the theme toggle and
- * a REC indicator) on the right. Flat — no glass.
+ * a REC indicator) on the right. The room code is kept as a hover title on the brand.
+ * Flat — no glass.
  */
 export function MeetTopBar({ room, roomName, recording = false }: { room: Room; roomName: string; recording?: boolean }) {
   const participants = useParticipants(room)
@@ -60,7 +61,12 @@ export function MeetTopBar({ room, roomName, recording = false }: { room: Room; 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--text-dim)', fontSize: 12.5 }}>
         <RippleMark size={19} />
         {!isMobile && <div style={{ width: 1, height: 15, background: 'var(--border-strong)' }} />}
-        {!isMobile && <span style={{ fontFamily: 'var(--mono)', fontSize: 12.5, letterSpacing: '.02em' }}>{roomName}</span>}
+        <span
+          title={roomName}
+          style={{ fontFamily: 'var(--font)', fontSize: isMobile ? 13.5 : 15, fontWeight: 600, letterSpacing: '.01em', color: 'var(--text)', whiteSpace: 'nowrap' }}
+        >
+          Coral Club
+        </span>
         {recording && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 4, padding: '3px 9px', background: 'rgba(239,75,67,.13)', border: '1px solid rgba(239,75,67,.3)', borderRadius: 7 }}>
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--danger)', animation: 'recblink 1.4s infinite' }} />
