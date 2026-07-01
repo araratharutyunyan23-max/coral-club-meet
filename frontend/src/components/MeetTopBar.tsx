@@ -90,9 +90,9 @@ export function MeetTopBar({ room, roomName, recording = false }: { room: Room; 
         {firstRaiser && (
           <div
             title={`${raiserName} raised a hand`}
-            style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '6px 12px', borderRadius: 999, background: 'rgba(255,126,99,.16)', border: '1px solid rgba(255,126,99,.4)', maxWidth: isMobile ? 150 : 320 }}
+            style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '6px 12px', borderRadius: 999, background: 'rgba(255,126,99,.16)', border: '1px solid rgba(255,126,99,.4)', maxWidth: isMobile ? 150 : 320, animation: 'handPop 0.42s cubic-bezier(0.34,1.56,0.64,1) both' }}
           >
-            <HandIcon size={15} style={{ color: 'var(--coral)', flex: '0 0 auto' }} />
+            <HandIcon size={15} style={{ color: 'var(--coral)', flex: '0 0 auto', transformOrigin: '62% 88%', animation: 'handWave 1.15s ease-in-out 0.2s 1 both' }} />
             <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {raiserName}
               {!isMobile && ' raised a hand'}

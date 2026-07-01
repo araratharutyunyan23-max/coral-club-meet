@@ -215,10 +215,11 @@ export function ParticipantTile({ participant, isLocal = false, room, isHost = f
             fontSize: 12,
             fontWeight: 700,
             color: '#241008',
+            animation: 'handPop 0.42s cubic-bezier(0.34,1.56,0.64,1) both',
           }}
           title={handRank ? `Raised hand · #${handRank} in queue` : 'Hand raised'}
         >
-          <HandIcon size={14} />
+          <HandIcon size={14} style={{ transformOrigin: '62% 88%', animation: 'handWave 1.15s ease-in-out 0.2s 1 both' }} />
           {handRank != null && <span>{handRank}</span>}
         </div>
       )}
