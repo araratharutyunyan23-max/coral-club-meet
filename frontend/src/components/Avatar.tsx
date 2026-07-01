@@ -26,29 +26,22 @@ export function hueFor(key: string): number {
 }
 
 /**
- * Per-participant tint for a circular initials avatar. Colours are mixed into the
- * theme's --surface / --text, so they stay legible and on-tone in both themes.
- * `strong` gives the big camera-off avatars more presence than the small roster ones.
+ * Per-participant tint for a circular initials avatar (Kontur-style): a clean,
+ * solid colour circle with white initials — no ring, no glow. `strong` nudges the
+ * big camera-off avatars a touch brighter than the small roster ones.
  */
 export function userTint(key: string, strong = false): CSSProperties {
-  const c = `hsl(${hueFor(key)} 62% 52%)`
-  const bg = strong ? 40 : 26
-  const bd = strong ? 58 : 44
   return {
-    background: `color-mix(in srgb, ${c} ${bg}%, var(--surface))`,
-    border: `1px solid color-mix(in srgb, ${c} ${bd}%, transparent)`,
-    color: `color-mix(in srgb, ${c} 74%, var(--text))`,
+    background: `hsl(${hueFor(key)} 54% ${strong ? 47 : 45}%)`,
+    border: 'none',
+    color: '#ffffff',
+    boxShadow: 'none',
   }
 }
 
-/** A soft, tile-wide colour wash for a participant's camera-off tile (Kontur-style). */
+/** A flat, subtle per-participant wash for a camera-off tile (mixed into the theme). */
 export function tileTint(key: string): string {
-  const h = hueFor(key)
-  return (
-    `radial-gradient(120% 115% at 50% 32%, ` +
-    `color-mix(in srgb, hsl(${h} 58% 50%) 26%, var(--surface)), ` +
-    `color-mix(in srgb, hsl(${h} 55% 42%) 12%, var(--surface)))`
-  )
+  return `color-mix(in srgb, hsl(${hueFor(key)} 46% 50%) 18%, var(--surface))`
 }
 
 /** Circular initials avatar shown when a participant's camera is off. */

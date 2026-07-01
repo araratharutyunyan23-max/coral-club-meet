@@ -3,10 +3,12 @@ import { useIsMobile, useIsPortrait, useParticipants } from '../lib/hooks'
 import { stageContainer } from '../lib/styles'
 import { ParticipantTile } from './ParticipantTile'
 
-/** Chooses a column count that keeps tiles reasonably square. */
+/** Chooses a column count that keeps tiles reasonably square. Small calls sit in a
+ *  single row (2 → two-up, 3 → three-up, like Meet/Kontur); 4 squares up to 2×2. */
 function columnsFor(count: number): number {
   if (count <= 1) return 1
-  if (count <= 4) return 2
+  if (count <= 3) return count
+  if (count === 4) return 2
   if (count <= 9) return 3
   if (count <= 16) return 4
   return 5
