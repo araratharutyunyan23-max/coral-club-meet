@@ -3,6 +3,8 @@ import { ConnectionQuality, ConnectionState, type Room, Track } from 'livekit-cl
 import type { CallView, JoinInfo } from '../lib/types'
 import { useConnectionQuality, useIsMobile, useParticipants, useRoomConnection } from '../lib/hooks'
 import { useChat, useReactions } from '../lib/datachannel'
+import { useMoments } from '../lib/moment'
+import { MomentOverlay } from '../components/MomentOverlay'
 import { useQA } from '../lib/qa'
 import { useMutedByHost } from '../lib/moderation'
 import { useRecording } from '../lib/recording'
@@ -47,6 +49,7 @@ function CallStage({ room, roomName, reconnecting, isHost, onLeave }: { room: Ro
   const recording = useRecording(room, isHost)
   const quality = useConnectionQuality(room)
   const mutedByHost = useMutedByHost(room)
+  const moments = useMoments(room)
   useRaiseHandChime(room)
   useJoinChime(room)
   const pip = useCallPip(room, onLeave)
@@ -131,8 +134,9 @@ function CallStage({ room, roomName, reconnecting, isHost, onLeave }: { room: Ro
         </div>
 
         <ReactionsOverlay active={reactions.active} />
+        {moments.active && <MomentOverlay key={moments.active.id} moment={moments.active} onDone={moments.dismiss} />}
         {mutedByHost && <MutedByHostToast />}
-        <MeetControls room={room} activePanel={panel} onTogglePanel={togglePanel} unread={unread} view={view} onViewChange={setView} sharing={sharing} isHost={isHost} recording={recording.active} onToggleRecord={recording.toggle} onReaction={reactions.send} onOpenPip={pip.supported ? pip.open : undefined} onLeave={onLeave} />
+        <MeetControls room={room} activePanel={panel} onTogglePanel={togglePanel} unread={unread} view={view} onViewChange={setView} sharing={sharing} isHost={isHost} recording={recording.active} onToggleRecord={recording.toggle} onReaction={reactions.send} onOpenPip={pip.supported ? pip.open : undefined} onLeave={onLeave} onCelebrate={isHost ? moments.celebrate : undefined} />
 
         {panel && (
           <SidePanel

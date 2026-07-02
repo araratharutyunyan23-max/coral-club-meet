@@ -25,6 +25,11 @@ export function hueFor(key: string): number {
   return AVATAR_HUES[hashString(key || '?') % AVATAR_HUES.length]
 }
 
+/** The participant's solid avatar colour (Kontur-style circle fill). */
+export function userColor(key: string, strong = false): string {
+  return `hsl(${hueFor(key)} 54% ${strong ? 47 : 45}%)`
+}
+
 /**
  * Per-participant tint for a circular initials avatar (Kontur-style): a clean,
  * solid colour circle with white initials — no ring, no glow. `strong` nudges the
@@ -32,7 +37,7 @@ export function hueFor(key: string): number {
  */
 export function userTint(key: string, strong = false): CSSProperties {
   return {
-    background: `hsl(${hueFor(key)} 54% ${strong ? 47 : 45}%)`,
+    background: userColor(key, strong),
     border: 'none',
     color: '#ffffff',
     boxShadow: 'none',

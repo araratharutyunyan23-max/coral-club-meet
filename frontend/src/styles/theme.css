@@ -1070,3 +1070,126 @@ input {
   .sf-signal .rp:nth-child(3) { transform: scale(calc(var(--sf-spread) * 0.9)); opacity: calc(var(--sf-rip) * 0.2); }
   .sf-signal .rp:nth-child(4) { display: none; }
 }
+
+/* =====================================================================
+   Moment of Recognition — in-call celebration overlay (host-triggered).
+   The honoured avatar is the Signal-Field origin: a coral wave blooms,
+   confetti rains, the name reveals, then it fades. Reads OVER the call
+   (pointer-events:none). See MomentOverlay.tsx / lib/moment.ts.
+   ===================================================================== */
+:root {
+  --mo-gold: #f2c879;
+  --mo-dur-in: 0.62s;
+  --mo-dur-out: 0.8s;
+  --mo-ease: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --mo-bloom: rgba(255, 126, 99, 0.62);
+  --mo-glow: rgba(255, 126, 99, 0.3);
+}
+[data-theme='light'] {
+  --mo-gold: #c98a2e;
+  --mo-bloom: rgba(255, 111, 85, 0.5);
+  --mo-glow: rgba(255, 111, 85, 0.24);
+}
+
+.moment { position: absolute; inset: 0; z-index: 40; pointer-events: none; display: none; container-type: size; }
+.moment.show { display: block; }
+
+.mo-veil {
+  position: absolute; inset: 0; opacity: 0;
+  background: radial-gradient(58% 58% at 50% 48%, var(--mo-glow), transparent 60%),
+    radial-gradient(150% 120% at 50% 50%, transparent 52%, rgba(3, 7, 8, 0.44));
+  transition: opacity var(--mo-dur-out) ease;
+}
+[data-theme='light'] .mo-veil {
+  background: radial-gradient(58% 58% at 50% 48%, var(--mo-glow), transparent 60%),
+    radial-gradient(150% 120% at 50% 50%, transparent 56%, rgba(150, 178, 172, 0.34));
+}
+.moment.play .mo-veil { opacity: 1; animation: moVeil var(--mo-dur-in) ease both; }
+@keyframes moVeil { from { opacity: 0; } to { opacity: 1; } }
+
+.mo-bloom { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 0; height: 0; }
+.mo-bloom span {
+  position: absolute; left: 0; top: 0; width: 34cqmin; height: 34cqmin; margin: -17cqmin 0 0 -17cqmin;
+  border-radius: 50%; border: 2px solid var(--mo-bloom); opacity: 0;
+}
+.moment.play .mo-bloom span { animation: moBloom 1.5s var(--mo-ease) both; }
+.moment.play .mo-bloom span:nth-child(2) { animation-delay: 0.16s; }
+.moment.play .mo-bloom span:nth-child(3) { animation-delay: 0.34s; border-color: var(--ripple-ring); }
+@keyframes moBloom { 0% { transform: scale(0.14); opacity: 0; } 14% { opacity: 0.85; } 100% { transform: scale(3.1); opacity: 0; } }
+
+.mo-confetti { position: absolute; inset: 0; overflow: hidden; }
+.cf { position: absolute; top: -6%; width: 9px; height: 14px; border-radius: 2px; opacity: 0; will-change: transform; }
+.cf.tri { width: 0; height: 0; background: none !important; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom-width: 11px; border-bottom-style: solid; border-radius: 0; }
+.cf.ring { background: none !important; border: 2px solid currentColor; border-radius: 50%; width: 11px; height: 11px; }
+.moment.play .cf { animation: moConfetti var(--cf-dur, 2.8s) cubic-bezier(0.35, 0.15, 0.5, 1) var(--cf-delay, 0s) forwards; }
+@keyframes moConfetti {
+  0% { transform: translate3d(0, 0, 0) rotate(0); opacity: 0; }
+  8% { opacity: 1; }
+  84% { opacity: 1; }
+  100% { transform: translate3d(var(--cf-x, 20px), var(--cf-fall, 340px), 0) rotate(var(--cf-rot, 540deg)); opacity: 0; }
+}
+
+.mo-card {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: min(84cqi, 420px); padding: 30px 34px 28px; text-align: center;
+  border-radius: var(--radius-lg, 20px); border: 1px solid var(--border-strong);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--coral) 12%, var(--glass)), var(--glass) 46%);
+  backdrop-filter: blur(16px) saturate(1.1);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.03) inset, 0 1px 0 rgba(255, 255, 255, 0.14) inset;
+  opacity: 1;
+}
+[data-theme='light'] .mo-card { box-shadow: 0 26px 60px rgba(20, 50, 46, 0.22), 0 1px 0 rgba(255, 255, 255, 0.6) inset; }
+.moment.play .mo-card { animation: moCard var(--mo-dur-in) var(--mo-ease) both; }
+@keyframes moCard { 0% { opacity: 0; transform: translate(-50%, -46%) scale(0.95); } 100% { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+
+.mo-av { position: relative; width: 96px; height: 96px; margin: 0 auto 4px; }
+.mo-av .disc {
+  width: 96px; height: 96px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 700; font-size: 32px; box-shadow: 0 0 0 6px color-mix(in srgb, var(--coral) 15%, transparent);
+}
+.moment.play .mo-av .disc { animation: moDisc calc(var(--mo-dur-in) + 0.1s) var(--mo-ease) both; }
+@keyframes moDisc { 0% { transform: scale(0.6); opacity: 0; } 60% { transform: scale(1.06); } 100% { transform: scale(1); opacity: 1; } }
+.mo-badge {
+  position: absolute; right: -2px; bottom: -2px; width: 38px; height: 38px; border-radius: 50%;
+  background: var(--coral); color: #fff; display: flex; align-items: center; justify-content: center;
+  border: 3px solid color-mix(in srgb, var(--glass) 40%, var(--surround)); box-shadow: 0 6px 16px rgba(255, 126, 99, 0.5);
+}
+.mo-badge svg { width: 20px; height: 20px; }
+.moment.play .mo-badge { animation: moBadge 0.5s var(--mo-ease) 0.26s both; }
+@keyframes moBadge { 0% { transform: scale(0) rotate(-30deg); opacity: 0; } 70% { transform: scale(1.14) rotate(4deg); } 100% { transform: scale(1) rotate(0); opacity: 1; } }
+.mo-emoji { position: absolute; left: -6px; top: -4px; z-index: 2; font-size: 26px; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4)); }
+.moment.play .mo-emoji { animation: moBadge 0.5s var(--mo-ease) 0.34s both; }
+
+.mo-label { margin-top: 16px; font: 600 11.5px/1 var(--mono); letter-spacing: 0.2em; text-transform: uppercase; color: var(--coral); }
+.moment.play .mo-label { animation: moUp 0.5s var(--mo-ease) 0.18s both; }
+.mo-name { margin: 10px 0 0; font-size: clamp(28px, 7.6cqi, 40px); font-weight: 800; letter-spacing: -0.02em; line-height: 1.02; }
+.moment.play .mo-name { animation: moName 0.66s var(--mo-ease) 0.12s both; }
+@keyframes moName {
+  0% { opacity: 0; transform: translateY(14px) scale(0.93); filter: blur(6px); letter-spacing: 0.03em; }
+  60% { opacity: 1; transform: translateY(0) scale(1.02); filter: blur(0); }
+  100% { transform: scale(1); letter-spacing: -0.02em; }
+}
+.mo-sub { margin: 9px 0 0; font-size: 14px; color: var(--text-dim); }
+.moment.play .mo-sub { animation: moUp 0.5s var(--mo-ease) 0.3s both; }
+@keyframes moUp { from { opacity: 0; transform: translateY(9px); } to { opacity: 1; transform: translateY(0); } }
+
+.moment.leaving .mo-card { opacity: 0; transform: translate(-50%, -48%) scale(0.985); transition: opacity var(--mo-dur-out) ease, transform var(--mo-dur-out) var(--mo-ease); }
+.moment.leaving .mo-veil { opacity: 0; }
+.moment.leaving .cf { opacity: 0 !important; transition: opacity 0.5s ease; }
+
+/* rested: freeze the finished card visible during the hold */
+.moment.rested .mo-card, .moment.rested .mo-name, .moment.rested .mo-label, .moment.rested .mo-sub,
+.moment.rested .mo-av .disc, .moment.rested .mo-badge, .moment.rested .mo-emoji { animation: none !important; opacity: 1; transform: none; }
+.moment.rested .mo-card { transform: translate(-50%, -50%); }
+.moment.rested .mo-veil { opacity: 1; }
+
+/* reduced motion / motion-off → static elegant card, no confetti, frozen rings */
+.moment.rm .mo-confetti { display: none; }
+.moment.rm .mo-bloom span { animation: none; opacity: 0.5; }
+.moment.rm .mo-bloom span:nth-child(1) { transform: scale(1.15); }
+.moment.rm .mo-bloom span:nth-child(2) { transform: scale(1.9); opacity: 0.28; }
+.moment.rm .mo-bloom span:nth-child(3) { transform: scale(2.6); opacity: 0.12; }
+.moment.rm .mo-card, .moment.rm .mo-veil, .moment.rm .mo-name, .moment.rm .mo-label,
+.moment.rm .mo-sub, .moment.rm .mo-av .disc, .moment.rm .mo-badge, .moment.rm .mo-emoji { animation: none !important; opacity: 1; transform: none; }
+.moment.rm .mo-card { transform: translate(-50%, -50%); }
+.moment.rm.leaving .mo-card, .moment.rm.leaving .mo-veil { opacity: 0; transition: opacity 0.3s ease; }

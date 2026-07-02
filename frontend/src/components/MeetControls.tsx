@@ -3,6 +3,8 @@ import { type Room, RoomEvent } from 'livekit-client'
 import { useRoomEvents, useIsMobile } from '../lib/hooks'
 import type { PanelName } from './SidePanel'
 import type { CallView } from '../lib/types'
+import type { Moment } from '../lib/moment'
+import { MomentComposer } from './MomentComposer'
 import {
   CameraIcon,
   CameraOffIcon,
@@ -47,6 +49,8 @@ interface Props {
   onReaction?: (emoji: string) => void
   onOpenPip?: () => void
   onLeave: () => void
+  /** Host-only: broadcast a Moment of Recognition. Absent for participants. */
+  onCelebrate?: (m: Omit<Moment, 'id'>) => void
 }
 
 /**
@@ -54,10 +58,11 @@ interface Props {
  * pickers · present · reactions · raise hand · captions · more · end-call) and a
  * bottom-right corner-chrome group (chat · people). No glass.
  */
-export function MeetControls({ room, activePanel, onTogglePanel, unread, view, onViewChange, sharing = false, isHost = false, recording = false, onToggleRecord, onReaction, onOpenPip, onLeave }: Props) {
+export function MeetControls({ room, activePanel, onTogglePanel, unread, view, onViewChange, sharing = false, isHost = false, recording = false, onToggleRecord, onReaction, onOpenPip, onLeave, onCelebrate }: Props) {
   useRoomEvents(room, CONTROL_EVENTS)
   const isMobile = useIsMobile()
   const [popover, setPopover] = useState<null | 'reactions' | 'more' | 'mic' | 'cam'>(null)
+  const [showComposer, setShowComposer] = useState(false)
   const [confirmStopShare, setConfirmStopShare] = useState(false)
   const [mediaError, setMediaError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
@@ -127,6 +132,9 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
 
   return (
     <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 92, zIndex: 30, fontFamily: 'var(--font)' }}>
+      {showComposer && onCelebrate && (
+        <MomentComposer room={room} onCelebrate={onCelebrate} onClose={() => setShowComposer(false)} />
+      )}
       {/* Centered cluster */}
       <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', display: 'flex', alignItems: 'center', gap: isMobile ? 5 : 8 }}>
         <SplitButton
@@ -183,6 +191,16 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
                   {copied ? 'Link copied' : 'Copy link'}
                 </button>
+                {isHost && onCelebrate && (
+                  <button
+                    onClick={() => { setShowComposer(true); close() }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '10px', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, background: 'rgba(255,126,99,.13)', color: 'var(--text)' }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--coral)" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 3 6.5 8" /><path d="M15.5 3 17.5 8" /><circle cx="12" cy="15" r="6" /><path d="M9.6 15.2 11.2 16.8 14.4 13.6" /></svg>
+                    Recognise someone
+                    <span style={{ marginLeft: 'auto', fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '.08em', color: 'var(--coral)' }}>HOST</span>
+                  </button>
+                )}
                 <div style={{ height: 1, background: 'var(--border)', margin: '2px 0 4px' }} />
                 {isMobile && (
                   <>
