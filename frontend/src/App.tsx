@@ -79,7 +79,7 @@ export function App() {
     return <CallRoom join={join} onLeave={handleLeave} />
   }
   if (screen === 'postcall' && summary) {
-    return <PostCall summary={summary} onRejoin={handleRejoin} onExit={goHome} />
+    return <PostCall summary={summary} isHost={(join?.role ?? role) === 'host'} onRejoin={handleRejoin} onExit={goHome} />
   }
   return <Lobby room={room} role={role} onJoin={handleJoin} />
 }

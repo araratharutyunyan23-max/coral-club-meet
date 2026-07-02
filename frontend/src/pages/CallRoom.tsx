@@ -5,6 +5,7 @@ import { useConnectionQuality, useIsMobile, useParticipants, useRoomConnection }
 import { useChat, useReactions } from '../lib/datachannel'
 import { useMoments } from '../lib/moment'
 import { MomentOverlay } from '../components/MomentOverlay'
+import { useAttendance } from '../lib/attendance'
 import { useQA } from '../lib/qa'
 import { useMutedByHost } from '../lib/moderation'
 import { useRecording } from '../lib/recording'
@@ -50,6 +51,7 @@ function CallStage({ room, roomName, reconnecting, isHost, onLeave }: { room: Ro
   const quality = useConnectionQuality(room)
   const mutedByHost = useMutedByHost(room)
   const moments = useMoments(room)
+  useAttendance(room, isHost) // host-only: collect the post-call meeting report
   useRaiseHandChime(room)
   useJoinChime(room)
   const pip = useCallPip(room, onLeave)
