@@ -321,20 +321,6 @@ input {
   animation-delay: 0.08s;
 }
 
-/* soft hue glow trail that rises with the emoji (comet tail) */
-.rx-glow {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 70px;
-  height: 150px;
-  margin: 0 0 -40px -35px;
-  background: radial-gradient(44% 40% at 50% 32%, hsl(var(--hue) 84% 64% / 0.72), transparent 72%);
-  filter: blur(7px);
-  opacity: 0;
-  animation: rxGlow var(--dur, 3s) ease both;
-}
-
 @keyframes rxRise {
   0% {
     transform: translate(0, 4px);
@@ -404,22 +390,7 @@ input {
     opacity: 0;
   }
 }
-@keyframes rxGlow {
-  0% {
-    opacity: 0;
-  }
-  14% {
-    opacity: 1;
-  }
-  66% {
-    opacity: 0.55;
-  }
-  100% {
-    opacity: 0;
-  }
-}
-
-/* reduced motion → calm fade in place: no bloom, no glow, no travel */
+/* reduced motion → calm fade in place: no bloom, no travel */
 .rx-layer.rm .rx-slot {
   animation: rxFade var(--dur, 2.6s) ease both !important;
 }

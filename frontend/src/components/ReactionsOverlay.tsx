@@ -6,9 +6,9 @@ const prefersReduced = () =>
 
 /**
  * In-call reactions — Signal-Field styled. Each reaction emits a coral/teal
- * ripple bloom at its origin and rises with a soft glow trail in the sender's
- * own hue, its name set in a glass pill ("You" for the local sender). The layer
- * is pointer-events:none and sits below the control bar, so it reads over the
+ * ripple bloom at its origin and rises, its name set in a glass pill with the
+ * sender's per-user hue as a dot ("You" for the local sender). The layer is
+ * pointer-events:none and sits below the control bar, so it reads over the
  * video but never blocks a control. Under reduced motion it fades in place.
  */
 export function ReactionsOverlay({ active }: { active: Reaction[] }) {
@@ -37,7 +37,6 @@ export function ReactionsOverlay({ active }: { active: Reaction[] }) {
               </div>
             )}
             <div className="rx-slot" style={style}>
-              {!rm && <div className="rx-glow" aria-hidden="true" />}
               <div className="rx-emoji">{r.emoji}</div>
               <div className="rx-name">
                 <span className="rx-dot" />
