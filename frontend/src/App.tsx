@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import type { AppScreen, CallSummary, JoinInfo, Role } from './lib/types'
 import { fetchToken } from './lib/api'
-import { generateRoomId, isRoomCreator, markRoomCreated, parseRoomInput, roomFromUrl, setRoomUrl } from './lib/rooms'
+import { generateRoomId, isRoomCreator, markRoomCreated, roomFromUrl, setRoomUrl } from './lib/rooms'
 import { Home } from './pages/Home'
 import { Lobby } from './pages/Lobby'
 import { CallRoom } from './pages/CallRoom'
@@ -62,15 +62,10 @@ export function App() {
     markRoomCreated(id)
     openRoom(id)
   }
-  // "Join with a code": accepts a bare room code or a full meeting link.
-  const joinByCode = (raw: string) => {
-    const id = parseRoomInput(raw)
-    if (id) openRoom(id)
-  }
   const role: Role = room && isRoomCreator(room) ? 'host' : 'participant'
 
   if (screen === 'home' || !room) {
-    return <Home onCreate={createMeeting} onJoinCode={joinByCode} />
+    return <Home onCreate={createMeeting} />
   }
   if (screen === 'waiting' && join) {
     return <WaitingRoom roomName={join.room} onCancel={goHome} />

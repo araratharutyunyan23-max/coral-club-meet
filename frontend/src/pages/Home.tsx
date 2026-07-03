@@ -1,22 +1,12 @@
-import { useState } from 'react'
 import { Logo } from '../components/Logo'
 import { ThemeToggle } from '../components/ThemeToggle'
 
 /**
  * Landing screen — the "Arrival" hero. Same Signal ripple language as the lobby,
  * but the brand mark on the right is the source that emits the ripples. One clear
- * action (create a meeting → get a link); "Join with a code" reveals a small field
- * that accepts a room code or a full link.
+ * action: create a meeting → get a link to share.
  */
-export function Home({ onCreate, onJoinCode }: { onCreate: () => void; onJoinCode: (raw: string) => void }) {
-  const [showCode, setShowCode] = useState(false)
-  const [code, setCode] = useState('')
-
-  const submitCode = () => {
-    const v = code.trim()
-    if (v) onJoinCode(v)
-  }
-
+export function Home({ onCreate }: { onCreate: () => void }) {
   return (
     <div className="home-screen">
       {/* "Signal" ambient — ripples emitted from the brand mark on the right. */}
@@ -52,28 +42,6 @@ export function Home({ onCreate, onJoinCode }: { onCreate: () => void; onJoinCod
                 </svg>
                 Create video meeting
               </button>
-            </div>
-            <div className="subjoin">
-              {showCode ? (
-                <div className="home-codeinput">
-                  <input
-                    autoFocus
-                    value={code}
-                    onChange={(e) => setCode(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') submitCode()
-                      if (e.key === 'Escape') setShowCode(false)
-                    }}
-                    placeholder="Meeting code or link"
-                  />
-                  <button onClick={submitCode}>Join</button>
-                </div>
-              ) : (
-                <>
-                  Got an invite?{' '}
-                  <a onClick={() => setShowCode(true)}>Join with a code</a>
-                </>
-              )}
             </div>
           </div>
 
