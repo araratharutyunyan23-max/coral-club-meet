@@ -20,7 +20,7 @@ export interface Stroke {
   points: Point[]
 }
 
-type AnnotateMessage = { type: 's'; stroke: Stroke } | { type: 'c' }
+type AnnotateMessage = { type: 's'; stroke: Stroke } | { type: 'c' } | { type: 'u'; id: string }
 
 export function useAnnotations(room: Room) {
   const [strokes, setStrokes] = useState<Stroke[]>([])
@@ -31,6 +31,7 @@ export function useAnnotations(room: Room) {
       try {
         const msg = JSON.parse(decoder.decode(payload)) as AnnotateMessage
         if (msg.type === 's') setStrokes((prev) => [...prev, msg.stroke])
+        else if (msg.type === 'u') setStrokes((prev) => prev.filter((s) => s.id !== msg.id))
         else setStrokes([])
       } catch {
         // ignore
@@ -52,8 +53,14 @@ export function useAnnotations(room: Room) {
     void room.localParticipant.publishData(encoder.encode(JSON.stringify({ type: 'c' })), { reliable: true, topic: TOPIC })
   }
 
+  // Undo a specific stroke everywhere (used to take back the drawer's last one).
+  const removeStroke = (id: string) => {
+    setStrokes((prev) => prev.filter((s) => s.id !== id))
+    void room.localParticipant.publishData(encoder.encode(JSON.stringify({ type: 'u', id })), { reliable: true, topic: TOPIC })
+  }
+
   // Local-only clear (e.g. when the presenter changes) — not broadcast.
   const reset = () => setStrokes([])
 
-  return { strokes, addStroke, clear, reset }
+  return { strokes, addStroke, clear, removeStroke, reset }
 }

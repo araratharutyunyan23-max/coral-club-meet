@@ -1,10 +1,14 @@
-import { useEffect, useState } from 'react'
+import { type CSSProperties, useEffect, useRef, useState } from 'react'
 import { type Participant, type Room, Track } from 'livekit-client'
 import { useActiveSpeaker, useIsMobile, useParticipants } from '../lib/hooks'
 import { useAnnotations } from '../lib/annotations'
 import { stageContainer } from '../lib/styles'
 import { ParticipantTile } from './ParticipantTile'
 import { AnnotationLayer } from './AnnotationLayer'
+
+// Pen colours for screen annotations — brand-first, all readable over video.
+const ANNOT_COLORS = ['#ff7e63', '#25d0c0', '#f2c879', '#eef1f3']
+const annotBtn: CSSProperties = { padding: '0 11px', height: 32, borderRadius: 8, border: '1px solid var(--border-strong)', background: 'rgba(10, 11, 13, 0.7)', color: '#eef1f3', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }
 
 /**
  * Single-feed layouts. The lead tile is whoever is sharing their screen, else a
@@ -33,13 +37,39 @@ export function FocusView({ room, isHost = false, layout = 'spotlight' }: { room
 
   const annotations = useAnnotations(room)
   const [annotating, setAnnotating] = useState(false)
+  const [color, setColor] = useState(ANNOT_COLORS[0])
+  const myStrokes = useRef<string[]>([]) // ids of strokes this client drew (for Undo)
   const mainIsShare = !!sharer && main === sharer
 
   // Drop annotations when the presenter (shared screen) changes.
   useEffect(() => {
     annotations.reset()
+    myStrokes.current = []
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sharer?.sid])
+
+  const onStroke = (s: { id: string; color: string; points: { x: number; y: number }[] }) => {
+    myStrokes.current.push(s.id)
+    annotations.addStroke(s)
+  }
+  // My most recent stroke that's still on the canvas (skips ones already cleared).
+  const lastMine = (): string | null => {
+    for (let i = myStrokes.current.length - 1; i >= 0; i--) {
+      const id = myStrokes.current[i]
+      if (annotations.strokes.some((s) => s.id === id)) return id
+    }
+    return null
+  }
+  const undo = () => {
+    const id = lastMine()
+    if (!id) return
+    annotations.removeStroke(id)
+    myStrokes.current = myStrokes.current.filter((x) => x !== id)
+  }
+  const clearAll = () => {
+    annotations.clear()
+    myStrokes.current = []
+  }
 
   const leadTile = (
     <div
@@ -50,8 +80,8 @@ export function FocusView({ room, isHost = false, layout = 'spotlight' }: { room
       <ParticipantTile participant={main} isLocal={main === local} room={room} isHost={isHost} />
       {mainIsShare && (
         <>
-          <AnnotationLayer strokes={annotations.strokes} onStroke={annotations.addStroke} active={annotating} />
-          <div onClick={(e) => e.stopPropagation()} style={{ position: 'absolute', left: 14, top: 14, display: 'flex', gap: 6, zIndex: 7 }}>
+          <AnnotationLayer strokes={annotations.strokes} onStroke={onStroke} active={annotating} color={color} />
+          <div onClick={(e) => e.stopPropagation()} style={{ position: 'absolute', left: 14, top: 14, display: 'flex', alignItems: 'center', gap: 6, zIndex: 7 }}>
             <button
               onClick={() => setAnnotating((a) => !a)}
               title="Annotate the shared screen"
@@ -63,14 +93,24 @@ export function FocusView({ room, isHost = false, layout = 'spotlight' }: { room
               </svg>
               Annotate
             </button>
+            {annotating && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '0 10px', height: 32, borderRadius: 8, border: '1px solid var(--border-strong)', background: 'rgba(10, 11, 13, 0.7)' }}>
+                {ANNOT_COLORS.map((c) => (
+                  <button
+                    key={c}
+                    onClick={() => setColor(c)}
+                    title="Pen colour"
+                    aria-label={`Pen colour ${c}`}
+                    style={{ width: 16, height: 16, padding: 0, borderRadius: '50%', background: c, cursor: 'pointer', border: color === c ? '2px solid #fff' : '2px solid rgba(255,255,255,0.25)', boxShadow: color === c ? '0 0 0 1px rgba(0,0,0,0.5)' : 'none' }}
+                  />
+                ))}
+              </div>
+            )}
+            {annotating && lastMine() && (
+              <button onClick={undo} title="Undo my last stroke" style={annotBtn}>Undo</button>
+            )}
             {annotations.strokes.length > 0 && (
-              <button
-                onClick={annotations.clear}
-                title="Clear annotations"
-                style={{ padding: '0 11px', height: 32, borderRadius: 8, border: '1px solid var(--border-strong)', background: 'rgba(10, 11, 13, 0.7)', color: '#eef1f3', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}
-              >
-                Clear
-              </button>
+              <button onClick={clearAll} title="Clear all annotations" style={annotBtn}>Clear</button>
             )}
           </div>
         </>
