@@ -4,8 +4,6 @@ import { useParticipants } from '../lib/hooks'
 import { initialsFor, userColor } from './Avatar'
 import { type Moment, REASONS, type ReasonDef } from '../lib/moment'
 
-const EMOJIS = ['🏆', '👏', '🎉', '❤️', '🎂', '⭐', '🤝']
-
 /**
  * Host-only composer for a Moment of Recognition. Pick a person, a Coral Club
  * reason, an optional emoji — Celebrate broadcasts it to everyone (2–3 clicks).
@@ -29,13 +27,13 @@ export function MomentComposer({ room, onCelebrate, onClose }: { room: Room; onC
   const [typing, setTyping] = useState(false)
   const [reason, setReason] = useState<ReasonDef | null>(null)
   const [detail, setDetail] = useState('')
-  const [emoji, setEmoji] = useState('')
-  const [emojiTouched, setEmojiTouched] = useState(false)
+
+  // The celebration emoji is the reason's own (no manual picker).
+  const emoji = reason?.emoji ?? ''
 
   const pickReason = (r: ReasonDef) => {
     setReason(r)
     setDetail(r.detail ? r.detail.def : '')
-    if (!emojiTouched) setEmoji(r.emoji)
   }
 
   const ready = !!name.trim() && !!reason
@@ -118,15 +116,6 @@ export function MomentComposer({ room, onCelebrate, onClose }: { room: Room; onC
             </Field>
           )}
 
-          {/* EMOJI */}
-          <Field label="Emoji · optional">
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              {EMOJIS.map((e) => (
-                <button key={e} onClick={() => { setEmojiTouched(true); setEmoji((cur) => (cur === e ? '' : e)) }} style={emojiBtn(emoji === e)}>{e}</button>
-              ))}
-            </div>
-          </Field>
-
           {/* LIVE PREVIEW */}
           <div style={preview}>
             <div style={{ position: 'relative', width: 40, height: 40, flex: '0 0 auto' }}>
@@ -194,9 +183,6 @@ function reasonChip(sel: boolean): CSSProperties {
 }
 function optBtn(sel: boolean): CSSProperties {
   return { padding: '8px 12px', borderRadius: 9, border: `1px solid ${sel ? 'rgba(37,208,192,.4)' : 'var(--border)'}`, background: sel ? 'var(--teal-tint)' : 'var(--fill-subtle)', color: sel ? 'var(--text)' : 'var(--text-dim)', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }
-}
-function emojiBtn(sel: boolean): CSSProperties {
-  return { width: 38, height: 38, borderRadius: 10, border: `1px solid ${sel ? 'rgba(255,126,99,.4)' : 'var(--border)'}`, background: sel ? 'rgba(255,126,99,.15)' : 'var(--fill-subtle)', fontSize: 19, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }
 }
 function celebrateBtn(ready: boolean): CSSProperties {
   return { display: 'flex', alignItems: 'center', gap: 9, padding: '12px 20px', borderRadius: 11, border: 'none', cursor: ready ? 'pointer' : 'not-allowed', opacity: ready ? 1 : 0.5, background: 'linear-gradient(135deg,var(--coral),#ff9070)', color: '#2a0f08', fontSize: 14, fontWeight: 700 }
