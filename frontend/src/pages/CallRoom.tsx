@@ -6,7 +6,7 @@ import { useChat, useReactions } from '../lib/datachannel'
 import { useMoments } from '../lib/moment'
 import { MomentOverlay } from '../components/MomentOverlay'
 import { useAttendance } from '../lib/attendance'
-import { useBreakout } from '../lib/breakout'
+import { useBreakout, groupRoom } from '../lib/breakout'
 import { BreakoutBanner } from '../components/BreakoutBanner'
 import { BreakoutPanel } from '../components/BreakoutPanel'
 import { useQA } from '../lib/qa'
@@ -26,7 +26,7 @@ import { SidePanel, type PanelName } from '../components/SidePanel'
 import { ReactionsOverlay } from '../components/ReactionsOverlay'
 
 export function CallRoom({ join, onLeave }: { join: JoinInfo; onLeave: () => void }) {
-  const { room, state, error } = useRoomConnection(join, onLeave)
+  const { room, state, error, switchRoom } = useRoomConnection(join, onLeave)
 
   if (error) {
     return <CenterMessage title="Couldn't join the call" detail={error} actionLabel="Back to lobby" onAction={onLeave} />
@@ -39,11 +39,11 @@ export function CallRoom({ join, onLeave }: { join: JoinInfo; onLeave: () => voi
 
   const reconnecting = state === ConnectionState.Reconnecting || state === ConnectionState.SignalReconnecting
 
-  return <CallStage room={room} roomName={join.room} reconnecting={reconnecting} isHost={join.role === 'host'} onLeave={onLeave} />
+  return <CallStage room={room} roomName={join.room} reconnecting={reconnecting} isHost={join.role === 'host'} onLeave={onLeave} switchRoom={switchRoom} />
 }
 
 /** The in-call UI, mounted once we have a connected Room. */
-function CallStage({ room, roomName, reconnecting, isHost, onLeave }: { room: Room; roomName: string; reconnecting: boolean; isHost: boolean; onLeave: () => void }) {
+function CallStage({ room, roomName, reconnecting, isHost, onLeave, switchRoom }: { room: Room; roomName: string; reconnecting: boolean; isHost: boolean; onLeave: () => void; switchRoom: (roomName: string) => void }) {
   const isMobile = useIsMobile()
   const [view, setView] = useState<CallView>('tiled')
   const [panel, setPanel] = useState<PanelName | null>(null)
@@ -72,6 +72,13 @@ function CallStage({ room, roomName, reconnecting, isHost, onLeave }: { room: Ro
     }
     prevGroup.current = bo.myGroup
   }, [bo.myGroup, bo.visiting])
+
+  // Fallback for self-hosted LiveKit (no server-side MoveParticipant): each client
+  // reconnects itself to its breakout group room — or back to the main room.
+  const boTarget = bo.visiting != null ? groupRoom(roomName, bo.visiting) : bo.myGroup != null ? groupRoom(roomName, bo.myGroup) : roomName
+  useEffect(() => {
+    switchRoom(boTarget)
+  }, [boTarget, switchRoom])
   const pip = useCallPip(room, onLeave)
   const participants = useParticipants(room)
   const alone = participants.length <= 1

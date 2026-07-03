@@ -113,19 +113,16 @@ func (s *Server) handleBreakoutVisit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	req.Room = strings.TrimSpace(req.Room)
-	req.From = strings.TrimSpace(req.From)
-	req.Identity = strings.TrimSpace(req.Identity)
-	if req.Room == "" || req.From == "" || req.Identity == "" {
-		writeError(w, http.StatusBadRequest, "room, from and identity are required")
+	if req.Room == "" {
+		writeError(w, http.StatusBadRequest, "room is required")
 		return
 	}
-	if err := s.breakout.Visit(req.Room, req.From, req.Identity, req.Group); err != nil {
+	if err := s.breakout.Visit(req.Room, req.Group); err != nil {
 		if errors.Is(err, breakout.ErrNoSession) {
 			writeError(w, http.StatusConflict, "no active breakout")
 			return
 		}
-		log.Printf("breakout visit %q: %v", req.Room, err)
-		writeError(w, http.StatusBadGateway, "failed to move")
+		writeError(w, http.StatusBadGateway, "failed to update breakout")
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)

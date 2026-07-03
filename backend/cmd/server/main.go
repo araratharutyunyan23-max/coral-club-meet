@@ -30,7 +30,7 @@ func main() {
 	issuer := livekit.NewIssuer(cfg.LiveKitAPIKey, cfg.LiveKitSecret, cfg.TokenTTL)
 	moderator := livekit.NewModerator(cfg.LiveKitHostURL, cfg.LiveKitAPIKey, cfg.LiveKitSecret)
 	recorder := livekit.NewRecorder(cfg.LiveKitHostURL, cfg.LiveKitAPIKey, cfg.LiveKitSecret, cfg.EgressOutDir)
-	breakoutCoord := breakout.NewCoordinator(moderator)
+	breakoutCoord := breakout.NewCoordinator()
 	api := httpapi.NewServer(issuer, moderator, recorder, breakoutCoord, cfg.LiveKitURL, cfg.RecordingsDir)
 
 	httpServer := &http.Server{

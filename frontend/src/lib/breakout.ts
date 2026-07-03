@@ -40,7 +40,7 @@ export function useBreakout(room: Room, mainRoom: string, isHost: boolean): UseB
         })
         .catch(() => {})
     poll()
-    const id = window.setInterval(poll, 3500)
+    const id = window.setInterval(poll, 2500)
     return () => {
       alive = false
       window.clearInterval(id)
