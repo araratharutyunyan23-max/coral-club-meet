@@ -1,32 +1,52 @@
-import type { CSSProperties } from 'react'
+import { Fragment, type CSSProperties } from 'react'
 import type { Reaction } from '../lib/datachannel'
 
-/** Floating reactions that rise from random spots over the stage and fade out. */
+const prefersReduced = () =>
+  typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+
+/**
+ * In-call reactions — Signal-Field styled. Each reaction emits a coral/teal
+ * ripple bloom at its origin and rises with a soft glow trail in the sender's
+ * own hue, its name set in a glass pill ("You" for the local sender). The layer
+ * is pointer-events:none and sits below the control bar, so it reads over the
+ * video but never blocks a control. Under reduced motion it fades in place.
+ */
 export function ReactionsOverlay({ active }: { active: Reaction[] }) {
+  const rm = prefersReduced()
   return (
-    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 20 }}>
-      {active.map((r) => (
-        <div
-          key={r.id}
-          style={
-            {
-              position: 'absolute',
-              bottom: 84,
-              left: `${r.x}%`,
-              '--drift': `${r.drift}px`,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 2,
-              animation: `floatreact ${r.dur}s ease-out forwards`,
-              willChange: 'transform, opacity',
-            } as CSSProperties
-          }
-        >
-          <span style={{ fontSize: 32, filter: 'drop-shadow(0 6px 12px rgba(255, 126, 99, 0.45))' }}>{r.emoji}</span>
-          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text)', textShadow: '0 1px 4px var(--surround)', whiteSpace: 'nowrap', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.name}</span>
-        </div>
-      ))}
+    <div
+      className={rm ? 'rx-layer rm' : 'rx-layer'}
+      style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 20 }}
+      aria-hidden="true"
+    >
+      {active.map((r) => {
+        const style = {
+          left: `${r.x}%`,
+          bottom: r.y,
+          '--hue': r.hue,
+          '--rise': `${r.rise}px`,
+          '--sway': `${r.sway}px`,
+          '--dur': `${r.dur}s`,
+        } as CSSProperties
+        return (
+          <Fragment key={r.id}>
+            {!rm && (
+              <div className="rx-bloomslot" style={style} aria-hidden="true">
+                <span />
+                <span />
+              </div>
+            )}
+            <div className="rx-slot" style={style}>
+              {!rm && <div className="rx-glow" aria-hidden="true" />}
+              <div className="rx-emoji">{r.emoji}</div>
+              <div className="rx-name">
+                <span className="rx-dot" />
+                <b>{r.label}</b>
+              </div>
+            </div>
+          </Fragment>
+        )
+      })}
     </div>
   )
 }

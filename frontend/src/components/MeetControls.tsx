@@ -20,7 +20,7 @@ import {
   ScreenShareIcon,
 } from '../lib/icons'
 
-const REACTIONS = ['👍', '👏', '❤️', '😂', '🎉', '😮', '🙌', '🔥']
+const REACTIONS = ['👍', '❤️', '😂', '🎉', '👏', '🔥', '🙌', '😮', '🤔', '👎', '😢', '😠']
 
 const LAYOUTS: { id: CallView; label: string }[] = [
   { id: 'tiled', label: 'Tiled' },
@@ -172,7 +172,7 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
           <RoundBtn title="Reactions" active={popover === 'reactions'} onClick={() => setPopover((p) => (p === 'reactions' ? null : 'reactions'))}><ReactIcon /></RoundBtn>
           {popover === 'reactions' && (
             <Popover>
-              <div style={{ display: 'flex', gap: 4 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 40px)', gap: 4 }}>
                 {REACTIONS.map((emoji) => (
                   <button key={emoji} onClick={() => onReaction?.(emoji)} title={`Send ${emoji}`} style={{ width: 40, height: 40, borderRadius: 10, border: 'none', background: 'transparent', fontSize: 22, cursor: 'pointer' }}>{emoji}</button>
                 ))}

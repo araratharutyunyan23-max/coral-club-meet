@@ -53,6 +53,12 @@
   /* Gentle, quiet Ripple rings in the solo/waiting stage. */
   --ripple-ring: rgba(37, 208, 192, 0.6);
 
+  /* In-call reactions (Signal-burst): a reaction emits the brand ripple — coral
+     core, teal water — then rises trailing the sender's own hue. */
+  --rx-ease: cubic-bezier(0.22, 0.68, 0.28, 1);
+  --rx-bloom: rgba(255, 126, 99, 0.85);
+  --rx-bloom-2: var(--ripple-ring);
+
   /* Flat near-black surround the inset call stage floats on (Meet-restraint). */
   --surround: #0b0d0f;
 
@@ -89,6 +95,7 @@
   --glass: rgba(255, 255, 255, 0.72);
 
   --ripple-ring: rgba(15, 156, 141, 0.55);
+  --rx-bloom: rgba(255, 111, 85, 0.7); /* softer coral on Tide; teal ring already flips */
   --surround: #e8efeb;
 
   --atmosphere: radial-gradient(120% 80% at 86% 2%, rgba(15, 156, 141, 0.1), transparent 55%),
@@ -219,21 +226,223 @@ input {
   }
 }
 
-/* Floating reaction: rises a short way (kept to the lower band) with a
-   per-element horizontal drift (--drift). */
-@keyframes floatreact {
+/* =====================================================================
+   In-call reactions — Signal-burst. A reaction = a static ripple BLOOM at
+   the origin (coral core + teal water, the brand ripple) + a RISER that
+   carries the emoji, a hue glow trail and a glass name pill upward. Only
+   transform/opacity animate — GPU-cheap. The layer never blocks the call.
+   ===================================================================== */
+.rx-slot {
+  position: absolute;
+  will-change: transform, opacity;
+  animation: rxRise var(--dur, 3s) var(--rx-ease) both;
+}
+.rx-bloomslot {
+  position: absolute;
+}
+
+/* emoji — centred on the origin point, pops in on top of the bloom */
+.rx-emoji {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 46px;
+  height: 46px;
+  margin: 0 0 -23px -23px;
+  display: grid;
+  place-items: center;
+  font-size: 33px;
+  line-height: 1;
+  filter: drop-shadow(0 5px 11px rgba(0, 0, 0, 0.45));
+  animation: rxPop 0.52s var(--rx-ease) both;
+}
+[data-theme='light'] .rx-emoji {
+  filter: drop-shadow(0 5px 11px rgba(30, 60, 55, 0.28));
+}
+
+/* name pill — glass, sender's per-user hue as the accent dot; "You" for me */
+.rx-name {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, 30px);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+  max-width: 168px; /* cap long display names so the pill can't sprawl / clip */
+  padding: 4px 11px 4px 8px;
+  border-radius: 999px;
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 5px 16px rgba(0, 0, 0, 0.32);
+  animation: rxNameIn 0.5s var(--rx-ease) 0.05s both;
+}
+[data-theme='light'] .rx-name {
+  box-shadow: 0 5px 16px rgba(30, 60, 55, 0.18);
+}
+.rx-name .rx-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  background: hsl(var(--hue) 54% 52%);
+  box-shadow: 0 0 0 3px hsl(var(--hue) 60% 52% / 0.2);
+}
+.rx-name b {
+  font: 600 11.5px/1 var(--font);
+  color: var(--text);
+  letter-spacing: 0.005em;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ripple bloom — coral inner ring + teal outer ring, from the origin */
+.rx-bloomslot span {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 60px;
+  height: 60px;
+  margin: 0 0 -30px -30px;
+  border-radius: 50%;
+  border: 2px solid var(--rx-bloom);
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: rxBloom var(--dur, 3s) var(--rx-ease) both;
+}
+.rx-bloomslot span:nth-child(2) {
+  border-color: var(--rx-bloom-2);
+  border-width: 1.5px;
+  animation-name: rxBloom2;
+  animation-delay: 0.08s;
+}
+
+/* soft hue glow trail that rises with the emoji (comet tail) */
+.rx-glow {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 70px;
+  height: 150px;
+  margin: 0 0 -40px -35px;
+  background: radial-gradient(44% 40% at 50% 32%, hsl(var(--hue) 84% 64% / 0.72), transparent 72%);
+  filter: blur(7px);
+  opacity: 0;
+  animation: rxGlow var(--dur, 3s) ease both;
+}
+
+@keyframes rxRise {
   0% {
-    transform: translate(0, 0) scale(0.7);
+    transform: translate(0, 4px);
     opacity: 0;
   }
-  12% {
+  9% {
     opacity: 1;
+  }
+  42% {
+    transform: translate(var(--sway, 0px), calc(var(--rise, 300px) * -0.42));
+  }
+  66% {
+    opacity: 1;
+  }
+  72% {
+    transform: translate(calc(var(--sway, 0px) * -0.5), calc(var(--rise, 300px) * -0.74));
+  }
+  100% {
+    transform: translate(calc(var(--sway, 0px) * 0.25), calc(var(--rise, 300px) * -1));
+    opacity: 0;
+  }
+}
+@keyframes rxPop {
+  0% {
+    transform: scale(0.35);
+  }
+  55% {
+    transform: scale(1.16);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes rxNameIn {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 40px) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, 30px) scale(1);
+  }
+}
+@keyframes rxBloom {
+  0% {
+    transform: scale(0.18);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.35);
+    opacity: 0;
+  }
+}
+@keyframes rxBloom2 {
+  0% {
+    transform: scale(0.18);
+    opacity: 0;
+  }
+  24% {
+    opacity: 0.58;
+  }
+  100% {
+    transform: scale(2.85);
+    opacity: 0;
+  }
+}
+@keyframes rxGlow {
+  0% {
+    opacity: 0;
+  }
+  14% {
+    opacity: 1;
+  }
+  66% {
+    opacity: 0.55;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* reduced motion → calm fade in place: no bloom, no glow, no travel */
+.rx-layer.rm .rx-slot {
+  animation: rxFade var(--dur, 2.6s) ease both !important;
+}
+.rx-layer.rm .rx-emoji {
+  animation: none !important;
+}
+.rx-layer.rm .rx-name {
+  animation: none !important;
+  opacity: 1;
+}
+@keyframes rxFade {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  14% {
+    opacity: 1;
+    transform: none;
   }
   80% {
     opacity: 1;
   }
   100% {
-    transform: translate(var(--drift, 0px), -190px) scale(1.04);
     opacity: 0;
   }
 }

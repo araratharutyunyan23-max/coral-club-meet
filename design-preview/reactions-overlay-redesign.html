@@ -1,0 +1,447 @@
+<!-- @dsCard group="Overlays" name="Reactions overlay — redesign" subtitle="In-call reactions, Signal-Field styled · 3 treatments · per-user hue name pill · cluster burst · one-shot ~3s" viewport="960x760" -->
+<!doctype html>
+<html lang="en" data-theme="dark" data-motion="on">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<title>Reactions overlay — redesign</title>
+<style>
+:root{
+  --bg:#0a0b0d; --bg-elev:#0e1116; --surface:#15181d; --surface-2:#13161b;
+  --border:rgba(255,255,255,.06); --border-strong:rgba(255,255,255,.12);
+  --text:#eef1f3; --text-dim:#9aa3ad; --text-mute:#8b949e;
+  --teal:#25d0c0; --teal-bright:#34e6d3; --teal-soft:#7fe6db; --teal-tint:rgba(37,208,192,.16);
+  --coral:#ff7e63; --danger:#ef4b43; --danger-soft:#ff6b61;
+  --font:'Hanken Grotesk',system-ui,-apple-system,sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+  --radius:14px; --radius-sm:10px; --radius-lg:20px;
+  --fill-subtle:rgba(255,255,255,.04); --fill-hover:rgba(255,255,255,.07); --glass:rgba(16,18,22,.72);
+  --ripple-ring:rgba(37,208,192,.6); --surround:#0b0d0f;
+
+  /* ---- Reactions tokens ---- */
+  --rx-ease:cubic-bezier(.22,.68,.28,1);   /* calm rise, no bounce */
+  --rx-bloom:rgba(255,126,99,.85);         /* inner ripple = coral core */
+  --rx-bloom-2:var(--ripple-ring);         /* outer ripple = teal water */
+}
+[data-theme='light']{
+  --bg:#eef3f1; --bg-elev:#ffffff; --surface:#ffffff; --surface-2:#f1f5f3;
+  --border:rgba(0,0,0,.08); --border-strong:rgba(0,0,0,.14);
+  --text:#0e1a18; --text-dim:#46555c; --text-mute:#5d6c69;
+  --teal:#0f9c8d; --teal-bright:#16b3a2; --teal-soft:#0c7d70; --teal-tint:rgba(15,156,141,.14);
+  --coral:#ff6f55; --danger:#e5483f; --danger-soft:#c23a32;
+  --fill-subtle:rgba(0,0,0,.04); --fill-hover:rgba(0,0,0,.06); --glass:rgba(255,255,255,.78);
+  --ripple-ring:rgba(15,156,141,.55); --surround:#e8efeb;
+  --rx-bloom:rgba(255,111,85,.7);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; font-family:var(--font); color:var(--text);
+  background:var(--surround); -webkit-font-smoothing:antialiased;
+  display:flex; align-items:center; justify-content:center; padding:26px;
+}
+
+/* ===== demo shell ===== */
+.demo{ width:100%; max-width:920px; display:flex; flex-direction:column; gap:14px; }
+.demo-head{ display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+.demo-title{ display:flex; flex-direction:column; gap:5px; }
+.demo-title .ey{ font:600 11px/1 var(--mono); letter-spacing:.2em; text-transform:uppercase; color:var(--teal); }
+.demo-title h1{ margin:0; font-size:19px; font-weight:700; letter-spacing:-.01em; }
+.chrome{ display:flex; gap:8px; }
+.tbtn{ height:36px; padding:0 13px; border-radius:999px; cursor:pointer; border:1px solid var(--border-strong);
+  background:var(--glass); backdrop-filter:blur(10px); color:var(--text-dim); display:flex; align-items:center; gap:7px;
+  font:500 12px/1 var(--font); }
+.tbtn:hover{ color:var(--text); }
+.tbtn svg{ width:15px; height:15px; }
+.tbtn .ind{ width:7px; height:7px; border-radius:50%; background:var(--teal); }
+[data-motion='off'] .tbtn#motionToggle .ind{ background:var(--text-mute); }
+
+/* ===== the in-call stage (context the reactions play over) ===== */
+.stage{
+  position:relative; container-type:size; overflow:hidden;
+  border-radius:var(--radius-lg); border:1px solid var(--border-strong);
+  background:var(--surround); aspect-ratio:16/10;
+  box-shadow:0 34px 80px rgba(0,0,0,.5);
+}
+[data-theme='light'] .stage{ box-shadow:0 28px 64px rgba(20,50,46,.18); }
+
+.s-top{ position:absolute; top:0; left:0; right:0; height:46px; z-index:6; display:flex; align-items:center;
+  justify-content:space-between; padding:0 16px; background:linear-gradient(180deg, rgba(8,10,12,.6), transparent); }
+[data-theme='light'] .s-top{ background:linear-gradient(180deg, rgba(255,255,255,.5), transparent); }
+.s-brand{ display:flex; align-items:center; gap:9px; color:var(--text-dim); font-size:12.5px; font-weight:600; }
+.s-brand .nm{ color:var(--text); }
+.s-timer{ font:500 13px/1 var(--mono); letter-spacing:.06em; color:var(--text); }
+
+.grid{ position:absolute; inset:46px 10px 74px; display:grid; grid-template-columns:1fr 1fr; grid-auto-rows:1fr; gap:9px; z-index:1; }
+.tile{ container-type:size; position:relative; border-radius:var(--radius); overflow:hidden; background:var(--surface);
+  border:1px solid var(--border-strong); display:flex; align-items:center; justify-content:center; }
+.tile .disc{ width:clamp(46px,30cqmin,84px); aspect-ratio:1; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  color:#fff; font-weight:700; font-size:clamp(15px,12cqmin,26px); flex:0 0 auto; }
+.tile.video .feed{ position:absolute; inset:0; }
+.feed.a{ background:radial-gradient(56% 46% at 50% 32%, rgba(247,206,176,.85), transparent 60%), radial-gradient(42% 42% at 50% 80%, rgba(63,116,120,.72), transparent 70%), linear-gradient(165deg,#33484f,#16242b); }
+.feed.b{ background:radial-gradient(52% 44% at 46% 36%, rgba(226,196,214,.8), transparent 60%), radial-gradient(46% 44% at 54% 82%, rgba(70,96,132,.72), transparent 70%), linear-gradient(160deg,#2c3550,#161a2b); }
+.tile .npill{ position:absolute; left:8px; bottom:8px; z-index:2; display:flex; align-items:center; gap:6px; max-width:calc(100% - 20px);
+  padding:4px 9px; border-radius:999px; background:var(--glass); backdrop-filter:blur(10px); border:1px solid var(--border);
+  font-size:clamp(9px,9cqmin,12px); font-weight:500; color:var(--text); }
+.tile .npill .nm{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.tile .npill .live{ width:6px; height:6px; border-radius:50%; background:var(--teal); box-shadow:0 0 8px var(--teal); flex:0 0 auto; }
+.tile.speaking{ border-color:var(--teal); box-shadow:0 0 0 1px var(--teal), 0 0 22px rgba(37,208,192,.2); }
+
+.s-ctrl{ position:absolute; left:50%; bottom:14px; transform:translateX(-50%); z-index:6; display:flex; align-items:center; gap:7px;
+  padding:8px; border-radius:16px; background:var(--glass); backdrop-filter:blur(14px); border:1px solid var(--border-strong);
+  box-shadow:0 12px 34px rgba(0,0,0,.4); }
+.cbtn{ width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  border:1px solid var(--border-strong); background:var(--fill-subtle); color:var(--text-dim); }
+.cbtn svg{ width:17px; height:17px; }
+.cbtn.on{ background:var(--teal-tint); border-color:rgba(37,208,192,.3); color:var(--teal-soft); }
+.cbtn.leave{ width:52px; background:var(--danger); border-color:transparent; color:#fff; }
+
+/* =====================================================================
+   REACTIONS LAYER — floats over the stage, out of the centre column,
+   below the chrome (z<6). pointer-events:none: never blocks the call.
+   ===================================================================== */
+.rx-layer{ position:absolute; inset:0; z-index:4; pointer-events:none; overflow:hidden; }
+
+/* a reaction = two absolutely-placed anchors sharing one origin point
+   (left%, bottom px): a static BLOOM at the origin + a RISER that carries
+   the emoji, its trail and the name pill upward. Only transform+opacity
+   animate — GPU-cheap, no layout thrash. */
+.rx-slot{ position:absolute; will-change:transform,opacity;
+  animation:rxRise var(--dur,3s) var(--rx-ease) both; }
+.rx-bloomslot{ position:absolute; }
+
+/* emoji — centred on the origin point, pops in on top of the bloom */
+.rx-emoji{ position:absolute; left:0; bottom:0; width:46px; height:46px; margin:0 0 -23px -23px;
+  display:grid; place-items:center; font-size:33px; line-height:1;
+  filter:drop-shadow(0 5px 11px rgba(0,0,0,.45));
+  animation:rxPop .52s var(--rx-ease) both; }
+[data-theme='light'] .rx-emoji{ filter:drop-shadow(0 5px 11px rgba(30,60,55,.28)); }
+
+/* name pill — glass, sender's per-user hue as the accent dot; "You" for me */
+.rx-name{ position:absolute; left:0; top:0; transform:translate(-50%,30px);
+  display:inline-flex; align-items:center; gap:7px; white-space:nowrap;
+  padding:4px 11px 4px 8px; border-radius:999px;
+  background:var(--glass); backdrop-filter:blur(12px); border:1px solid var(--border-strong);
+  box-shadow:0 5px 16px rgba(0,0,0,.32); animation:rxNameIn .5s var(--rx-ease) .05s both; }
+[data-theme='light'] .rx-name{ box-shadow:0 5px 16px rgba(30,60,55,.18); }
+.rx-name .rx-dot{ width:8px; height:8px; border-radius:50%; flex:0 0 auto;
+  background:hsl(var(--hue) 54% 52%); box-shadow:0 0 0 3px hsl(var(--hue) 60% 52% / .2); }
+.rx-name b{ font:600 11.5px/1 var(--font); color:var(--text); letter-spacing:.005em; }
+
+/* --- A · SIGNAL-BURST : coral+teal ripple bloom + soft hue glow trail --- */
+.rx-bloomslot span{ position:absolute; left:0; bottom:0; width:60px; height:60px; margin:0 0 -30px -30px;
+  border-radius:50%; border:2px solid var(--rx-bloom); opacity:0; will-change:transform,opacity;
+  animation:rxBloom var(--dur,3s) var(--rx-ease) both; }
+.rx-bloomslot span:nth-child(2){ border-color:var(--rx-bloom-2); border-width:1.5px; animation-name:rxBloom2; animation-delay:.08s; }
+.rx-glow{ position:absolute; left:0; bottom:0; width:70px; height:150px; margin:0 0 -40px -35px;
+  background:radial-gradient(44% 40% at 50% 32%, hsl(var(--hue) 84% 64% / .72), transparent 72%);
+  filter:blur(7px); opacity:0; animation:rxGlow var(--dur,3s) ease both; }
+
+/* --- B · SPARKLE-TRAIL : a few drifting particles in the sender's hue --- */
+.rx-sparks{ position:absolute; left:0; bottom:0; }
+.rx-sparks i{ position:absolute; left:0; bottom:0; width:6px; height:6px; margin:-3px; border-radius:50%;
+  background:hsl(var(--hue) 85% 66%); box-shadow:0 0 7px hsl(var(--hue) 85% 66% / .9); opacity:0; will-change:transform,opacity;
+  animation:rxSpark var(--sd,1.2s) ease-out var(--sdl,0s) both; }
+
+/* --- C · GLASS-BADGE : emoji + name in one glass chip = mini identity card --- */
+.rx-slot[data-treat='glass']{ /* riser carries a single chip; no bloom/particles */ }
+.rx-chip{ position:absolute; left:0; bottom:0; transform:translate(-50%,50%);
+  display:inline-flex; align-items:center; gap:9px; white-space:nowrap;
+  padding:7px 14px 7px 9px; border-radius:999px;
+  background:linear-gradient(180deg, color-mix(in srgb, hsl(var(--hue) 60% 52%) 15%, var(--glass)), var(--glass) 62%);
+  backdrop-filter:blur(13px) saturate(1.05); border:1px solid var(--border-strong);
+  box-shadow:0 8px 22px rgba(0,0,0,.36), inset 0 1px 0 rgba(255,255,255,.14);
+  animation:rxChipIn .5s var(--rx-ease) both; }
+[data-theme='light'] .rx-chip{ box-shadow:0 8px 22px rgba(30,60,55,.2), inset 0 1px 0 rgba(255,255,255,.6); }
+.rx-chip::before{ content:''; width:4px; align-self:stretch; border-radius:999px; margin:1px 1px 1px 0;
+  background:hsl(var(--hue) 58% 53%); box-shadow:0 0 10px hsl(var(--hue) 70% 55% / .55); }
+.rx-chip .ce{ font-size:23px; line-height:1; filter:drop-shadow(0 2px 5px rgba(0,0,0,.35)); }
+.rx-chip .cn{ font:600 13px/1 var(--font); color:var(--text); }
+
+/* ===== keyframes ===== */
+@keyframes rxRise{
+  0%  { transform:translate(0,4px); opacity:0; }
+  9%  { opacity:1; }
+  42% { transform:translate(var(--sway,0px), calc(var(--rise,300px) * -.42)); }
+  72% { transform:translate(calc(var(--sway,0px) * -.5), calc(var(--rise,300px) * -.74)); }
+  86% { opacity:1; }
+  100%{ transform:translate(calc(var(--sway,0px) * .25), calc(var(--rise,300px) * -1)); opacity:0; }
+}
+@keyframes rxPop{ 0%{ transform:scale(.35); } 55%{ transform:scale(1.16); } 100%{ transform:scale(1); } }
+@keyframes rxNameIn{ 0%{ opacity:0; transform:translate(-50%,40px) scale(.9); } 100%{ opacity:1; transform:translate(-50%,30px) scale(1); } }
+@keyframes rxChipIn{ 0%{ opacity:0; transform:translate(-50%,58%) scale(.9); } 100%{ opacity:1; transform:translate(-50%,50%) scale(1); } }
+@keyframes rxBloom{ 0%{ transform:scale(.18); opacity:0; } 20%{ opacity:.9; } 100%{ transform:scale(2.35); opacity:0; } }
+@keyframes rxBloom2{ 0%{ transform:scale(.18); opacity:0; } 24%{ opacity:.58; } 100%{ transform:scale(2.85); opacity:0; } }
+@keyframes rxGlow{ 0%{ opacity:0; } 14%{ opacity:1; } 66%{ opacity:.55; } 100%{ opacity:0; } }
+@keyframes rxSpark{ 0%{ transform:translate(0,0) scale(1); opacity:0; } 16%{ opacity:.95; } 100%{ transform:translate(var(--sx,0px), var(--sy,26px)) scale(.2); opacity:0; } }
+
+/* ---- reduced motion / motion-off → calm fade in place, no bloom/particles ---- */
+.rx-layer.rm .rx-bloomslot{ display:none; }
+.rx-layer.rm .rx-glow, .rx-layer.rm .rx-sparks{ display:none; }
+.rx-layer.rm .rx-slot{ animation:rxFade var(--dur,2.6s) ease both !important; }
+.rx-layer.rm .rx-emoji{ animation:none !important; }
+.rx-layer.rm .rx-name{ animation:none !important; opacity:1; }
+.rx-layer.rm .rx-chip{ animation:rxFade 2.6s ease both !important; }
+@keyframes rxFade{ 0%{ opacity:0; transform:translateY(8px); } 14%{ opacity:1; transform:none; } 80%{ opacity:1; } 100%{ opacity:0; } }
+
+/* ===== demo control strip ===== */
+.controls{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:12px 14px; border-radius:var(--radius);
+  background:var(--surface); border:1px solid var(--border); }
+.seg-label{ font:600 10px/1 var(--mono); letter-spacing:.14em; text-transform:uppercase; color:var(--text-mute); }
+.seg{ display:flex; gap:5px; }
+.vbtn{ position:relative; display:flex; align-items:center; gap:8px; padding:9px 13px; border-radius:10px; cursor:pointer;
+  border:1px solid var(--border); background:var(--fill-subtle); color:var(--text-dim); font:600 13px/1 var(--font); }
+.vbtn:hover{ color:var(--text); border-color:var(--border-strong); }
+.vbtn.active{ background:var(--teal-tint); border-color:rgba(37,208,192,.34); color:var(--teal-soft); }
+.vbtn .rec{ font:700 8px/1 var(--mono); letter-spacing:.08em; color:#04211e; background:linear-gradient(135deg,var(--teal),var(--teal-bright)); padding:3px 4px; border-radius:4px; }
+.divider{ width:1px; height:26px; background:var(--border); }
+.emoji-row{ display:flex; gap:4px; }
+.ebtn{ width:38px; height:38px; border-radius:10px; cursor:pointer; border:1px solid var(--border); background:var(--fill-subtle);
+  font-size:20px; line-height:1; display:grid; place-items:center; transition:transform .12s ease, border-color .12s ease; }
+.ebtn:hover{ transform:translateY(-2px); border-color:var(--border-strong); }
+.ebtn:active{ transform:translateY(0) scale(.92); }
+.spacer{ flex:1; }
+.burst{ display:flex; align-items:center; gap:8px; padding:9px 15px; border-radius:10px; cursor:pointer; border:none;
+  background:linear-gradient(135deg,var(--coral),#ff9070); color:#2a0f08; font:700 13px/1 var(--font);
+  box-shadow:0 10px 24px rgba(255,126,99,.32), inset 0 1px 0 rgba(255,255,255,.4); }
+.burst svg{ width:15px; height:15px; }
+.hint{ font:400 11.5px/1.5 var(--mono); color:var(--text-mute); flex-basis:100%; }
+.hint b{ color:var(--text-dim); font-weight:500; }
+</style>
+</head>
+<body>
+<div class="demo">
+
+  <div class="demo-head">
+    <div class="demo-title">
+      <span class="ey">Coral Club · Meet</span>
+      <h1>In-call reactions</h1>
+    </div>
+    <div class="chrome">
+      <button class="tbtn" id="motionToggle" title="Toggle motion"><span class="ind"></span>Motion</button>
+      <button class="tbtn" id="themeToggle" title="Toggle theme">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>Tide
+      </button>
+    </div>
+  </div>
+
+  <!-- IN-CALL STAGE -->
+  <div class="stage" id="stage">
+    <div class="s-top">
+      <div class="s-brand">
+        <svg width="17" height="17" viewBox="0 0 60 60" aria-hidden="true">
+          <defs><linearGradient id="ccMark" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#34e6d3"/><stop offset="1" stop-color="#0f9c8d"/></linearGradient></defs>
+          <g stroke="url(#ccMark)" fill="none" stroke-width="3.4" stroke-linecap="round"><path d="M30 9a21 21 0 0 1 0 42"/><path d="M30 19a11 11 0 0 1 0 22"/></g>
+          <circle cx="30" cy="30" r="4.4" fill="#ff7e63"/>
+        </svg>
+        <span class="nm">Coral Club</span>
+      </div>
+      <span class="s-timer">14:08</span>
+    </div>
+
+    <div class="grid">
+      <div class="tile video"><div class="feed a"></div><div class="npill"><span class="nm">Maria Novak</span></div></div>
+      <div class="tile speaking video"><div class="feed b"></div><div class="npill"><span class="live"></span><span class="nm">Jordan</span></div></div>
+      <div class="tile"><div class="disc" style="background:hsl(42 54% 47%)">CW</div><div class="npill"><span class="nm">Chen Wei</span></div></div>
+      <div class="tile"><div class="disc" style="background:hsl(300 54% 47%)">AO</div><div class="npill"><span class="nm">Amara Okafor</span></div></div>
+    </div>
+
+    <!-- REACTIONS LAYER -->
+    <div class="rx-layer" id="rxLayer"></div>
+
+    <div class="s-ctrl">
+      <div class="cbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><line x1="12" y1="18" x2="12" y2="21"/></svg></div>
+      <div class="cbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="13" height="12" rx="2"/><path d="M15 10l5-3v10l-5-3z"/></svg></div>
+      <div class="cbtn on" title="Reactions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 14s1.3 2 3.5 2 3.5-2 3.5-2"/><line x1="9" y1="9.6" x2="9.01" y2="9.6"/><line x1="15" y1="9.6" x2="15.01" y2="9.6"/></svg></div>
+      <div class="cbtn leave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(135deg)"><path d="M5 4h3l2 5-2.5 1.5a11 11 0 0 0 5 5L16 14l5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg></div>
+    </div>
+  </div>
+
+  <!-- DEMO CONTROLS -->
+  <div class="controls">
+    <span class="seg-label">Treatment</span>
+    <div class="seg" id="treatSeg">
+      <button class="vbtn active" data-treat="signal">Signal-burst <span class="rec">REC</span></button>
+      <button class="vbtn" data-treat="sparkle">Sparkle-trail</button>
+      <button class="vbtn" data-treat="glass">Glass-badge</button>
+    </div>
+    <div class="divider"></div>
+    <div class="emoji-row" id="emojiRow"></div>
+    <div class="spacer"></div>
+    <button class="burst" id="burst"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 4v2M12 18v2M4 12h2M18 12h2M6.3 6.3l1.4 1.4M16.3 16.3l1.4 1.4M17.7 6.3l-1.4 1.4M7.7 16.3l-1.4 1.4"/></svg>Everyone reacts</button>
+    <p class="hint" id="hint">Tap an emoji to send · <b>Signal-burst</b> — the reaction emits a coral/teal ripple, then rises with a soft glow trail in the sender's hue.</p>
+  </div>
+</div>
+
+<script>
+  const root  = document.documentElement;
+  const layer = document.getElementById('rxLayer');
+
+  /* ---- per-user colour (identical to the Avatar atom) ---- */
+  const HUES=[4,16,28,42,140,162,178,194,210,228,250,274,300,330];
+  const hashString = s => { let h=0; for(const c of (s||'?')) h=(h*31+c.charCodeAt(0))>>>0; return h; };
+  const hueFor = k => HUES[hashString(k||'?')%14];
+
+  const reduced = () => root.getAttribute('data-motion')==='off'
+      || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---- who's in the room (name drives the hue; label is what shows) ---- */
+  const ROSTER = [
+    {name:'Maria Novak',  label:'Maria'},
+    {name:'Jordan',       label:'Jordan'},
+    {name:'Chen Wei',     label:'Chen Wei'},
+    {name:'Priya Patel',  label:'Priya'},
+    {name:'Amara Okafor', label:'Amara'},
+    {name:'Yuki Tanaka',  label:'Yuki'},
+    {name:'Sofia Rossi',  label:'Sofia'},
+    {name:'Ararat',       label:'You', you:true},
+  ];
+  const EMOJI = ['👍','❤️','😂','🎉','👏','🔥'];
+  const HINTS = {
+    signal:  'Tap an emoji to send · <b>Signal-burst</b> — the reaction emits a coral/teal ripple, then rises with a soft glow trail in the sender’s hue.',
+    sparkle: 'Tap an emoji to send · <b>Sparkle-trail</b> — a gentle scale-in pop, then a short trail of particles in the sender’s hue drifts behind it.',
+    glass:   'Tap an emoji to send · <b>Glass-badge</b> — the emoji rides in a glass chip accented with the sender’s hue: a mini identity card that floats up.',
+  };
+
+  let TREAT = 'signal';
+  const rand = (a,b) => a + Math.random()*(b-a);
+  const pick = arr => arr[(Math.random()*arr.length)|0];
+
+  /* left gutter for singles; both gutters for clusters — always skips the
+     centre column (34–66%) so it never covers the active speaker. */
+  const gutterX = () => rand(7, 26);
+  const clusterX = i => (i % 2 === 0) ? rand(7, 30) : rand(70, 92);
+
+  function fire({name,label,you,emoji,x,y,delay=0,big=false}){
+    const hue = hueFor(you ? 'Ararat' : name);
+    const dur = rand(2.7, 3.4);
+    const rise = (big ? 240 : 300) + rand(0, 70);
+    const sway = rand(-16, 16);
+    const rm = reduced();
+
+    // static ripple bloom at the origin (Signal-burst only)
+    if(TREAT === 'signal' && !rm){
+      const bs = document.createElement('div');
+      bs.className = 'rx-bloomslot';
+      bs.style.cssText = `left:${x}%;bottom:${y}px`;
+      bs.style.setProperty('--dur', dur+'s');
+      bs.style.setProperty('--hue', hue);
+      bs.innerHTML = '<span></span><span></span>';
+      if(delay){ bs.style.animationDelay = delay+'ms'; bs.querySelectorAll('span').forEach(s=>s.style.animationDelay=(delay)+'ms'); }
+      layer.appendChild(bs);
+      setTimeout(()=>bs.remove(), dur*1000 + delay + 400);
+    }
+
+    // the riser: emoji + trail + name pill
+    const slot = document.createElement('div');
+    slot.className = 'rx-slot';
+    slot.dataset.treat = TREAT;
+    slot.style.cssText = `left:${x}%;bottom:${y}px`;
+    slot.style.setProperty('--hue', hue);
+    slot.style.setProperty('--dur', dur+'s');
+    slot.style.setProperty('--rise', rise+'px');
+    slot.style.setProperty('--sway', sway.toFixed(1)+'px');
+    if(delay) slot.style.animationDelay = delay+'ms';
+
+    if(TREAT === 'glass'){
+      slot.innerHTML =
+        `<div class="rx-chip"><span class="ce">${emoji}</span><span class="cn">${label}</span></div>`;
+      if(delay) slot.querySelector('.rx-chip').style.animationDelay = delay+'ms';
+    } else {
+      let trail = '';
+      if(!rm){
+        trail = TREAT === 'sparkle' ? '<div class="rx-sparks"></div>' : '<div class="rx-glow"></div>';
+      }
+      slot.innerHTML =
+        `${trail}<div class="rx-emoji">${emoji}</div>` +
+        `<div class="rx-name"><span class="rx-dot"></span><b>${label}</b></div>`;
+      if(delay){
+        const em = slot.querySelector('.rx-emoji'), nm = slot.querySelector('.rx-name');
+        if(em) em.style.animationDelay = delay+'ms';
+        if(nm) nm.style.animationDelay = (delay+50)+'ms';
+      }
+      // sparkle particles
+      if(TREAT === 'sparkle' && !rm){
+        const sp = slot.querySelector('.rx-sparks');
+        const n = 5;
+        for(let i=0;i<n;i++){
+          const s = document.createElement('i');
+          s.style.setProperty('--sx', rand(-24,24).toFixed(0)+'px');
+          s.style.setProperty('--sy', rand(16,40).toFixed(0)+'px');
+          s.style.setProperty('--sd', rand(.9,1.5).toFixed(2)+'s');
+          s.style.setProperty('--sdl', (delay/1000 + rand(.05,.5)).toFixed(2)+'s');
+          sp.appendChild(s);
+        }
+      }
+    }
+    layer.appendChild(slot);
+    setTimeout(()=>slot.remove(), dur*1000 + delay + 500);
+  }
+
+  function sendOne(sender){
+    const s = sender || pick(ROSTER);
+    fire({ ...s, emoji: pick(EMOJI), x: gutterX(), y: rand(120, 184) });
+  }
+
+  /* cluster — several people react together: staggered, fanned across the
+     gutters, feels like a group swelling rather than a random scatter. */
+  function sendCluster(){
+    // calm fallback: a burst under reduced motion is fewer, well-spaced fades
+    const rm = reduced();
+    const n = rm ? 3 : 6;
+    const pool = ROSTER.slice().sort(()=>Math.random()-.5).slice(0, n);
+    pool.forEach((s,i)=>{
+      const x = rm ? (10 + i*26) : clusterX(i);
+      fire({ ...s, emoji: pick(EMOJI), x, y: rand(120, 172), delay: i*(rm?160:70), big:true });
+    });
+  }
+
+  /* ---- reduced-motion toggle needs the layer flagged so CSS swaps in ---- */
+  function syncRM(){ layer.classList.toggle('rm', reduced()); }
+
+  /* ---- emoji buttons ---- */
+  const row = document.getElementById('emojiRow');
+  EMOJI.forEach(e=>{
+    const b = document.createElement('button');
+    b.className = 'ebtn'; b.textContent = e; b.title = 'Send '+e;
+    b.addEventListener('click', ()=> fire({ name:'Ararat', label:'You', you:true, emoji:e, x:gutterX(), y:rand(122,180) }));
+    row.appendChild(b);
+  });
+
+  /* ---- treatment segmented ---- */
+  document.getElementById('treatSeg').addEventListener('click', e=>{
+    const b = e.target.closest('.vbtn'); if(!b) return;
+    TREAT = b.dataset.treat;
+    document.querySelectorAll('.vbtn').forEach(x=>x.classList.toggle('active', x===b));
+    document.getElementById('hint').innerHTML = HINTS[TREAT];
+    // little confirmation flourish in the new treatment
+    sendOne(pick(ROSTER)); setTimeout(()=>sendOne(pick(ROSTER)), 260);
+  });
+
+  document.getElementById('burst').addEventListener('click', sendCluster);
+
+  document.getElementById('themeToggle').addEventListener('click', ()=>{
+    root.setAttribute('data-theme', root.getAttribute('data-theme')==='light'?'dark':'light');
+  });
+  document.getElementById('motionToggle').addEventListener('click', ()=>{
+    root.setAttribute('data-motion', root.getAttribute('data-motion')==='off'?'on':'off');
+    syncRM();
+  });
+  window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener?.('change', syncRM);
+
+  /* ---- ambient auto-demo: keeps the card alive in the gallery ---- */
+  syncRM();
+  let t = 0;
+  function loop(){
+    const gap = reduced() ? 2600 : rand(1400, 2400);
+    t = setTimeout(()=>{ sendOne(); loop(); }, gap);
+  }
+  // seed a first reaction, then a small cluster, then settle into the loop
+  setTimeout(()=> sendOne(ROSTER[0]), 500);
+  setTimeout(sendCluster, 1500);
+  setTimeout(loop, 3200);
+</script>
+</body>
+</html>

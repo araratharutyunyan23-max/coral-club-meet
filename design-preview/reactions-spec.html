@@ -1,0 +1,381 @@
+<!-- @dsCard group="Overlays" name="Reactions overlay — spec" subtitle="Tokens · keyframes (bloom / rise / glow / sparkle / name pill) · per-user-hue rule · spawn zone · cluster · reduced-motion · themes · drop-in for ReactionsOverlay.tsx + theme.css" -->
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<title>Reactions overlay — spec</title>
+<style>
+:root{
+  --bg:#0a0b0d; --bg-elev:#0e1116; --surface:#15181d; --surface-2:#13161b;
+  --border:rgba(255,255,255,.06); --border-strong:rgba(255,255,255,.12);
+  --text:#eef1f3; --text-dim:#9aa3ad; --text-mute:#8b949e;
+  --teal:#25d0c0; --teal-bright:#34e6d3; --teal-soft:#7fe6db; --teal-tint:rgba(37,208,192,.16);
+  --coral:#ff7e63; --danger:#ef4b43; --danger-soft:#ff6b61;
+  --font:'Hanken Grotesk',system-ui,-apple-system,sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+  --radius:14px; --radius-sm:10px;
+  --fill-subtle:rgba(255,255,255,.04); --fill-hover:rgba(255,255,255,.07); --glass:rgba(16,18,22,.72);
+  --ripple-ring:rgba(37,208,192,.6); --surround:#0b0d0f; --gold:#f2c879;
+}
+[data-theme='light']{
+  --bg:#eef3f1; --bg-elev:#ffffff; --surface:#ffffff; --surface-2:#f1f5f3;
+  --border:rgba(0,0,0,.08); --border-strong:rgba(0,0,0,.14);
+  --text:#0e1a18; --text-dim:#46555c; --text-mute:#5d6c69;
+  --teal:#0f9c8d; --teal-bright:#16b3a2; --teal-soft:#0c7d70; --teal-tint:rgba(15,156,141,.14);
+  --coral:#ff6f55; --danger:#e5483f; --danger-soft:#c23a32;
+  --fill-subtle:rgba(0,0,0,.04); --fill-hover:rgba(0,0,0,.06); --glass:rgba(255,255,255,.72);
+  --ripple-ring:rgba(15,156,141,.55); --surround:#e8efeb; --gold:#c98a2e;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  font-family:var(--font); color:var(--text); line-height:1.5;
+  background:
+    radial-gradient(120% 72% at 84% -8%, rgba(37,208,192,.10), transparent 54%),
+    radial-gradient(90% 70% at 6% 102%, rgba(255,126,99,.07), transparent 56%),
+    linear-gradient(168deg,#070a0c 0%,#0a0f12 48%,#08161a 100%);
+  background-attachment:fixed; -webkit-font-smoothing:antialiased;
+}
+[data-theme='light'] body{
+  background:
+    radial-gradient(120% 72% at 84% -8%, rgba(15,156,141,.12), transparent 54%),
+    radial-gradient(90% 70% at 6% 102%, rgba(255,111,85,.07), transparent 56%),
+    linear-gradient(168deg,#eef4f1 0%,#e8f1ee 48%,#dfeeea 100%);
+}
+.wrap{ max-width:920px; margin:0 auto; padding:60px 32px 120px; }
+
+.kicker{ font:600 12px/1 var(--mono); letter-spacing:.24em; text-transform:uppercase; color:var(--teal); }
+h1.title{ margin:14px 0 0; font-size:clamp(34px,5vw,54px); font-weight:800; letter-spacing:-.03em; line-height:1.02; }
+h1.title .core{ display:inline-block; width:.4em; height:.4em; border-radius:50%; background:var(--coral); vertical-align:.04em; margin-left:.06em; box-shadow:0 0 16px 2px color-mix(in srgb,var(--coral) 55%, transparent); }
+.lede{ margin-top:16px; font-size:17px; color:var(--text-dim); max-width:64ch; }
+.lede b{ color:var(--text); font-weight:600; }
+
+.rec-banner{ margin-top:32px; display:flex; gap:16px; align-items:flex-start; padding:20px 22px; border-radius:var(--radius);
+  background:linear-gradient(120deg, rgba(255,126,99,.16), transparent 68%), var(--surface); border:1px solid var(--border-strong); }
+.rec-badge{ flex:0 0 auto; font:700 10px/1 var(--mono); letter-spacing:.1em; color:#2a0f08; background:linear-gradient(135deg,var(--coral),#ff9d84); padding:7px 9px; border-radius:6px; margin-top:2px; }
+.rec-banner h3{ margin:0 0 4px; font-size:16px; font-weight:700; }
+.rec-banner p{ margin:0; font-size:14px; color:var(--text-dim); }
+.rec-banner b{ color:var(--text); }
+
+.dirs{ margin-top:20px; display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+@media (max-width:680px){ .dirs{ grid-template-columns:1fr; } }
+.dir{ padding:16px; border-radius:var(--radius-sm); background:var(--surface-2); border:1px solid var(--border); }
+.dir .demo{ height:96px; border-radius:9px; margin-bottom:13px; position:relative; overflow:hidden; border:1px solid var(--border);
+  background:radial-gradient(120% 100% at 30% 120%, rgba(37,208,192,.12), transparent 60%), var(--bg-elev); }
+.dir h4{ margin:0 0 6px; font-size:15px; font-weight:700; display:flex; align-items:center; gap:8px; }
+.dir h4 .tag{ font:700 8px/1 var(--mono); color:#04211e; background:linear-gradient(135deg,var(--teal),var(--teal-bright)); border-radius:4px; padding:3px 4px; letter-spacing:.06em; }
+.dir p{ margin:0; font-size:13px; color:var(--text-dim); }
+
+/* mini illustrations inside the direction cards */
+.mini{ position:absolute; left:50%; bottom:12px; transform:translateX(-50%); font-size:22px; }
+.mini .ring{ position:absolute; left:50%; top:50%; width:20px; height:20px; margin:-10px 0 0 -10px; border-radius:50%; border:1.5px solid var(--coral); animation:mr 2.4s ease-out infinite; }
+.mini .ring.t{ border-color:var(--ripple-ring); animation-delay:.4s; }
+@keyframes mr{ 0%{transform:scale(.3);opacity:0} 20%{opacity:.9} 100%{transform:scale(3);opacity:0} }
+.mini .e{ position:relative; display:block; filter:drop-shadow(0 3px 6px rgba(0,0,0,.4)); animation:mfloat 2.8s ease-in-out infinite; }
+@keyframes mfloat{ 0%,100%{transform:translateY(2px)} 50%{transform:translateY(-6px)} }
+.mchip{ position:absolute; left:50%; bottom:16px; transform:translateX(-50%); display:inline-flex; align-items:center; gap:7px;
+  padding:5px 11px 5px 7px; border-radius:999px; background:var(--glass); backdrop-filter:blur(8px); border:1px solid var(--border-strong);
+  box-shadow:0 5px 14px rgba(0,0,0,.3); animation:mfloat 2.8s ease-in-out infinite; }
+.mchip::before{ content:''; width:3px; height:16px; border-radius:2px; background:hsl(300 58% 53%); box-shadow:0 0 8px hsl(300 70% 55% / .6); }
+.mchip .ce{ font-size:17px; } .mchip .cn{ font:600 11px/1 var(--font); color:var(--text); }
+.mspark{ position:absolute; width:4px; height:4px; border-radius:50%; background:hsl(178 85% 60%); box-shadow:0 0 6px hsl(178 85% 60%); animation:msp 2.6s ease-in infinite; }
+@keyframes msp{ 0%{ transform:translateY(0) scale(1); opacity:0; } 20%{ opacity:.95; } 100%{ transform:translateY(20px) scale(.2); opacity:0; } }
+
+.sec{ margin-top:54px; }
+.sec-head{ display:flex; align-items:baseline; gap:12px; padding-bottom:14px; border-bottom:1px solid var(--border); margin-bottom:20px; }
+.sec-head .idx{ font:600 12px/1 var(--mono); color:var(--teal); }
+.sec-head h2{ margin:0; font-size:21px; font-weight:700; letter-spacing:-.01em; }
+.sec p.note{ font-size:14.5px; color:var(--text-dim); max-width:72ch; }
+.sec p.note + p.note{ margin-top:10px; }
+.sec p.note b{ color:var(--text); font-weight:600; }
+
+figure.code{ margin:18px 0 0; border-radius:var(--radius-sm); overflow:hidden; border:1px solid var(--border); background:var(--bg-elev); }
+figure.code figcaption{ font:500 11px/1 var(--mono); letter-spacing:.08em; color:var(--text-mute); padding:11px 16px; background:var(--surface); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px; }
+figure.code figcaption .dot{ width:8px; height:8px; border-radius:50%; background:var(--teal); box-shadow:0 0 8px var(--teal); }
+figure.code figcaption.coral .dot{ background:var(--coral); box-shadow:0 0 8px var(--coral); }
+pre{ margin:0; padding:18px 16px; overflow-x:auto; }
+code{ font:400 12.6px/1.65 var(--mono); color:var(--text); white-space:pre; }
+.c-sel{ color:var(--teal-soft); } .c-prop{ color:var(--text-dim); } .c-val{ color:var(--text); }
+.c-com{ color:var(--text-mute); font-style:italic; } .c-at{ color:var(--coral); } .c-tag{ color:var(--teal-soft); } .c-str{ color:var(--gold); }
+
+ul.rules{ list-style:none; margin:14px 0 0; padding:0; display:flex; flex-direction:column; gap:12px; }
+ul.rules li{ position:relative; padding-left:22px; font-size:14.5px; color:var(--text); }
+ul.rules li::before{ content:''; position:absolute; left:2px; top:8px; width:7px; height:7px; border-radius:50%; background:var(--coral); }
+ul.rules li b{ font-weight:600; }
+ul.rules li code, p.note code, .dir p code{ font:500 12.5px/1 var(--mono); background:var(--fill-subtle); border:1px solid var(--border); border-radius:5px; padding:2px 6px; color:var(--teal-soft); }
+
+.zstack{ margin-top:16px; display:flex; flex-direction:column; gap:6px; }
+.zrow{ display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:10px; border:1px solid var(--border); background:var(--surface); }
+.zrow .zn{ font:600 11px/1 var(--mono); color:var(--teal-soft); width:52px; flex:0 0 auto; }
+.zrow .zl{ font-size:13.5px; font-weight:600; }
+.zrow .zd{ margin-left:auto; font-size:12.5px; color:var(--text-mute); }
+.zrow.hot{ border-color:rgba(255,126,99,.4); background:linear-gradient(90deg, rgba(255,126,99,.1), transparent 60%), var(--surface); }
+
+/* spawn-zone diagram */
+.zone{ margin-top:18px; position:relative; height:200px; border-radius:var(--radius); overflow:hidden; border:1px solid var(--border-strong);
+  background:radial-gradient(120% 100% at 50% 130%, rgba(37,208,192,.1), transparent 55%), var(--bg-elev); }
+.zone .keep{ position:absolute; top:0; bottom:0; left:34%; right:34%; background:repeating-linear-gradient(135deg, rgba(255,126,99,.09) 0 8px, transparent 8px 16px); border-left:1px dashed rgba(255,126,99,.4); border-right:1px dashed rgba(255,126,99,.4); display:flex; align-items:center; justify-content:center; }
+.zone .keep span{ font:600 9.5px/1.4 var(--mono); letter-spacing:.1em; color:var(--coral); text-align:center; text-transform:uppercase; }
+.zone .gut{ position:absolute; top:0; bottom:0; background:linear-gradient(180deg, rgba(37,208,192,.06), rgba(37,208,192,.14)); }
+.zone .gut.l{ left:0; right:66%; } .zone .gut.r{ right:0; left:66%; }
+.zone .gut b{ position:absolute; left:50%; bottom:12px; transform:translateX(-50%); font:600 9.5px/1.4 var(--mono); letter-spacing:.08em; color:var(--teal-soft); text-transform:uppercase; white-space:nowrap; }
+.zone .spk{ position:absolute; left:34%; right:34%; bottom:12px; text-align:center; font:600 9px/1 var(--mono); color:var(--text-mute); letter-spacing:.06em; }
+.zone .em{ position:absolute; font-size:19px; }
+.zone .em.a{ left:12%; bottom:20px; } .zone .em.b{ left:22%; bottom:20px; } .zone .em.c{ right:14%; bottom:20px; }
+
+.pill-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; }
+.pill{ font:500 12px/1 var(--mono); color:var(--text-dim); background:var(--fill-subtle); border:1px solid var(--border); padding:8px 12px; border-radius:999px; }
+.pill b{ color:var(--text); font-weight:600; }
+
+.theme-toggle{ position:fixed; top:20px; right:20px; z-index:9; width:38px; height:38px; border-radius:10px; border:1px solid var(--border-strong); background:var(--glass); backdrop-filter:blur(8px); color:var(--text-dim); cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.theme-toggle:hover{ color:var(--text); }
+.xref{ margin-top:22px; font-size:13.5px; color:var(--text-mute); }
+.xref b{ color:var(--text-dim); }
+</style>
+</head>
+<body>
+<button class="theme-toggle" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
+</button>
+
+<div class="wrap">
+  <div class="kicker">Overlays · Motion + host spec</div>
+  <h1 class="title">In-call reactions<span class="core"></span></h1>
+  <p class="lede">Anyone taps an emoji; it floats up over the stage with the sender’s name, then fades — broadcast to everyone on the data channel. This redesign makes that moment <b>unmistakably Coral Club</b>: the reaction <b>emits a Signal-Field ripple</b> — coral core, teal water — and rises trailing the sender’s own <b>per-user hue</b>, its name set in a small glass pill. Calm-premium, GPU-cheap, one-shot ~3s. Everything below drops into <code>theme.css</code> and a presentational <code>&lt;ReactionsOverlay&gt;</code>.</p>
+
+  <div class="rec-banner">
+    <span class="rec-badge">REC</span>
+    <div>
+      <h3>Ship <em>Signal-burst</em> as the default.</h3>
+      <p>It’s the only option that speaks the brand’s core language: a reaction literally becomes a <b>signal</b> on the pond — the same coral-core / teal-ring geometry as the ambient Signal Field, now emitted by a person. <b>Sparkle-trail</b> and <b>Glass-badge</b> are the alternates — one warmer/playful, one maximally legible — behind a single <code>REACTION_STYLE</code> constant so the whole product stays consistent. All three share the same physics, spawn zone, name pill and reduced-motion fallback.</p>
+    </div>
+  </div>
+
+  <div class="dirs">
+    <div class="dir a">
+      <div class="demo">
+        <div class="mini"><span class="ring"></span><span class="ring t"></span><span class="e">🎉</span></div>
+      </div>
+      <h4>Signal-burst <span class="tag">REC</span></h4>
+      <p>Arrives on a coral+teal <b>ripple bloom</b> (the brand ripple), then rises with a soft <b>glow trail</b> in the sender’s hue. The reaction “emits a signal.”</p>
+    </div>
+    <div class="dir b">
+      <div class="demo">
+        <div class="mini"><span class="e">👏</span></div>
+        <i class="mspark" style="left:44%;bottom:40px;animation-delay:.1s"></i>
+        <i class="mspark" style="left:56%;bottom:34px;animation-delay:.5s"></i>
+        <i class="mspark" style="left:50%;bottom:48px;animation-delay:.9s"></i>
+      </div>
+      <h4>Sparkle-trail</h4>
+      <p>A gentle scale-in pop, then a short trail of <b>particles in the sender’s hue</b> drifts behind and settles. Warmer, a touch playful.</p>
+    </div>
+    <div class="dir c">
+      <div class="demo">
+        <div class="mchip"><span class="ce">❤️</span><span class="cn">Amara</span></div>
+      </div>
+      <h4>Glass-badge</h4>
+      <p>Emoji + name ride in one <b>glass chip</b> accented with the sender’s hue — a mini identity card that floats up. Maximally legible over busy video.</p>
+    </div>
+  </div>
+
+  <!-- ============ A · TOKENS ============ -->
+  <section class="sec">
+    <div class="sec-head"><span class="idx">A</span><h2>Tokens — add to <code>theme.css</code></h2></div>
+    <p class="note">Four properties drive the whole reaction. The ripple <b>bloom</b> is just <code>--coral</code> at ~85% — the same Signal-Field ring, now emitted by a person — with the <b>outer ring reusing <code>--ripple-ring</code></b> (teal water) verbatim. Only the bloom softens on the pale Tide surface. The sender’s hue is <em>not</em> a token — it’s computed per reaction (§E).</p>
+    <figure class="code"><figcaption><span class="dot"></span>theme.css — :root</figcaption><pre><code><span class="c-sel">:root</span>{
+  <span class="c-prop">--rx-dur</span>:   <span class="c-val">3.1s</span>;                       <span class="c-com">/* one reaction’s life · JS jitters 2.7–3.4s per piece */</span>
+  <span class="c-prop">--rx-ease</span>:  <span class="c-val">cubic-bezier(.22,.68,.28,1)</span>;  <span class="c-com">/* calm rise, no bounce */</span>
+  <span class="c-prop">--rx-bloom</span>: <span class="c-val">rgba(255,126,99,.85)</span>;         <span class="c-com">/* inner ripple = coral core (Signal Field) */</span>
+  <span class="c-prop">--rx-bloom-2</span>:<span class="c-val">var(--ripple-ring)</span>;           <span class="c-com">/* outer ripple = teal water, reused as-is */</span>
+}
+<span class="c-sel">[data-theme='light']</span>{
+  <span class="c-prop">--rx-bloom</span>:<span class="c-val">rgba(255,111,85,.7)</span>;             <span class="c-com">/* softer coral on Tide; teal ring already flips */</span>
+}
+<span class="c-com">/* ship one style for the whole product: */</span>
+<span class="c-sel">const</span> <span class="c-val">REACTION_STYLE</span> = <span class="c-str">'signal'</span>;   <span class="c-com">// 'signal' (rec) | 'sparkle' | 'glass'</span></code></pre></figure>
+  </section>
+
+  <!-- ============ B · ANATOMY + Z-INDEX + SPAWN ZONE ============ -->
+  <section class="sec">
+    <div class="sec-head"><span class="idx">B</span><h2>Anatomy, z-index &amp; spawn zone</h2></div>
+    <ul class="rules">
+      <li><b>Two anchors, one origin.</b> Each reaction is a static <code>.rx-bloomslot</code> (the ripple, stays put) + a <code>.rx-slot</code> that <em>rises</em> carrying emoji, trail and name pill. Both are absolutely placed at the same <code>(left%, bottom px)</code> origin — same “single origin” rule as the ambient system.</li>
+      <li><b>Never blocks the call.</b> The whole <code>.rx-layer</code> is <code>pointer-events:none</code> and sits <em>below</em> the top bar and control bar (<code>z 4 &lt; 6</code>), so it reads over the video but every control stays clickable.</li>
+      <li><b>Out of the centre &amp; speaker.</b> Singles spawn in the <b>left gutter (7–26%)</b>; clusters use <b>both gutters (7–30% · 70–92%)</b> and <b>never the centre column (34–66%)</b> where the active speaker sits. Vertical start is 120–184px, clear of the control bar.</li>
+    </ul>
+    <div class="zstack">
+      <div class="zrow"><span class="zn">z 1</span><span class="zl">Video tiles / grid</span><span class="zd">the live call</span></div>
+      <div class="zrow hot"><span class="zn">z 4</span><span class="zl">.rx-layer › bloom + risers</span><span class="zd">pointer-events:none</span></div>
+      <div class="zrow"><span class="zn">z 6</span><span class="zl">Top bar · control bar</span><span class="zd">stay clickable, above the reactions</span></div>
+    </div>
+    <div class="zone" aria-hidden="true">
+      <div class="gut l"><b>← left gutter · singles</b></div>
+      <div class="gut r"><b>right gutter · clusters →</b></div>
+      <div class="keep"><span>keep&nbsp;clear<br/>speaker</span></div>
+      <div class="spk">centre 34–66%</div>
+      <div class="em a">🎉</div><div class="em b">👏</div><div class="em c">❤️</div>
+    </div>
+    <figure class="code"><figcaption><span class="dot"></span>theme.css — the layer + anchors</figcaption><pre><code><span class="c-sel">.rx-layer</span>{ <span class="c-prop">position</span>:<span class="c-val">absolute</span>; <span class="c-prop">inset</span>:<span class="c-val">0</span>; <span class="c-prop">z-index</span>:<span class="c-val">4</span>; <span class="c-prop">pointer-events</span>:<span class="c-val">none</span>; <span class="c-prop">overflow</span>:<span class="c-val">hidden</span>; }
+<span class="c-sel">.rx-slot</span>{ <span class="c-prop">position</span>:<span class="c-val">absolute</span>; <span class="c-prop">will-change</span>:<span class="c-val">transform,opacity</span>;      <span class="c-com">/* the riser */</span>
+  <span class="c-prop">animation</span>:<span class="c-val">rxRise var(--dur,3s) var(--rx-ease) both</span>; }
+<span class="c-sel">.rx-bloomslot</span>{ <span class="c-prop">position</span>:<span class="c-val">absolute</span>; }                          <span class="c-com">/* the ripple, stays at origin */</span>
+
+<span class="c-com">// JS picks a spawn x that always skips the centre column</span>
+<span class="c-sel">const</span> gutterX  = () =&gt; rand(<span class="c-val">7</span>, <span class="c-val">26</span>);                    <span class="c-com">// singles → left</span>
+<span class="c-sel">const</span> clusterX = i =&gt; i%<span class="c-val">2</span> ? rand(<span class="c-val">70</span>,<span class="c-val">92</span>) : rand(<span class="c-val">7</span>,<span class="c-val">30</span>); <span class="c-com">// cluster → both gutters</span></code></pre></figure>
+  </section>
+
+  <!-- ============ C · KEYFRAMES ============ -->
+  <section class="sec">
+    <div class="sec-head"><span class="idx">C</span><h2>Keyframes — bloom · rise · glow · sparkle · name</h2></div>
+    <p class="note">The one rule that keeps it safe everywhere: <b>only <code>transform</code> and <code>opacity</code> ever animate</b> (no width/top/filter tweening) — GPU-composited, zero layout thrash even when a dozen fire at once. Every animation runs <b>once</b> (<code>both</code>/<code>forwards</code>); the node is removed on completion so nothing accumulates.</p>
+    <figure class="code"><figcaption><span class="dot coral"></span>@keyframes — the Signal-Field ripple bloom (coral core → teal ring)</figcaption><pre><code><span class="c-com">/* two rings from the origin; inner coral, outer teal — the brand ripple */</span>
+<span class="c-sel">.rx-bloomslot span</span>{ <span class="c-prop">position</span>:<span class="c-val">absolute</span>; <span class="c-prop">left</span>:<span class="c-val">0</span>; <span class="c-prop">bottom</span>:<span class="c-val">0</span>;
+  <span class="c-prop">width</span>:<span class="c-val">60px</span>; <span class="c-prop">height</span>:<span class="c-val">60px</span>; <span class="c-prop">margin</span>:<span class="c-val">0 0 -30px -30px</span>;      <span class="c-com">/* centre on origin */</span>
+  <span class="c-prop">border</span>:<span class="c-val">2px solid var(--rx-bloom)</span>; <span class="c-prop">border-radius</span>:<span class="c-val">50%</span>; <span class="c-prop">opacity</span>:<span class="c-val">0</span>;
+  <span class="c-prop">animation</span>:<span class="c-val">rxBloom var(--dur) var(--rx-ease) both</span>; }
+<span class="c-sel">.rx-bloomslot span:nth-child(2)</span>{ <span class="c-prop">border-color</span>:<span class="c-val">var(--rx-bloom-2)</span>; <span class="c-prop">animation-name</span>:<span class="c-val">rxBloom2</span>; <span class="c-prop">animation-delay</span>:<span class="c-val">.08s</span>; }
+<span class="c-at">@keyframes</span> <span class="c-val">rxBloom</span> { <span class="c-val">0%</span>{transform:scale(.18);opacity:0} <span class="c-val">20%</span>{opacity:.9} <span class="c-val">100%</span>{transform:scale(2.35);opacity:0} }
+<span class="c-at">@keyframes</span> <span class="c-val">rxBloom2</span>{ <span class="c-val">0%</span>{transform:scale(.18);opacity:0} <span class="c-val">24%</span>{opacity:.58} <span class="c-val">100%</span>{transform:scale(2.85);opacity:0} }</code></pre></figure>
+    <figure class="code"><figcaption><span class="dot"></span>@keyframes — rise (with organic sway) + emoji pop</figcaption><pre><code><span class="c-com">/* --sway (±16px) and --rise (~300px) set per-piece in JS → each drifts differently */</span>
+<span class="c-at">@keyframes</span> <span class="c-val">rxRise</span>{
+  <span class="c-val">0%</span>  { <span class="c-prop">transform</span>:<span class="c-val">translate(0,4px)</span>; <span class="c-prop">opacity</span>:<span class="c-val">0</span>; }
+  <span class="c-val">9%</span>  { <span class="c-prop">opacity</span>:<span class="c-val">1</span>; }
+  <span class="c-val">42%</span> { <span class="c-prop">transform</span>:<span class="c-val">translate(var(--sway), calc(var(--rise) * -.42))</span>; }
+  <span class="c-val">72%</span> { <span class="c-prop">transform</span>:<span class="c-val">translate(calc(var(--sway) * -.5), calc(var(--rise) * -.74))</span>; }
+  <span class="c-val">86%</span> { <span class="c-prop">opacity</span>:<span class="c-val">1</span>; }
+  <span class="c-val">100%</span>{ <span class="c-prop">transform</span>:<span class="c-val">translate(calc(var(--sway) * .25), calc(var(--rise) * -1))</span>; <span class="c-prop">opacity</span>:<span class="c-val">0</span>; }
+}
+<span class="c-at">@keyframes</span> <span class="c-val">rxPop</span>{ <span class="c-val">0%</span>{transform:scale(.35)} <span class="c-val">55%</span>{transform:scale(1.16)} <span class="c-val">100%</span>{transform:scale(1)} }  <span class="c-com">/* on .rx-emoji */</span></code></pre></figure>
+    <figure class="code"><figcaption><span class="dot coral"></span>@keyframes — hue glow trail (Signal-burst) · sparkle particles (Sparkle-trail)</figcaption><pre><code><span class="c-sel">.rx-glow</span>{ <span class="c-prop">background</span>:<span class="c-val">radial-gradient(44% 40% at 50% 32%, hsl(var(--hue) 84% 64% / .72), transparent 72%)</span>;
+  <span class="c-prop">filter</span>:<span class="c-val">blur(7px)</span>; <span class="c-prop">animation</span>:<span class="c-val">rxGlow var(--dur) ease both</span>; }        <span class="c-com">/* rises with the emoji = comet tail */</span>
+<span class="c-at">@keyframes</span> <span class="c-val">rxGlow</span>{ <span class="c-val">0%</span>{opacity:0} <span class="c-val">14%</span>{opacity:1} <span class="c-val">66%</span>{opacity:.55} <span class="c-val">100%</span>{opacity:0} }
+
+<span class="c-sel">.rx-sparks i</span>{ <span class="c-prop">background</span>:<span class="c-val">hsl(var(--hue) 85% 66%)</span>; <span class="c-prop">box-shadow</span>:<span class="c-val">0 0 7px hsl(var(--hue) 85% 66% / .9)</span>;
+  <span class="c-prop">animation</span>:<span class="c-val">rxSpark var(--sd) ease-out var(--sdl) both</span>; }        <span class="c-com">/* 5 pieces; --sx/--sy/--sd/--sdl per piece */</span>
+<span class="c-at">@keyframes</span> <span class="c-val">rxSpark</span>{ <span class="c-val">0%</span>{transform:translate(0,0) scale(1);opacity:0} <span class="c-val">16%</span>{opacity:.95}
+  <span class="c-val">100%</span>{transform:translate(var(--sx), var(--sy)) scale(.2);opacity:0} }</code></pre></figure>
+    <figure class="code"><figcaption><span class="dot"></span>@keyframes — name pill in · glass chip in</figcaption><pre><code><span class="c-at">@keyframes</span> <span class="c-val">rxNameIn</span>{ <span class="c-val">0%</span>{opacity:0;transform:translate(-50%,40px) scale(.9)} <span class="c-val">100%</span>{opacity:1;transform:translate(-50%,30px) scale(1)} }
+<span class="c-at">@keyframes</span> <span class="c-val">rxChipIn</span>{ <span class="c-val">0%</span>{opacity:0;transform:translate(-50%,58%) scale(.9)} <span class="c-val">100%</span>{opacity:1;transform:translate(-50%,50%) scale(1)} }
+<span class="c-com">/* the slot’s own opacity fade (rxRise 100%→0) fades the pill/chip out too */</span></code></pre></figure>
+  </section>
+
+  <!-- ============ D · CLUSTER ============ -->
+  <section class="sec">
+    <div class="sec-head"><span class="idx">D</span><h2>Cluster — when several react at once</h2></div>
+    <p class="note">A group reaction should feel <b>alive together, not a random scatter</b>. When N reactions arrive inside a short window, spawn them as a <b>staggered fan</b> (~70ms apart) across <em>both</em> gutters, each slightly larger — they read as one swell rising, not confetti. The debounce is per-emoji-burst on the client, not new network state.</p>
+    <figure class="code"><figcaption><span class="dot coral"></span>cluster()</figcaption><pre><code><span class="c-tag">function</span> cluster(reactions){                 <span class="c-com">// several arrived within ~400ms</span>
+  <span class="c-tag">const</span> rm = prefersReduced();
+  <span class="c-tag">const</span> take = rm ? <span class="c-val">3</span> : <span class="c-val">6</span>;                    <span class="c-com">// calm fallback: fewer, well-spaced</span>
+  reactions.slice(<span class="c-val">0</span>, take).forEach((r, i) =&gt; spawn(r, {
+    x: rm ? <span class="c-val">10</span> + i*<span class="c-val">26</span> : clusterX(i),        <span class="c-com">// fan across the gutters</span>
+    delay: i * (rm ? <span class="c-val">160</span> : <span class="c-val">70</span>),               <span class="c-com">// stagger → a swell, not a scatter</span>
+    big: <span class="c-val">true</span>,
+  }));
+}</code></pre></figure>
+  </section>
+
+  <!-- ============ E · NAME PILL + PER-USER HUE ============ -->
+  <section class="sec">
+    <div class="sec-head"><span class="idx">E</span><h2>Name pill &amp; the per-user-hue rule</h2></div>
+    <p class="note">The name is set in a <b>glass pill</b> — <code>--glass</code> + <code>backdrop-filter</code> so it stays legible over any video — with the sender’s <b>per-user hue</b> as a small accent dot (Glass-badge uses the hue as a left bar instead). The hue comes from the exact same <code>hueFor()</code> the Avatar atom uses, so a person’s reaction, tile and avatar all share one colour. The local sender always reads <b>“You.”</b></p>
+    <figure class="code"><figcaption><span class="dot"></span>per-user hue — identical to the Avatar atom</figcaption><pre><code><span class="c-sel">const</span> HUES = [<span class="c-val">4,16,28,42,140,162,178,194,210,228,250,274,300,330</span>];   <span class="c-com">// 14 curated</span>
+<span class="c-sel">const</span> hueFor = key =&gt; HUES[ hashString(key || <span class="c-str">'?'</span>) % <span class="c-val">14</span> ];
+
+<span class="c-com">// set one custom prop on the reaction node; everything reads from it</span>
+node.style.setProperty(<span class="c-str">'--hue'</span>, hueFor(sender.key));
+
+<span class="c-sel">.rx-name .rx-dot</span>{ <span class="c-prop">background</span>:<span class="c-val">hsl(var(--hue) 54% 52%)</span>;               <span class="c-com">/* dot = solid avatar colour */</span>
+  <span class="c-prop">box-shadow</span>:<span class="c-val">0 0 0 3px hsl(var(--hue) 60% 52% / .2)</span>; }
+<span class="c-sel">.rx-chip::before</span>{ <span class="c-prop">background</span>:<span class="c-val">hsl(var(--hue) 58% 53%)</span>; }              <span class="c-com">/* glass-badge accent bar */</span>
+<span class="c-sel">.rx-glow, .rx-sparks i</span>{ <span class="c-prop">color</span>:<span class="c-val">hsl(var(--hue) 84% 64%)</span>; }            <span class="c-com">/* brighter for the trail on video */</span></code></pre></figure>
+    <figure class="code"><figcaption><span class="dot"></span>markup — Signal-burst / Sparkle riser (glass-badge merges emoji + name)</figcaption><pre><code><span class="c-tag">&lt;div class=</span><span class="c-str">"rx-slot"</span> <span class="c-prop">style</span>=<span class="c-str">"left:18%;bottom:150px;--hue:274;--rise:312px;--sway:-9px;--dur:3.05s"</span><span class="c-tag">&gt;</span>
+  <span class="c-tag">&lt;div class=</span><span class="c-str">"rx-glow"</span><span class="c-tag">&gt;&lt;/div&gt;</span>                        <span class="c-com">/* or .rx-sparks for Sparkle */</span>
+  <span class="c-tag">&lt;div class=</span><span class="c-str">"rx-emoji"</span><span class="c-tag">&gt;</span>🎉<span class="c-tag">&lt;/div&gt;</span>
+  <span class="c-tag">&lt;div class=</span><span class="c-str">"rx-name"</span><span class="c-tag">&gt;&lt;span class=</span><span class="c-str">"rx-dot"</span><span class="c-tag">&gt;&lt;/span&gt;&lt;b&gt;</span>Maria<span class="c-tag">&lt;/b&gt;&lt;/div&gt;</span>
+<span class="c-tag">&lt;/div&gt;</span>
+<span class="c-com">/* Glass-badge: &lt;div class="rx-chip"&gt;&lt;span class="ce"&gt;🎉&lt;/span&gt;&lt;span class="cn"&gt;Maria&lt;/span&gt;&lt;/div&gt; */</span></code></pre></figure>
+  </section>
+
+  <!-- ============ F · REDUCED MOTION ============ -->
+  <section class="sec">
+    <div class="sec-head"><span class="idx">F</span><h2>Reduced motion — a calm fade, no particles</h2></div>
+    <p class="note">Under <code>prefers-reduced-motion: reduce</code> (or the product’s <code>data-motion="off"</code>) the layer gets <code>.rm</code>: <b>no ripple bloom, no glow, no sparkles, no travel</b>. The emoji and its name pill simply <b>fade up 8px and settle in place</b>, hold, and fade — same information, zero motion. Clusters drop to 3 well-spaced pieces (§D).</p>
+    <figure class="code"><figcaption><span class="dot"></span>theme.css — reduced motion / motion-off</figcaption><pre><code><span class="c-sel">.rx-layer.rm .rx-bloomslot</span>,
+<span class="c-sel">.rx-layer.rm .rx-glow</span>, <span class="c-sel">.rx-layer.rm .rx-sparks</span>{ <span class="c-prop">display</span>:<span class="c-val">none</span>; }      <span class="c-com">/* no bloom / trail / particles */</span>
+<span class="c-sel">.rx-layer.rm .rx-emoji</span>{ <span class="c-prop">animation</span>:<span class="c-val">none !important</span>; }                <span class="c-com">/* no pop */</span>
+<span class="c-sel">.rx-layer.rm .rx-slot</span>,
+<span class="c-sel">.rx-layer.rm .rx-chip</span>{ <span class="c-prop">animation</span>:<span class="c-val">rxFade var(--dur,2.6s) ease both !important</span>; }
+<span class="c-at">@keyframes</span> <span class="c-val">rxFade</span>{ <span class="c-val">0%</span>{opacity:0;transform:translateY(8px)} <span class="c-val">14%</span>{opacity:1;transform:none}
+  <span class="c-val">80%</span>{opacity:1} <span class="c-val">100%</span>{opacity:0} }
+<span class="c-com">/* JS also skips creating the bloom/spark nodes under reduced motion — nothing to hide */</span></code></pre></figure>
+  </section>
+
+  <!-- ============ G · THEMES + PERFORMANCE ============ -->
+  <section class="sec">
+    <div class="sec-head"><span class="idx">G</span><h2>Themes &amp; performance</h2></div>
+    <ul class="rules">
+      <li><b>Both themes for free.</b> Pill, chip, bloom and text all reference <code>--glass</code>, <code>--coral</code>, <code>--ripple-ring</code>, <code>--text</code> — which already flip. The single manual tweak is the softened <code>--rx-bloom</code> on Tide.</li>
+      <li><b>GPU-cheap by construction.</b> Only <code>transform</code>/<code>opacity</code> animate; every animated node carries <code>will-change:transform,opacity</code>; nothing touches layout. A full cluster is ~18 short-lived compositor layers.</li>
+      <li><b>Self-cleaning.</b> Each node is removed on its longest <code>animationend</code> (or a <code>dur + buffer</code> timer) — the DOM never grows, so a long call with thousands of reactions stays flat.</li>
+      <li><b>Legible over anything.</b> Emoji carry a soft <code>drop-shadow</code>; the name always sits on glass — so a reaction reads over a bright screen-share or a dark tile equally.</li>
+    </ul>
+    <div class="pill-row">
+      <span class="pill"><b>Animates</b> transform · opacity only</span>
+      <span class="pill"><b>Duration</b> ~3s one-shot</span>
+      <span class="pill"><b>Layer</b> pointer-events:none · z 4</span>
+      <span class="pill"><b>Cleanup</b> node removed on end</span>
+      <span class="pill"><b>Reduced motion</b> fade in place</span>
+    </div>
+  </section>
+
+  <!-- ============ H · DROP-IN ============ -->
+  <section class="sec">
+    <div class="sec-head"><span class="idx">H</span><h2>Drop-in — <code>ReactionsOverlay.tsx</code></h2></div>
+    <p class="note">One presentational component. It subscribes to <code>reaction</code> events on the data channel, keeps a short-lived list, renders a node per reaction, and drops each from state when it finishes. The sender picks only an <b>emoji</b> — style, hue, spawn and physics are all derived, so every client renders the same thing.</p>
+    <figure class="code"><figcaption><span class="dot coral"></span>data-channel payload — the sender only chooses an emoji</figcaption><pre><code>channel.broadcast(<span class="c-str">'reaction'</span>, {
+  id:    crypto.randomUUID(),
+  key:   me.key,                       <span class="c-com">// drives the per-user hue (hueFor)</span>
+  label: me.isLocal ? <span class="c-str">'You'</span> : me.name,   <span class="c-com">// local sender always reads “You”</span>
+  emoji: <span class="c-str">'🎉'</span>,                        <span class="c-com">// 👍 ❤️ 😂 🎉 👏 🔥 …</span>
+});   <span class="c-com">// style comes from REACTION_STYLE, not the wire → all clients agree</span></code></pre></figure>
+    <figure class="code"><figcaption><span class="dot"></span>ReactionsOverlay.tsx</figcaption><pre><code><span class="c-tag">function</span> ReactionsOverlay(){
+  <span class="c-tag">const</span> [live, setLive] = useState([]);          <span class="c-com">// {id,key,label,emoji,spawn}[]</span>
+  <span class="c-tag">const</span> rm = useReducedMotion();                  <span class="c-com">// matchMedia + product data-motion</span>
+
+  useEffect(() =&gt; channel.on(<span class="c-str">'reaction'</span>, r =&gt; {
+    <span class="c-tag">const</span> spawn = { x: gutterX(), y: rand(<span class="c-val">120</span>,<span class="c-val">184</span>), ...jitter() };
+    setLive(l =&gt; [...l, { ...r, spawn }]);
+    <span class="c-tag">const</span> ttl = (spawn.dur ?? <span class="c-val">3100</span>) + <span class="c-val">500</span>;
+    setTimeout(() =&gt; setLive(l =&gt; l.filter(x =&gt; x.id !== r.id)), ttl);  <span class="c-com">// self-clean</span>
+  }), []);
+
+  <span class="c-tag">return</span> (
+    <span class="c-tag">&lt;div className=</span><span class="c-str">"rx-layer"</span> <span class="c-prop">data-rm</span>=<span class="c-val">{rm}</span> <span class="c-prop">aria-live</span>=<span class="c-str">"polite"</span><span class="c-tag">&gt;</span>
+      {live.map(r =&gt; <span class="c-tag">&lt;Reaction</span> <span class="c-prop">key</span>=<span class="c-val">{r.id}</span> <span class="c-prop">reaction</span>=<span class="c-val">{r}</span> <span class="c-prop">style</span>=<span class="c-val">{REACTION_STYLE}</span> <span class="c-prop">rm</span>=<span class="c-val">{rm}</span> <span class="c-tag">/&gt;</span>)}
+    <span class="c-tag">&lt;/div&gt;</span>
+  );
+}
+<span class="c-com">// &lt;Reaction&gt; sets --hue/--rise/--sway/--dur on the node and renders the
+// bloom + riser (or chip) for the active style; CSS above does the rest.</span></code></pre></figure>
+    <div class="pill-row">
+      <span class="pill"><b>Trigger</b> Reactions button → emoji</span>
+      <span class="pill"><b>Scope</b> everyone (broadcast)</span>
+      <span class="pill"><b>Ship</b> REACTION_STYLE = ‘signal’</span>
+      <span class="pill"><b>A11y</b> aria-live polite</span>
+    </div>
+    <p class="xref">See it live &amp; switch treatments on the <b>“Reactions overlay — redesign”</b> card.</p>
+  </section>
+</div>
+
+<script>
+  const root = document.documentElement;
+  document.getElementById('themeToggle').addEventListener('click', ()=>{
+    root.setAttribute('data-theme', root.getAttribute('data-theme')==='light' ? 'dark' : 'light');
+  });
+</script>
+</body>
+</html>
