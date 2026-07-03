@@ -101,6 +101,20 @@ func (m *Moderator) RemoveParticipant(room, identity string) error {
 	return err
 }
 
+// MoveParticipant relocates a participant from one room to another server-side —
+// the SFU moves them without a client reconnect. Used for breakout groups
+// (main -> group) and the return trip (group -> main).
+func (m *Moderator) MoveParticipant(fromRoom, identity, toRoom string) error {
+	ctx, cancel := timeoutCtx()
+	defer cancel()
+	_, err := m.client.MoveParticipant(ctx, &livekit.MoveParticipantRequest{
+		Room:            fromRoom,
+		Identity:        identity,
+		DestinationRoom: toRoom,
+	})
+	return err
+}
+
 // PromoteToStage grants publish permission to an audience member (webinar mode).
 func (m *Moderator) PromoteToStage(room, identity string) error {
 	ctx, cancel := timeoutCtx()

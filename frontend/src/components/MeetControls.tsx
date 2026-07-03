@@ -51,6 +51,8 @@ interface Props {
   onLeave: () => void
   /** Host-only: broadcast a Moment of Recognition. Absent for participants. */
   onCelebrate?: (m: Omit<Moment, 'id'>) => void
+  /** Host-only: open the breakout groups panel. Absent for participants. */
+  onOpenBreakout?: () => void
 }
 
 /**
@@ -58,7 +60,7 @@ interface Props {
  * pickers · present · reactions · raise hand · captions · more · end-call) and a
  * bottom-right corner-chrome group (chat · people). No glass.
  */
-export function MeetControls({ room, activePanel, onTogglePanel, unread, view, onViewChange, sharing = false, isHost = false, recording = false, onToggleRecord, onReaction, onOpenPip, onLeave, onCelebrate }: Props) {
+export function MeetControls({ room, activePanel, onTogglePanel, unread, view, onViewChange, sharing = false, isHost = false, recording = false, onToggleRecord, onReaction, onOpenPip, onLeave, onCelebrate, onOpenBreakout }: Props) {
   useRoomEvents(room, CONTROL_EVENTS)
   const isMobile = useIsMobile()
   const [popover, setPopover] = useState<null | 'reactions' | 'more' | 'mic' | 'cam'>(null)
@@ -199,6 +201,16 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--coral)" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 3 6.5 8" /><path d="M15.5 3 17.5 8" /><circle cx="12" cy="15" r="6" /><path d="M9.6 15.2 11.2 16.8 14.4 13.6" /></svg>
                     Recognise someone
                     <span style={{ marginLeft: 'auto', fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '.08em', color: 'var(--coral)' }}>HOST</span>
+                  </button>
+                )}
+                {isHost && onOpenBreakout && (
+                  <button
+                    onClick={() => { onOpenBreakout(); close() }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '10px', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, background: 'var(--teal-tint)', color: 'var(--text)' }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="6" r="2.4" /><circle cx="18" cy="6" r="2.4" /><circle cx="18" cy="18" r="2.4" /><circle cx="6" cy="18" r="2.4" /><path d="M8.4 6H14M8.4 18H14M6 8.4v7.2M18 8.4v7.2" /></svg>
+                    Breakout groups
+                    <span style={{ marginLeft: 'auto', fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '.08em', color: 'var(--teal-soft)' }}>HOST</span>
                   </button>
                 )}
                 <div style={{ height: 1, background: 'var(--border)', margin: '2px 0 4px' }} />

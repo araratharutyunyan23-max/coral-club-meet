@@ -6,6 +6,9 @@ import { useChat, useReactions } from '../lib/datachannel'
 import { useMoments } from '../lib/moment'
 import { MomentOverlay } from '../components/MomentOverlay'
 import { useAttendance } from '../lib/attendance'
+import { useBreakout } from '../lib/breakout'
+import { BreakoutBanner } from '../components/BreakoutBanner'
+import { BreakoutPanel } from '../components/BreakoutPanel'
 import { useQA } from '../lib/qa'
 import { useMutedByHost } from '../lib/moderation'
 import { useRecording } from '../lib/recording'
@@ -51,9 +54,24 @@ function CallStage({ room, roomName, reconnecting, isHost, onLeave }: { room: Ro
   const quality = useConnectionQuality(room)
   const mutedByHost = useMutedByHost(room)
   const moments = useMoments(room)
+  const bo = useBreakout(room, roomName, isHost)
+  const [showBreakout, setShowBreakout] = useState(false)
   useAttendance(room, isHost) // host-only: collect the post-call meeting report
   useRaiseHandChime(room)
   useJoinChime(room)
+
+  // Brief "Returning to the main room…" banner when a participant's group closes.
+  const [boClosing, setBoClosing] = useState(false)
+  const prevGroup = useRef<number | null>(null)
+  useEffect(() => {
+    if (prevGroup.current != null && bo.myGroup == null && bo.visiting == null) {
+      setBoClosing(true)
+      const t = window.setTimeout(() => setBoClosing(false), 1600)
+      prevGroup.current = bo.myGroup
+      return () => window.clearTimeout(t)
+    }
+    prevGroup.current = bo.myGroup
+  }, [bo.myGroup, bo.visiting])
   const pip = useCallPip(room, onLeave)
   const participants = useParticipants(room)
   const alone = participants.length <= 1
@@ -137,8 +155,16 @@ function CallStage({ room, roomName, reconnecting, isHost, onLeave }: { room: Ro
 
         <ReactionsOverlay active={reactions.active} />
         {moments.active && <MomentOverlay key={moments.active.id} moment={moments.active} onDone={moments.dismiss} />}
+        {bo.visiting != null ? (
+          <BreakoutBanner host group={bo.visiting} endsAt={bo.state.endsAt} onBack={bo.backToControl} />
+        ) : bo.myGroup != null ? (
+          <BreakoutBanner group={bo.myGroup} endsAt={bo.state.endsAt} message={bo.state.message} asked={bo.askedHelp} onAskHelp={bo.askHelp} />
+        ) : boClosing ? (
+          <BreakoutBanner group={0} closing />
+        ) : null}
         {mutedByHost && <MutedByHostToast />}
-        <MeetControls room={room} activePanel={panel} onTogglePanel={togglePanel} unread={unread} view={view} onViewChange={setView} sharing={sharing} isHost={isHost} recording={recording.active} onToggleRecord={recording.toggle} onReaction={reactions.send} onOpenPip={pip.supported ? pip.open : undefined} onLeave={onLeave} onCelebrate={isHost ? moments.celebrate : undefined} />
+        <MeetControls room={room} activePanel={panel} onTogglePanel={togglePanel} unread={unread} view={view} onViewChange={setView} sharing={sharing} isHost={isHost} recording={recording.active} onToggleRecord={recording.toggle} onReaction={reactions.send} onOpenPip={pip.supported ? pip.open : undefined} onLeave={onLeave} onCelebrate={isHost ? moments.celebrate : undefined} onOpenBreakout={isHost ? () => setShowBreakout(true) : undefined} />
+        {showBreakout && <BreakoutPanel room={room} bo={bo} onClose={() => setShowBreakout(false)} />}
 
         {panel && (
           <SidePanel
