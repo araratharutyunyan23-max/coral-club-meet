@@ -695,8 +695,13 @@ input {
 .home-hero .copy {
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: clamp(22px, 2.6vw, 30px);
   align-items: flex-start;
+}
+.home-hero .intro {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 .home-hero .eyebrow {
   font: 500 12px/1 var(--mono);
@@ -789,6 +794,79 @@ input {
   font-weight: 600;
   cursor: pointer;
 }
+/* Trust badges — small pills that answer "why ours, not Zoom/Meet". */
+.home-hero .home-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.home-hero .home-badges li {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--fill-subtle);
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.home-hero .home-badges svg {
+  width: 15px;
+  height: 15px;
+  color: var(--teal-soft);
+  flex: 0 0 auto;
+}
+
+/* Signature features — the differentiators Google Meet / Zoom don't have. */
+.home-hero .home-feats {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+.home-hero .home-feats .cap {
+  font: 500 11px/1 var(--mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+}
+.home-hero .feat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+}
+.home-hero .feat {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.home-hero .feat .ic {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--teal-tint);
+  color: var(--teal-soft);
+  flex: 0 0 auto;
+}
+.home-hero .feat .ic svg {
+  width: 17px;
+  height: 17px;
+}
+.home-hero .feat .t {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+
 .home-hero .visual {
   position: relative;
   display: flex;
@@ -839,8 +917,15 @@ input {
     width: clamp(150px, 42vw, 210px);
   }
   .home-hero .cta-row,
-  .home-hero .subjoin {
+  .home-hero .subjoin,
+  .home-hero .home-badges,
+  .home-hero .feat-row {
     justify-content: center;
+  }
+  .home-hero .intro,
+  .home-hero .home-feats {
+    align-items: center;
+    text-align: center;
   }
   .home-calm {
     background: radial-gradient(70% 60% at 50% 56%, var(--surround) 0%,
