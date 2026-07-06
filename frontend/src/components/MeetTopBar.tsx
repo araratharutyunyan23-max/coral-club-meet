@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react'
 import type { Room } from 'livekit-client'
 import { RippleMark } from './Logo'
 import { ThemeToggle } from './ThemeToggle'
+import { LangToggle } from './LangToggle'
 import { HandIcon, PeopleIcon } from '../lib/icons'
 import { useParticipants, useIsMobile } from '../lib/hooks'
 import { raisedHandQueue } from '../lib/raisehand'
 import { initialsFor, userTint } from './Avatar'
+import { useT } from '../lib/i18n'
 
 /** Elapsed call time as MM:SS (or H:MM:SS once past an hour). */
 function formatElapsed(ms: number): string {
@@ -46,6 +48,7 @@ function useElapsed(room: Room): string {
  * Flat — no glass.
  */
 export function MeetTopBar({ room, roomName, recording = false }: { room: Room; roomName: string; recording?: boolean }) {
+  const t = useT()
   const participants = useParticipants(room)
   const elapsed = useElapsed(room)
   const isMobile = useIsMobile()
@@ -56,7 +59,7 @@ export function MeetTopBar({ room, roomName, recording = false }: { room: Room; 
   // Raised hands (oldest first) → show the first raiser in the top bar.
   const raised = raisedHandQueue(participants)
   const firstRaiser = raised[0]
-  const raiserName = firstRaiser ? (firstRaiser === room.localParticipant ? 'You' : firstRaiser.name || firstRaiser.identity) : ''
+  const raiserName = firstRaiser ? (firstRaiser === room.localParticipant ? t('You') : firstRaiser.name || firstRaiser.identity) : ''
   const extraHands = raised.length - 1
 
   return (
@@ -81,7 +84,7 @@ export function MeetTopBar({ room, roomName, recording = false }: { room: Room; 
       {/* Call duration, centred in the bar */}
       <span
         style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', fontFamily: 'var(--mono)', fontSize: isMobile ? 15 : 17, fontWeight: 500, letterSpacing: '.06em', color: 'var(--text)' }}
-        title="Call duration"
+        title={t('Call duration')}
       >
         {elapsed}
       </span>
@@ -90,13 +93,13 @@ export function MeetTopBar({ room, roomName, recording = false }: { room: Room; 
         {firstRaiser && (
           <div
             key={firstRaiser.identity}
-            title={`${raiserName} raised a hand`}
+            title={t('{name} raised a hand', { name: raiserName })}
             style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '6px 12px', borderRadius: 999, background: 'rgba(255,126,99,.16)', border: '1px solid rgba(255,126,99,.4)', maxWidth: isMobile ? 150 : 320, animation: 'chipIn 0.5s cubic-bezier(0.22,1.4,0.5,1) both, chipGlow 0.85s ease-out both' }}
           >
             <HandIcon size={15} style={{ color: 'var(--coral)', flex: '0 0 auto', transformOrigin: '62% 88%', animation: 'handWave 1.15s ease-in-out 0.2s 1 both' }} />
             <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {raiserName}
-              {!isMobile && ' raised a hand'}
+              {!isMobile && ' ' + t('raised a hand')}
               {extraHands > 0 ? ` +${extraHands}` : ''}
             </span>
           </div>
@@ -117,6 +120,7 @@ export function MeetTopBar({ room, roomName, recording = false }: { room: Room; 
             ))}
           </div>}
         </div>
+        <LangToggle />
         <ThemeToggle />
       </div>
     </header>

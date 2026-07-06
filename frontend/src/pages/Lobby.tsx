@@ -3,9 +3,11 @@ import { fetchToken } from '../lib/api'
 import type { JoinInfo, Role } from '../lib/types'
 import { Logo } from '../components/Logo'
 import { ThemeToggle } from '../components/ThemeToggle'
+import { LangToggle } from '../components/LangToggle'
 import { initialsFor } from '../components/Avatar'
 import { CameraIcon, CameraOffIcon, MicIcon, MicOffIcon } from '../lib/icons'
 import { useIsMobile } from '../lib/hooks'
+import { useT } from '../lib/i18n'
 
 const selectStyle: CSSProperties = {
   flex: 1,
@@ -20,6 +22,7 @@ const selectStyle: CSSProperties = {
 
 export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin: (info: JoinInfo) => void }) {
   const isMobile = useIsMobile()
+  const t = useT()
   const [name, setName] = useState('')
   const [camOn, setCamOn] = useState(false)
   const [micOn, setMicOn] = useState(false)
@@ -134,7 +137,7 @@ export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin
 
   async function handleJoin() {
     if (!name.trim()) {
-      setError('Enter your name')
+      setError(t('Enter your name'))
       return
     }
     setBusy(true)
@@ -162,7 +165,7 @@ export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin
         role,
       })
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to join')
+      setError(e instanceof Error ? e.message : t('Failed to join'))
       setBusy(false)
     }
   }
@@ -186,7 +189,10 @@ export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin
 
       <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Logo size={34} />
-        <ThemeToggle />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <LangToggle />
+          <ThemeToggle />
+        </div>
       </div>
 
       <div style={{ position: 'relative', zIndex: 2, display: 'flex', gap: isMobile ? 16 : 28, alignItems: 'center', justifyContent: 'center', margin: 'auto 0', maxWidth: 1040, width: '100%', alignSelf: 'center', flexWrap: 'wrap' }}>
@@ -211,7 +217,7 @@ export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin
             </div>
           )}
 
-          <div style={{ position: 'absolute', left: 16, bottom: 14, fontSize: 14, fontWeight: 500, color: 'var(--text)', textShadow: '0 1px 4px var(--surround)' }}>You</div>
+          <div style={{ position: 'absolute', left: 16, bottom: 14, fontSize: 14, fontWeight: 500, color: 'var(--text)', textShadow: '0 1px 4px var(--surround)' }}>{t('You')}</div>
 
           {/* preview controls */}
           <div style={{ position: 'absolute', left: '50%', bottom: 16, transform: 'translateX(-50%)', display: 'flex', gap: 10 }}>
@@ -231,18 +237,18 @@ export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Your name"
+            placeholder={t('Your name')}
             style={{ width: '100%', padding: '12px 14px', background: 'var(--fill-subtle)', border: '1px solid var(--border-strong)', borderRadius: 10, color: 'var(--text)', fontFamily: 'inherit', fontSize: 14, outline: 'none' }}
           />
 
           <label style={{ display: 'flex', alignItems: 'center', gap: 9, marginTop: 12, cursor: 'pointer', fontSize: 13, color: 'var(--text-dim)', userSelect: 'none' }}>
             <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} style={{ width: 16, height: 16, accentColor: 'var(--teal)', cursor: 'pointer' }} />
-            Remember my name
+            {t('Remember my name')}
           </label>
           {error &&<div style={{ color: 'var(--danger-soft)', fontSize: 13, marginTop: 10 }}>{error}</div>}
 
           <button onClick={handleJoin} disabled={busy} style={{ width: '100%', marginTop: 14, padding: 14, borderRadius: 11, border: 'none', background: 'linear-gradient(135deg, var(--teal), var(--teal-bright))', color: '#04211e', fontSize: 15, fontWeight: 700, cursor: 'pointer', opacity: busy ? 0.6 : 1, boxShadow: '0 10px 28px rgba(37,208,192,0.4), inset 0 1px 0 rgba(255,255,255,0.35)' }}>
-            {busy ? 'Joining…' : 'Join now'}
+            {busy ? t('Joining…') : t('Join now')}
           </button>
         </div>
       </div>

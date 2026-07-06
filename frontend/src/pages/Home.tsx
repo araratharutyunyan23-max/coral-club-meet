@@ -1,5 +1,7 @@
 import { Logo } from '../components/Logo'
 import { ThemeToggle } from '../components/ThemeToggle'
+import { LangToggle } from '../components/LangToggle'
+import { useT } from '../lib/i18n'
 
 /**
  * Landing screen — the "Arrival" hero. Same Signal ripple language as the lobby,
@@ -7,6 +9,7 @@ import { ThemeToggle } from '../components/ThemeToggle'
  * action: create a meeting → get a link to share.
  */
 export function Home({ onCreate }: { onCreate: () => void }) {
+  const t = useT()
   return (
     <div className="home-screen">
       {/* "Signal" ambient — ripples emitted from the brand mark on the right. */}
@@ -26,7 +29,8 @@ export function Home({ onCreate }: { onCreate: () => void }) {
       <div style={{ position: 'fixed', zIndex: 4, top: 24, left: 28 }}>
         <Logo size={30} />
       </div>
-      <div style={{ position: 'fixed', zIndex: 4, top: 24, right: 28 }}>
+      <div style={{ position: 'fixed', zIndex: 4, top: 24, right: 28, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <LangToggle />
         <ThemeToggle />
       </div>
 
@@ -35,8 +39,8 @@ export function Home({ onCreate }: { onCreate: () => void }) {
         <div className="home-hero">
           <div className="copy">
             <div className="intro">
-              <div className="eyebrow">Self-hosted · Coral Club</div>
-              <h1>Meetings, the Coral&nbsp;Club way.</h1>
+              <div className="eyebrow">{t('Self-hosted · Coral Club')}</div>
+              <h1>{t('Meetings, the Coral Club way.')}</h1>
             </div>
 
             <div className="cta-row">
@@ -45,20 +49,20 @@ export function Home({ onCreate }: { onCreate: () => void }) {
                   <path d="M23 7l-7 5 7 5z" />
                   <rect x="1" y="5" width="15" height="14" rx="2" />
                 </svg>
-                Create video meeting
+                {t('Create video meeting')}
               </button>
             </div>
 
             <div className="home-feats">
-              <div className="cap">Built in — beyond Zoom &amp; Meet</div>
+              <div className="cap">{t('Built in — beyond Zoom & Meet')}</div>
               <div className="feat-row">
                 <div className="feat">
                   <span className="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 3 6.5 8" /><path d="M15.5 3 17.5 8" /><circle cx="12" cy="15" r="6" /><path d="M9.6 15.2 11.2 16.8 14.4 13.6" /></svg></span>
-                  <span className="t">Recognition moments</span>
+                  <span className="t">{t('Recognition moments')}</span>
                 </div>
                 <div className="feat">
                   <span className="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20h16" /><rect x="5" y="11" width="3.4" height="7" rx="1" /><rect x="10.3" y="6" width="3.4" height="12" rx="1" /><rect x="15.6" y="13" width="3.4" height="5" rx="1" /></svg></span>
-                  <span className="t">Meeting report</span>
+                  <span className="t">{t('Meeting report')}</span>
                 </div>
               </div>
             </div>

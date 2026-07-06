@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { initialsFor, userColor } from './Avatar'
+import { useT, tr } from '../lib/i18n'
 import type { MeetingReport as Report, ReportParticipant } from '../lib/attendance'
 
 /** Duration as m:ss (or h:mm:ss past an hour). */
@@ -48,6 +49,7 @@ function normalise(people: ReportParticipant[]) {
  * omits per row when unavailable. Styles live in theme.css (.report / .rep-*).
  */
 export function MeetingReport({ report }: { report: Report }) {
+  const t = useT()
   const [sortBy, setSortBy] = useState<'present' | 'talk'>('present')
   const [copied, setCopied] = useState(false)
 
@@ -83,62 +85,62 @@ export function MeetingReport({ report }: { report: Report }) {
       <div className="rep-head">
         <div className="rep-head-top">
           <div>
-            <div className="rep-title">Meeting report</div>
+            <div className="rep-title">{t('Meeting report')}</div>
             <div className="rep-room">{report.room}</div>
           </div>
-          <div className="rep-hostonly" title="Only the host can see this report">
+          <div className="rep-hostonly" title={t('Only the host can see this report')}>
             <LockIcon />
-            Host only
+            {t('Host only')}
           </div>
         </div>
         <div className="rep-meta">
-          <span className="fact"><span className="k">Date</span><span className="v">{dateLabel(report.startedAt)}</span></span>
-          <span className="fact"><span className="k">Duration</span><span className="v mono">{fmtDur(report.durationMs)}</span></span>
-          <span className="fact"><span className="k">People</span><span className="v">{rows.length}</span></span>
+          <span className="fact"><span className="k">{t('Date')}</span><span className="v">{dateLabel(report.startedAt)}</span></span>
+          <span className="fact"><span className="k">{t('Duration')}</span><span className="v mono">{fmtDur(report.durationMs)}</span></span>
+          <span className="fact"><span className="k">{t('People')}</span><span className="v">{rows.length}</span></span>
         </div>
       </div>
 
       <div className="rep-totals">
-        <Total k="Longest present">
+        <Total k={t('Longest present')}>
           <span className="hue" style={{ background: userColor(longest.name) }} />
           <span className="nm">{firstName(longest.name)}</span>
           <span className="t">{fmtDur(longest.presentMs)}</span>
         </Total>
-        <Total k="Most active">
+        <Total k={t('Most active')}>
           {active ? (
             <>
               <span className="hue" style={{ background: userColor(active.name) }} />
               <span className="nm">{firstName(active.name)}</span>
             </>
           ) : (
-            <span className="t" style={{ fontSize: 14 }}>Not enough data</span>
+            <span className="t" style={{ fontSize: 14 }}>{t('Not enough data')}</span>
           )}
         </Total>
-        <Total k="Avg attendance">
+        <Total k={t('Avg attendance')}>
           <span className="t" style={{ color: 'var(--text)', fontSize: 15 }}>{fmtDur(avg)}</span>
         </Total>
       </div>
 
       <div className="rep-toolbar">
         <div className="rep-count">
-          {rows.length} {rows.length === 1 ? 'person' : 'people'}{inCall ? ` · ${inCall} still in call` : ''}
+          {rows.length} {rows.length === 1 ? t('person') : t('people')}{inCall ? ` · ${t('{n} still in call', { n: inCall })}` : ''}
         </div>
         <div className="rep-sort">
-          <span className="sl">Sort</span>
+          <span className="sl">{t('Sort')}</span>
           <div className="seg2">
-            <button className={sortBy === 'present' ? 'on' : ''} onClick={() => setSortBy('present')}>Time present</button>
-            <button className={sortBy === 'talk' ? 'on' : ''} onClick={() => setSortBy('talk')}>Talk-time</button>
+            <button className={sortBy === 'present' ? 'on' : ''} onClick={() => setSortBy('present')}>{t('Time present')}</button>
+            <button className={sortBy === 'talk' ? 'on' : ''} onClick={() => setSortBy('talk')}>{t('Talk-time')}</button>
           </div>
         </div>
       </div>
 
       <div className={`rep-scroll${rows.length > 8 ? ' scroll' : ''}`}>
         <div className="rep-colhead">
-          <span>Participant</span>
-          <span className="r">Joined</span>
-          <span className="r">Left</span>
-          <span className="r">Present</span>
-          <span>Talk-time</span>
+          <span>{t('Participant')}</span>
+          <span className="r">{t('Joined')}</span>
+          <span className="r">{t('Left')}</span>
+          <span className="r">{t('Present')}</span>
+          <span>{t('Talk-time')}</span>
         </div>
         <div className="rep-rows">
           {sorted.map((p) => (
@@ -148,19 +150,19 @@ export function MeetingReport({ report }: { report: Report }) {
                 <span className="who">
                   <span className="nm">
                     <span className="nm-t">{p.name}</span>
-                    {p.role === 'host' && <span className="tag">Host</span>}
-                    {p.isLocal && <span className="you-t">You</span>}
+                    {p.role === 'host' && <span className="tag">{t('Host')}</span>}
+                    {p.isLocal && <span className="you-t">{t('You')}</span>}
                   </span>
                   {p.sessions > 1 ? (
-                    <span className="sub"><SessionsIcon />{p.sessions} sessions</span>
+                    <span className="sub"><SessionsIcon />{t('{n} sessions', { n: p.sessions })}</span>
                   ) : (
-                    <span className="sub-times">{clock(p.joined)} → {p.left != null ? clock(p.left) : 'now'}</span>
+                    <span className="sub-times">{clock(p.joined)} → {p.left != null ? clock(p.left) : t('now')}</span>
                   )}
                 </span>
               </div>
               <div className="cell joined">{clock(p.joined)}</div>
               <div className="cell left">
-                {p.left === null ? <span className="incall"><span className="dot" />In call</span> : clock(p.left)}
+                {p.left === null ? <span className="incall"><span className="dot" />{t('In call')}</span> : clock(p.left)}
               </div>
               <div className="cell present">{fmtDur(p.presentMs)}</div>
               <div className="cell talk">
@@ -170,7 +172,7 @@ export function MeetingReport({ report }: { report: Report }) {
                     <span className="pct">{p.pct}%</span>
                   </>
                 ) : (
-                  <span className="notalk"><span className="d" />presence only</span>
+                  <span className="notalk"><span className="d" />{t('presence only')}</span>
                 )}
               </div>
             </div>
@@ -182,22 +184,22 @@ export function MeetingReport({ report }: { report: Report }) {
         <div className="rep-empty">
           <div className="ico"><PeopleIcon /></div>
           <div>
-            <h4>It was just you this time</h4>
-            <p>Nobody else joined <b>{report.room}</b>. When members attend, they’ll appear here with how long they stayed and — where available — a talk-time bar.</p>
+            <h4>{t('It was just you this time')}</h4>
+            <p>{t('Nobody else joined')} <b>{report.room}</b>. {t("When members attend, they'll appear here with how long they stayed and — where available — a talk-time bar.")}</p>
           </div>
         </div>
       )}
 
       <div className="rep-actions">
-        <div className="rep-gen">Generated just now · visible to host only</div>
+        <div className="rep-gen">{t('Generated just now · visible to host only')}</div>
         <div className="rep-btns">
           <button className={`btn-copy${copied ? ' ok' : ''}`} onClick={copySummary}>
             <CopyIcon />
-            <span>{copied ? 'Copied ✓' : 'Copy summary'}</span>
+            <span>{copied ? t('Copied ✓') : t('Copy summary')}</span>
           </button>
           <button className="btn-csv" onClick={downloadCsv}>
             <DownloadIcon />
-            <span>Download CSV</span>
+            <span>{t('Download CSV')}</span>
           </button>
         </div>
       </div>
@@ -220,10 +222,10 @@ function buildCsv(report: Report): string {
   const talkers = people.filter((p) => p.talkMs != null)
   const maxTalk = Math.max(0, ...talkers.map((p) => p.talkMs as number))
   const comparable = talkers.length >= 2 && maxTalk > 0
-  const head = ['Name', 'Role', 'Joined', 'Left', 'Sessions', 'Present (mm:ss)', 'Present (s)', 'Talk (s)', 'Talk (%)', 'Still in call']
+  const head = [tr('Name'), tr('Role'), tr('Joined'), tr('Left'), tr('Sessions'), tr('Present (mm:ss)'), tr('Present (s)'), tr('Talk (s)'), tr('Talk (%)'), tr('Still in call')]
   const rows = people.map((p) => [
     p.name,
-    p.role,
+    tr(p.role === 'host' ? 'Host' : 'Member'),
     clock(p.joined),
     p.left != null ? clock(p.left) : '',
     p.sessions,
@@ -231,7 +233,7 @@ function buildCsv(report: Report): string {
     Math.round(p.presentMs / 1000),
     p.talkMs != null ? Math.round(p.talkMs / 1000) : '',
     comparable && p.talkMs != null ? Math.round((100 * (p.talkMs as number)) / maxTalk) : '',
-    p.left === null ? 'yes' : 'no',
+    p.left === null ? tr('yes') : tr('no'),
   ])
   const esc = (v: unknown) => {
     const s = String(v)
@@ -253,25 +255,25 @@ function buildSummary(report: Report): string {
     const n = String(i + 1).padStart(2, ' ')
     const nm = p.name.padEnd(w)
     const notes: string[] = []
-    if (p.left === null) notes.push('in call')
-    if (p.sessions > 1) notes.push(`${p.sessions} sessions`)
+    if (p.left === null) notes.push(tr('in call'))
+    if (p.sessions > 1) notes.push(tr('{n} sessions', { n: p.sessions }))
     const note = notes.length ? ` · ${notes.join(' · ')}` : ''
-    const talk = comparable ? (p.talkMs != null ? `talk ${Math.round((100 * (p.talkMs as number)) / maxTalk)}%` : 'talk n/a') : ''
+    const talk = comparable ? (p.talkMs != null ? `${tr('talk')} ${Math.round((100 * (p.talkMs as number)) / maxTalk)}%` : tr('talk n/a')) : ''
     return `${n}. ${nm}  ${fmtDur(p.presentMs).padStart(6, ' ')}${note}${talk ? '   ' + talk : ''}`
   })
   return [
     `Coral Club Meet — ${report.room}`,
-    `${dateLabel(report.startedAt)} · ${fmtDur(report.durationMs)} · ${people.length} ${people.length === 1 ? 'person' : 'people'}`,
-    `Host: ${host ? host.name : '—'}`,
+    `${dateLabel(report.startedAt)} · ${fmtDur(report.durationMs)} · ${people.length} ${people.length === 1 ? tr('person') : tr('people')}`,
+    `${tr('Host')}: ${host ? host.name : '—'}`,
     ``,
-    `Attendance — by time present`,
+    tr('Attendance — by time present'),
     ...lines,
     ``,
-    `Longest present   ${people[0].name} · ${fmtDur(people[0].presentMs)}`,
-    `Most active       ${active ? active.name : 'not enough data'}`,
-    `Avg attendance    ${fmtDur(avg)}`,
+    `${tr('Longest present').padEnd(18)}${people[0].name} · ${fmtDur(people[0].presentMs)}`,
+    `${tr('Most active').padEnd(18)}${active ? active.name : tr('not enough data')}`,
+    `${tr('Avg attendance').padEnd(18)}${fmtDur(avg)}`,
     ``,
-    `${report.room} · generated by Coral Club Meet`,
+    `${report.room} · ${tr('generated by Coral Club Meet')}`,
   ].join('\n')
 }
 

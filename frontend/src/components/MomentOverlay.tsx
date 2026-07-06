@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { initialsFor, userColor } from './Avatar'
 import { type Moment, type MomentAccent, MO_HOLD, MO_IN, MO_OUT, PRESET } from '../lib/moment'
+import { useT } from '../lib/i18n'
 
 function prefersReducedMotion(): boolean {
   return typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
@@ -70,6 +71,7 @@ function spawnConfetti(host: HTMLDivElement | null, preset: Moment['preset']) {
  * over the live call (pointer-events:none); reduced motion → static card.
  */
 export function MomentOverlay({ moment, onDone }: { moment: Moment; onDone: () => void }) {
+  const t = useT()
   const ref = useRef<HTMLDivElement>(null)
   const confettiRef = useRef<HTMLDivElement>(null)
 
@@ -111,9 +113,9 @@ export function MomentOverlay({ moment, onDone }: { moment: Moment; onDone: () =
           <div className="disc" style={{ background: userColor(moment.name, true) }}>{initialsFor(moment.name)}</div>
           <div className="mo-badge"><AccentIcon kind={moment.accent} /></div>
         </div>
-        <div className="mo-label">{moment.label}</div>
+        <div className="mo-label">{t(moment.label)}</div>
         <h2 className="mo-name">{moment.name}</h2>
-        <p className="mo-sub">{moment.sub}</p>
+        <p className="mo-sub">{t(moment.sub)}</p>
       </div>
     </div>
   )

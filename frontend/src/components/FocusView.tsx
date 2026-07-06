@@ -3,6 +3,7 @@ import { type Participant, type Room, Track } from 'livekit-client'
 import { useActiveSpeaker, useIsMobile, useParticipants } from '../lib/hooks'
 import { useAnnotations } from '../lib/annotations'
 import { stageContainer } from '../lib/styles'
+import { useT } from '../lib/i18n'
 import { ParticipantTile } from './ParticipantTile'
 import { AnnotationLayer } from './AnnotationLayer'
 
@@ -19,6 +20,7 @@ const annotBtn: CSSProperties = { padding: '0 11px', height: 32, borderRadius: 8
  * Click a filmstrip tile to pin it; click the lead to unpin.
  */
 export function FocusView({ room, isHost = false, layout = 'spotlight' }: { room: Room; isHost?: boolean; layout?: 'spotlight' | 'sidebar' }) {
+  const t = useT()
   const participants = useParticipants(room)
   const activeSpeaker = useActiveSpeaker(room)
   const isMobile = useIsMobile()
@@ -75,7 +77,7 @@ export function FocusView({ room, isHost = false, layout = 'spotlight' }: { room
     <div
       style={{ flex: 1, minWidth: 0, minHeight: 0, position: 'relative', cursor: pinned ? 'zoom-out' : 'default' }}
       onClick={() => pinned && setPinnedSid(null)}
-      title={pinned ? 'Unpin' : undefined}
+      title={pinned ? t('Unpin') : undefined}
     >
       <ParticipantTile participant={main} isLocal={main === local} room={room} isHost={isHost} />
       {mainIsShare && (
@@ -84,14 +86,14 @@ export function FocusView({ room, isHost = false, layout = 'spotlight' }: { room
           <div onClick={(e) => e.stopPropagation()} style={{ position: 'absolute', left: 14, top: 14, display: 'flex', alignItems: 'center', gap: 6, zIndex: 7 }}>
             <button
               onClick={() => setAnnotating((a) => !a)}
-              title="Annotate the shared screen"
+              title={t('Annotate the shared screen')}
               style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 11px', height: 32, borderRadius: 8, border: '1px solid var(--border-strong)', background: annotating ? 'var(--coral)' : 'rgba(10, 11, 13, 0.7)', color: annotating ? '#241008' : '#eef1f3', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 20h9" />
                 <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" />
               </svg>
-              Annotate
+              {t('Annotate')}
             </button>
             {annotating && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '0 10px', height: 32, borderRadius: 8, border: '1px solid var(--border-strong)', background: 'rgba(10, 11, 13, 0.7)' }}>
@@ -99,18 +101,18 @@ export function FocusView({ room, isHost = false, layout = 'spotlight' }: { room
                   <button
                     key={c}
                     onClick={() => setColor(c)}
-                    title="Pen colour"
-                    aria-label={`Pen colour ${c}`}
+                    title={t('Pen colour')}
+                    aria-label={t('Pen colour {color}', { color: c })}
                     style={{ width: 16, height: 16, padding: 0, borderRadius: '50%', background: c, cursor: 'pointer', border: color === c ? '2px solid #fff' : '2px solid rgba(255,255,255,0.25)', boxShadow: color === c ? '0 0 0 1px rgba(0,0,0,0.5)' : 'none' }}
                   />
                 ))}
               </div>
             )}
             {annotating && lastMine() && (
-              <button onClick={undo} title="Undo my last stroke" style={annotBtn}>Undo</button>
+              <button onClick={undo} title={t('Undo my last stroke')} style={annotBtn}>{t('Undo')}</button>
             )}
             {annotations.strokes.length > 0 && (
-              <button onClick={clearAll} title="Clear all annotations" style={annotBtn}>Clear</button>
+              <button onClick={clearAll} title={t('Clear all annotations')} style={annotBtn}>{t('Clear')}</button>
             )}
           </div>
         </>
@@ -151,7 +153,7 @@ export function FocusView({ room, isHost = false, layout = 'spotlight' }: { room
             <div
               key={p.sid || p.identity}
               onClick={() => setPinnedSid(p.sid || null)}
-              title="Pin"
+              title={t('Pin')}
               style={
                 isMobile
                   ? { flex: '0 0 auto', cursor: 'pointer', width: 134, aspectRatio: '16 / 10' }

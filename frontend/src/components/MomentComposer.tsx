@@ -3,12 +3,14 @@ import type { Room } from 'livekit-client'
 import { useParticipants } from '../lib/hooks'
 import { initialsFor, userColor } from './Avatar'
 import { type Moment, REASONS, type ReasonDef } from '../lib/moment'
+import { useT } from '../lib/i18n'
 
 /**
  * Host-only composer for a Moment of Recognition. Pick a person, a Coral Club
  * reason, an optional emoji — Celebrate broadcasts it to everyone (2–3 clicks).
  */
 export function MomentComposer({ room, onCelebrate, onClose }: { room: Room; onCelebrate: (m: Omit<Moment, 'id'>) => void; onClose: () => void }) {
+  const t = useT()
   const participants = useParticipants(room)
   const names = useMemo(() => {
     const seen = new Set<string>()
@@ -38,7 +40,7 @@ export function MomentComposer({ room, onCelebrate, onClose }: { room: Room; onC
   }
 
   const ready = !!name.trim() && !!reason
-  const subText = reason ? reason.sub(detail) : ''
+  const subText = reason ? t(reason.sub(detail)) : ''
 
   const fire = () => {
     if (!ready || !reason) return
@@ -64,17 +66,17 @@ export function MomentComposer({ room, onCelebrate, onClose }: { room: Room; onC
             <MedalIcon />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <h2 style={{ margin: 0, fontSize: 15.5, fontWeight: 700, letterSpacing: '-.01em' }}>Recognise someone</h2>
-            <span style={{ fontFamily: 'var(--mono)', fontSize: 9.5, letterSpacing: '.1em', color: 'var(--text-mute)' }}>HOST ONLY · EVERYONE SEES IT</span>
+            <h2 style={{ margin: 0, fontSize: 15.5, fontWeight: 700, letterSpacing: '-.01em' }}>{t('Recognise someone')}</h2>
+            <span style={{ fontFamily: 'var(--mono)', fontSize: 9.5, letterSpacing: '.1em', color: 'var(--text-mute)' }}>{t('HOST ONLY · EVERYONE SEES IT')}</span>
           </div>
-          <button onClick={onClose} title="Close" style={closeBtn}>
+          <button onClick={onClose} title={t('Close')} style={closeBtn}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><line x1="6" y1="6" x2="18" y2="18" /><line x1="18" y1="6" x2="6" y2="18" /></svg>
           </button>
         </div>
 
         <div style={{ padding: '4px 18px 16px', display: 'flex', flexDirection: 'column', gap: 15, overflowY: 'auto' }}>
           {/* WHO */}
-          <Field label="Who">
+          <Field label={t('Who')}>
             <div style={chipWrap}>
               {names.map((n) => (
                 <button key={n} onClick={() => { setName(n); setTyping(false) }} style={chip(name === n && !typing)}>
@@ -83,20 +85,20 @@ export function MomentComposer({ room, onCelebrate, onClose }: { room: Room; onC
                 </button>
               ))}
               <button onClick={() => { setTyping((t) => !t); setName('') }} style={{ ...chip(false), color: 'var(--text-mute)' }}>
-                <span style={plusAv}>+</span>Type a name
+                <span style={plusAv}>+</span>{t('Type a name')}
               </button>
             </div>
             {typing && (
-              <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Type a name…" style={input} />
+              <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder={t('Type a name…')} style={input} />
             )}
           </Field>
 
           {/* REASON */}
-          <Field label="For">
+          <Field label={t('For')}>
             <div style={chipWrap}>
               {REASONS.map((r) => (
                 <button key={r.key} onClick={() => pickReason(r)} style={reasonChip(reason?.key === r.key)}>
-                  <span style={{ fontSize: 14 }}>{r.emoji}</span>{r.chipLabel}
+                  <span style={{ fontSize: 14 }}>{r.emoji}</span>{t(r.chipLabel)}
                 </button>
               ))}
             </div>
@@ -126,20 +128,20 @@ export function MomentComposer({ room, onCelebrate, onClose }: { room: Room; onC
               {emoji && <span style={{ position: 'absolute', right: -5, top: -6, fontSize: 15 }}>{emoji}</span>}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
-              <span style={{ fontSize: 14.5, fontWeight: 700, letterSpacing: '-.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name.trim() || 'Pick someone'}</span>
-              <span style={{ fontSize: 12, color: 'var(--text-dim)' }}>{reason ? `${reason.chipLabel} · ${subText}` : 'Choose a reason to celebrate'}</span>
+              <span style={{ fontSize: 14.5, fontWeight: 700, letterSpacing: '-.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name.trim() || t('Pick someone')}</span>
+              <span style={{ fontSize: 12, color: 'var(--text-dim)' }}>{reason ? `${t(reason.chipLabel)} · ${subText}` : t('Choose a reason to celebrate')}</span>
             </div>
           </div>
         </div>
 
         {/* footer */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 18px 18px', borderTop: '1px solid var(--border)' }}>
-          <span style={{ fontFamily: 'var(--mono)', fontSize: 11.5, color: 'var(--text-mute)' }}>One-shot · ~3.5s</span>
+          <span style={{ fontFamily: 'var(--mono)', fontSize: 11.5, color: 'var(--text-mute)' }}>{t('One-shot · ~3.5s')}</span>
           <span style={{ flex: 1 }} />
-          <button onClick={onClose} style={ghostBtn}>Cancel</button>
+          <button onClick={onClose} style={ghostBtn}>{t('Cancel')}</button>
           <button onClick={fire} disabled={!ready} style={celebrateBtn(ready)}>
             <MedalIcon size={17} />
-            Celebrate
+            {t('Celebrate')}
           </button>
         </div>
       </div>

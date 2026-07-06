@@ -13,8 +13,10 @@ import { useRaiseHandChime } from '../lib/raisehand'
 import { useJoinChime } from '../lib/joinchime'
 import { useCallPip } from '../lib/callpip'
 import { useSideRoom } from '../lib/sideroom'
+import { useCommitments, markCommitmentDone } from '../lib/commitments'
 import { generateRoomId } from '../lib/rooms'
 import { SideRoomPicker, SideRoomInvite, SideRoomBanner } from '../components/SideRoom'
+import { CommitmentComposer, CommitmentPrompt } from '../components/CommitmentComposer'
 import { RippleLoader } from '../components/RippleLoader'
 import { MeetTopBar } from '../components/MeetTopBar'
 import { MeetControls } from '../components/MeetControls'
@@ -24,6 +26,7 @@ import { SoloStage } from '../components/SoloStage'
 import { RemoteAudio } from '../components/RemoteAudio'
 import { SidePanel, type PanelName } from '../components/SidePanel'
 import { ReactionsOverlay } from '../components/ReactionsOverlay'
+import { useT } from '../lib/i18n'
 
 /** Jump the session to another room (side rooms); keeps identity + devices.
  *  Resolves true on success, false if the token request failed (stayed put). */
@@ -31,14 +34,15 @@ export type MoveToRoom = (roomId: string, opts?: { asHost?: boolean; parent?: st
 
 export function CallRoom({ join, onLeave, onMoveToRoom, mainRoom }: { join: JoinInfo; onLeave: () => void; onMoveToRoom: MoveToRoom; mainRoom: string | null }) {
   const { room, state, error } = useRoomConnection(join, onLeave)
+  const t = useT()
 
   if (error) {
-    return <CenterMessage title="Couldn't join the call" detail={error} actionLabel="Back to lobby" onAction={onLeave} />
+    return <CenterMessage title={t("Couldn't join the call")} detail={error} actionLabel={t('Back to lobby')} onAction={onLeave} />
   }
   // Spinner only before the first successful connect; transient Reconnecting
   // phases keep the call mounted (see CallStage banner).
   if (!room) {
-    return <CenterMessage title="Connecting…" spinner />
+    return <CenterMessage title={t('Connecting…')} spinner />
   }
 
   const reconnecting = state === ConnectionState.Reconnecting || state === ConnectionState.SignalReconnecting
@@ -60,6 +64,10 @@ function CallStage({ room, roomName, reconnecting, isHost, onLeave, onMoveToRoom
   const moments = useMoments(room)
   const sideroom = useSideRoom(room)
   const [showAside, setShowAside] = useState(false)
+  const commitments = useCommitments(room, roomName)
+  const [showCommit, setShowCommit] = useState(false)
+  // Follow-through: ask about last session's commitment (per-browser, until auth).
+  const [showPrompt, setShowPrompt] = useState(true)
   // Carry the live mic/cam state into the destination room (not the stale lobby default).
   const move: MoveToRoom = (roomId, opts) =>
     onMoveToRoom(roomId, { ...opts, audioEnabled: room.localParticipant.isMicrophoneEnabled, videoEnabled: room.localParticipant.isCameraEnabled })
@@ -164,8 +172,21 @@ function CallStage({ room, roomName, reconnecting, isHost, onLeave, onMoveToRoom
             onDismiss={sideroom.dismiss}
           />
         )}
+        {commitments.prior && !commitments.prior.done && showPrompt && !sideroom.incoming && (
+          <CommitmentPrompt
+            prior={commitments.prior}
+            onDone={() => { markCommitmentDone(roomName); setShowPrompt(false) }}
+            onDismiss={() => setShowPrompt(false)}
+          />
+        )}
         {mutedByHost && <MutedByHostToast />}
-        <MeetControls room={room} activePanel={panel} onTogglePanel={togglePanel} unread={unread} view={view} onViewChange={setView} sharing={sharing} isHost={isHost} recording={recording.active} onToggleRecord={recording.toggle} onReaction={reactions.send} onOpenPip={pip.supported ? pip.open : undefined} onLeave={onLeave} onCelebrate={isHost ? moments.celebrate : undefined} onMoveAside={() => setShowAside(true)} />
+        <MeetControls room={room} activePanel={panel} onTogglePanel={togglePanel} unread={unread} view={view} onViewChange={setView} sharing={sharing} isHost={isHost} recording={recording.active} onToggleRecord={recording.toggle} onReaction={reactions.send} onOpenPip={pip.supported ? pip.open : undefined} onLeave={onLeave} onCelebrate={isHost ? moments.celebrate : undefined} onMoveAside={() => setShowAside(true)} onLeaveCommitment={() => setShowCommit(true)} />
+        {showCommit && (
+          <CommitmentComposer
+            onSend={(text) => { void commitments.send(text); setShowCommit(false) }}
+            onClose={() => setShowCommit(false)}
+          />
+        )}
         {showAside && (
           <SideRoomPicker
             room={room}
@@ -202,6 +223,7 @@ function CallStage({ room, roomName, reconnecting, isHost, onLeave, onMoveToRoom
 }
 
 function ReconnectingBanner() {
+  const t = useT()
   return (
     <div
       style={{
@@ -232,13 +254,14 @@ function ReconnectingBanner() {
           animation: 'spin 0.9s linear infinite',
         }}
       />
-      Reconnecting…
+      {t('Reconnecting…')}
     </div>
   )
 }
 
 // Calm, non-alarming degradation notice (a quiet teal pill, not an amber warning).
 function PoorConnectionBanner() {
+  const t = useT()
   return (
     <div
       style={{
@@ -260,12 +283,13 @@ function PoorConnectionBanner() {
       }}
     >
       <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--teal)', flex: '0 0 auto' }} />
-      Video eased to keep audio clear
+      {t('Video eased to keep audio clear')}
     </div>
   )
 }
 
 function MutedByHostToast() {
+  const t = useT()
   return (
     <div
       style={{
@@ -285,7 +309,7 @@ function MutedByHostToast() {
         color: '#ff8a82',
       }}
     >
-      You've been muted by the host.
+      {t("You've been muted by the host.")}
     </div>
   )
 }
