@@ -53,32 +53,8 @@ export interface ReasonDef {
 // the host picks a *reason*, never an "animation style".
 export const REASONS: ReasonDef[] = [
   {
-    key: 'rank', chipLabel: 'New rank', label: 'NEW RANK', preset: 'rank', accent: 'medal', emoji: '🏆',
-    detail: { lbl: 'Rank', type: 'select', options: ['Manager', 'Senior Manager', 'Director', 'Senior Director', 'Vice President', 'President'], def: 'Director' },
-    sub: (d) => `Promoted to ${d} · congratulations!`,
-  },
-  {
-    key: 'result', chipLabel: 'Top result', label: 'TOP RESULT', preset: 'applause', accent: 'burst', emoji: '👏',
-    detail: { lbl: 'Result', type: 'text', placeholder: 'e.g. Personal best this month', def: 'Personal best this month' },
-    sub: (d) => d,
-  },
-  {
     key: 'welcome', chipLabel: 'Welcome', label: 'WELCOME', preset: 'welcome', accent: 'ripple', emoji: '🎉',
     sub: () => 'Just joined Coral Club — say hi!',
-  },
-  {
-    key: 'anniversary', chipLabel: 'Anniversary', label: 'ANNIVERSARY', preset: 'applause', accent: 'burst', emoji: '🎂',
-    detail: { lbl: 'Milestone', type: 'text', placeholder: 'e.g. 3 years', def: '3 years' },
-    sub: (d) => `Celebrating ${d} with Coral Club`,
-  },
-  {
-    key: 'firstorder', chipLabel: 'First order', label: 'FIRST ORDER', preset: 'welcome', accent: 'ripple', emoji: '🤝',
-    sub: () => 'First partner order — welcome aboard!',
-  },
-  {
-    key: 'custom', chipLabel: 'Custom', label: 'CELEBRATING', preset: 'applause', accent: 'burst', emoji: '⭐',
-    detail: { lbl: 'Message', type: 'text', placeholder: 'Type a short reason', def: 'Well done!' },
-    sub: (d) => d,
   },
 ]
 

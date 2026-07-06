@@ -25,7 +25,8 @@ export function MomentComposer({ room, onCelebrate, onClose }: { room: Room; onC
 
   const [name, setName] = useState('')
   const [typing, setTyping] = useState(false)
-  const [reason, setReason] = useState<ReasonDef | null>(null)
+  // Pre-select when there's only one reason, so the host doesn't have to click it.
+  const [reason, setReason] = useState<ReasonDef | null>(REASONS.length === 1 ? REASONS[0] : null)
   const [detail, setDetail] = useState('')
 
   // The celebration emoji is the reason's own (no manual picker).
