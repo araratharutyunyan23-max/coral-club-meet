@@ -794,35 +794,6 @@ input {
   font-weight: 600;
   cursor: pointer;
 }
-/* Trust badges — small pills that answer "why ours, not Zoom/Meet". */
-.home-hero .home-badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.home-hero .home-badges li {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 7px 13px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--fill-subtle);
-  color: var(--text-dim);
-  font-size: 13px;
-  font-weight: 500;
-  white-space: nowrap;
-}
-.home-hero .home-badges svg {
-  width: 15px;
-  height: 15px;
-  color: var(--teal-soft);
-  flex: 0 0 auto;
-}
-
 /* Signature features — the differentiators Google Meet / Zoom don't have. */
 .home-hero .home-feats {
   display: flex;
@@ -918,7 +889,6 @@ input {
   }
   .home-hero .cta-row,
   .home-hero .subjoin,
-  .home-hero .home-badges,
   .home-hero .feat-row {
     justify-content: center;
   }

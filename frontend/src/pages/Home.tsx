@@ -37,7 +37,6 @@ export function Home({ onCreate }: { onCreate: () => void }) {
             <div className="intro">
               <div className="eyebrow">Self-hosted · Coral Club</div>
               <h1>Meetings, the Coral&nbsp;Club way.</h1>
-              <p className="lede">Private, unlimited video for your team — on your own server, in your own brand.</p>
             </div>
 
             <div className="cta-row">
@@ -49,25 +48,6 @@ export function Home({ onCreate }: { onCreate: () => void }) {
                 Create video meeting
               </button>
             </div>
-
-            <ul className="home-badges">
-              <li>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
-                No time limit
-              </li>
-              <li>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="8" r="3.2" /><path d="M3.5 19a5.5 5.5 0 0 1 11 0" /><path d="M16 5.4a3.2 3.2 0 0 1 0 5.9" /><path d="M17 13.6a5.5 5.5 0 0 1 3.5 5.4" /></svg>
-                Up to 20 on screen
-              </li>
-              <li>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l7 3v5c0 4.6-3 7.6-7 9-4-1.4-7-4.4-7-9V6z" /><path d="M9.3 12l1.9 1.9 3.5-3.7" /></svg>
-                Private &amp; self-hosted
-              </li>
-              <li>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3c3.6 4.1 6 6.9 6 10.1a6 6 0 0 1-12 0C6 9.9 8.4 7.1 12 3z" /></svg>
-                Your branding
-              </li>
-            </ul>
 
             <div className="home-feats">
               <div className="cap">Built in — beyond Zoom &amp; Meet</div>
