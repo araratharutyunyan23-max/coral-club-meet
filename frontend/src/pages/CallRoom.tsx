@@ -13,7 +13,7 @@ import { useRaiseHandChime } from '../lib/raisehand'
 import { useJoinChime } from '../lib/joinchime'
 import { useCallPip } from '../lib/callpip'
 import { useSideRoom } from '../lib/sideroom'
-import { useCommitments, markCommitmentDone } from '../lib/commitments'
+import { useCommitments } from '../lib/commitments'
 import { generateRoomId } from '../lib/rooms'
 import { SideRoomPicker, SideRoomInvite, SideRoomBanner } from '../components/SideRoom'
 import { CommitmentComposer, CommitmentPrompt } from '../components/CommitmentComposer'
@@ -177,7 +177,7 @@ function CallStage({ room, roomName, reconnecting, isHost, onLeave, onMoveToRoom
         {commitments.prior && !commitments.prior.done && showPrompt && !sideroom.incoming && (
           <CommitmentPrompt
             prior={commitments.prior}
-            onDone={() => { markCommitmentDone(roomName); setShowPrompt(false) }}
+            onDone={() => { commitments.markPriorDone(); setShowPrompt(false) }}
             onDismiss={() => setShowPrompt(false)}
           />
         )}

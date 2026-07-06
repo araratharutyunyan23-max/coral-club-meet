@@ -34,27 +34,31 @@ export interface SavedCommitment {
   ts: number
   done: boolean
 }
-const key = (room: string) => `cc-commit:${room}`
+// Keyed by room AND the person's name so several people sharing one browser
+// don't clobber / mis-attribute each other's commitment. (Still per-browser —
+// cross-device follow-through needs real accounts; auth is deferred.)
+const slug = (name: string) => (name || '?').toLowerCase().trim()
+const key = (room: string, who: string) => `cc-commit:${room}:${who}`
 
-export function getMyCommitment(room: string): SavedCommitment | null {
+export function getMyCommitment(room: string, who: string): SavedCommitment | null {
   try {
-    const raw = localStorage.getItem(key(room))
+    const raw = localStorage.getItem(key(room, who))
     return raw ? (JSON.parse(raw) as SavedCommitment) : null
   } catch {
     return null
   }
 }
-function saveMyCommitment(room: string, text: string) {
+function saveMyCommitment(room: string, who: string, text: string) {
   try {
-    localStorage.setItem(key(room), JSON.stringify({ text, ts: Date.now(), done: false } satisfies SavedCommitment))
+    localStorage.setItem(key(room, who), JSON.stringify({ text, ts: Date.now(), done: false } satisfies SavedCommitment))
   } catch {
     /* storage unavailable — the follow-through check just won't fire */
   }
 }
-export function markCommitmentDone(room: string) {
+function markDone(room: string, who: string) {
   try {
-    const s = getMyCommitment(room)
-    if (s) localStorage.setItem(key(room), JSON.stringify({ ...s, done: true }))
+    const s = getMyCommitment(room, who)
+    if (s) localStorage.setItem(key(room, who), JSON.stringify({ ...s, done: true }))
   } catch {
     /* ignore */
   }
@@ -63,9 +67,10 @@ export function markCommitmentDone(room: string) {
 export function useCommitments(room: Room, roomName: string) {
   const [list, setList] = useState<Commitment[]>([])
   const counter = useRef(0)
+  const who = slug(room.localParticipant.name || room.localParticipant.identity)
   // Capture the PRIOR commitment (from a previous session) once, before this
   // session's own send overwrites it — that's what the follow-through toast asks about.
-  const prior = useRef<SavedCommitment | null>(getMyCommitment(roomName))
+  const prior = useRef<SavedCommitment | null>(getMyCommitment(roomName, who))
 
   const add = (c: Commitment) => {
     setList((prev) => (prev.some((x) => x.id === c.id) ? prev : [...prev, c]))
@@ -101,10 +106,13 @@ export function useCommitments(room: Room, roomName: string) {
     const id = `c-${room.localParticipant.identity}-${counter.current++}-${Date.now()}`
     await room.localParticipant.publishData(encoder.encode(JSON.stringify({ id, text })), { reliable: true, topic: TOPIC })
     add({ id, name: room.localParticipant.name || room.localParticipant.identity, text, ts: Date.now(), mine: true })
-    saveMyCommitment(roomName, text)
+    saveMyCommitment(roomName, who, text)
   }
 
-  return { list, send, prior: prior.current }
+  /** Mark the prior commitment as done (the follow-through "Done" action). */
+  const markPriorDone = () => markDone(roomName, who)
+
+  return { list, send, prior: prior.current, markPriorDone }
 }
 
 /** Read the call's commitments for the PostCall screen, then consume so a later
