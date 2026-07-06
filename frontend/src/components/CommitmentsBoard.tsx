@@ -141,7 +141,7 @@ export function CommitmentsBoard({ items, onClose }: { items: Commitment[]; onCl
                     </span>
                   )}
                 </div>
-                <div style={{ marginTop: 3, fontSize: 12.5, lineHeight: 1.4, color: 'var(--text)' }}>{c.text}</div>
+                <div style={{ marginTop: 3, fontSize: 12.5, lineHeight: 1.4, color: 'var(--text)', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{c.text}</div>
               </div>
             </div>
           ))

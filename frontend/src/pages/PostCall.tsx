@@ -143,7 +143,7 @@ export function PostCall({ summary, isHost = false, onRejoin, onExit }: { summar
                   {c.mine ? t('You') : c.name}
                   {c.mine && <span style={{ font: '700 9px/1 var(--mono)', letterSpacing: '.05em', textTransform: 'uppercase', padding: '3px 5px', borderRadius: 5, background: 'var(--teal-tint)', color: 'var(--teal-soft)' }}>{t('You')}</span>}
                 </div>
-                <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--text)', lineHeight: 1.4 }}>
+                <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--text)', lineHeight: 1.4, overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
                   <span style={{ color: 'var(--coral)', fontWeight: 700 }}>“</span>{c.text}<span style={{ color: 'var(--coral)', fontWeight: 700 }}>”</span>
                 </div>
               </div>
