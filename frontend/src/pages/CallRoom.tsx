@@ -25,8 +25,9 @@ import { RemoteAudio } from '../components/RemoteAudio'
 import { SidePanel, type PanelName } from '../components/SidePanel'
 import { ReactionsOverlay } from '../components/ReactionsOverlay'
 
-/** Jump the session to another room (side rooms); keeps identity + devices. */
-export type MoveToRoom = (roomId: string, opts?: { asHost?: boolean; parent?: string | null; audioEnabled?: boolean; videoEnabled?: boolean }) => void
+/** Jump the session to another room (side rooms); keeps identity + devices.
+ *  Resolves true on success, false if the token request failed (stayed put). */
+export type MoveToRoom = (roomId: string, opts?: { asHost?: boolean; parent?: string | null; audioEnabled?: boolean; videoEnabled?: boolean }) => Promise<boolean>
 
 export function CallRoom({ join, onLeave, onMoveToRoom, mainRoom }: { join: JoinInfo; onLeave: () => void; onMoveToRoom: MoveToRoom; mainRoom: string | null }) {
   const { room, state, error } = useRoomConnection(join, onLeave)
@@ -62,6 +63,8 @@ function CallStage({ room, roomName, reconnecting, isHost, onLeave, onMoveToRoom
   // Carry the live mic/cam state into the destination room (not the stale lobby default).
   const move: MoveToRoom = (roomId, opts) =>
     onMoveToRoom(roomId, { ...opts, audioEnabled: room.localParticipant.isMicrophoneEnabled, videoEnabled: room.localParticipant.isCameraEnabled })
+  // The true main room to return to (survives nested side rooms).
+  const trueMain = mainRoom ?? roomName
   useAttendance(room, isHost) // host-only: collect the post-call meeting report
   useRaiseHandChime(room)
   useJoinChime(room)
@@ -154,9 +157,9 @@ function CallStage({ room, roomName, reconnecting, isHost, onLeave, onMoveToRoom
           <SideRoomInvite
             from={sideroom.incoming.from}
             onJoin={() => {
-              const target = sideroom.incoming!.room
+              const invite = sideroom.incoming!
               sideroom.dismiss()
-              move(target, { parent: roomName })
+              move(invite.room, { parent: invite.main })
             }}
             onDismiss={sideroom.dismiss}
           />
@@ -169,9 +172,12 @@ function CallStage({ room, roomName, reconnecting, isHost, onLeave, onMoveToRoom
             onClose={() => setShowAside(false)}
             onTakeAside={async (ids) => {
               const newRoom = generateRoomId()
-              await sideroom.invite(newRoom, ids)
-              setShowAside(false)
-              move(newRoom, { asHost: true, parent: roomName })
+              await sideroom.invite(newRoom, ids, trueMain)
+              // Move in; if the token request fails, throw so the picker stays open
+              // (busy resets) and the initiator can retry rather than inviting people
+              // into a room nobody entered.
+              const ok = await move(newRoom, { asHost: true, parent: trueMain })
+              if (!ok) throw new Error('Could not open the side room')
             }}
           />
         )}

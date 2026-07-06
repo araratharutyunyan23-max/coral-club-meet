@@ -58,8 +58,8 @@ export function App() {
   // CallRoom is keyed on the room, so this cleanly tears down the old connection
   // and mounts the new one. Fetch the token FIRST — only mutate room/URL/state on
   // success, so a failed request leaves the current call untouched.
-  const moveToRoom = async (roomId: string, opts?: { asHost?: boolean; parent?: string | null; audioEnabled?: boolean; videoEnabled?: boolean }) => {
-    if (!join) return
+  const moveToRoom = async (roomId: string, opts?: { asHost?: boolean; parent?: string | null; audioEnabled?: boolean; videoEnabled?: boolean }): Promise<boolean> => {
+    if (!join) return false
     // Host of a room they created (a new side room, or the main room on return);
     // participant everywhere else.
     const role: Role = opts?.asHost || isRoomCreator(roomId) ? 'host' : 'participant'
@@ -77,8 +77,10 @@ export function App() {
         videoEnabled: opts?.videoEnabled ?? join.videoEnabled,
         waitForHost: false,
       })
+      return true
     } catch {
       // Token request failed — stay in the current room; nothing was changed.
+      return false
     }
   }
 

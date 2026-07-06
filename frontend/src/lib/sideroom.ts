@@ -14,6 +14,7 @@ const INVITE_TTL_MS = 40_000
 export interface IncomingInvite {
   room: string // the side room to join
   from: string // inviter's display name
+  main: string // the TRUE main room to offer "back to" (survives nested side rooms)
 }
 
 export function useSideRoom(room: Room) {
@@ -24,10 +25,10 @@ export function useSideRoom(room: Room) {
     const onData = (payload: Uint8Array, participant?: RemoteParticipant, _kind?: unknown, topic?: string) => {
       if (topic !== TOPIC_SIDEROOM) return
       try {
-        const msg = JSON.parse(decoder.decode(payload)) as { room?: string; targets?: string[] }
+        const msg = JSON.parse(decoder.decode(payload)) as { room?: string; targets?: string[]; main?: string }
         if (!msg.room || !Array.isArray(msg.targets)) return
         if (!msg.targets.includes(room.localParticipant.identity)) return
-        setIncoming({ room: msg.room, from: participant?.name || participant?.identity || 'Someone' })
+        setIncoming({ room: msg.room, from: participant?.name || participant?.identity || 'Someone', main: msg.main || msg.room })
         if (expiry.current) clearTimeout(expiry.current)
         expiry.current = setTimeout(() => setIncoming(null), INVITE_TTL_MS) // stale invites self-clear
       } catch {
@@ -41,13 +42,14 @@ export function useSideRoom(room: Room) {
     }
   }, [room])
 
-  /** Invite the given participant identities into `newRoom`. */
-  const invite = async (newRoom: string, targets: string[]) => {
+  /** Invite the given participant identities into `newRoom`. `main` is the true
+   *  main room to offer them "back to" (so nested side rooms don't mislabel it). */
+  const invite = async (newRoom: string, targets: string[], main: string) => {
     if (!targets.length) return
     // Deliver ONLY to the invited identities — the side-room id must not reach
     // the people being left behind. `targets` is kept in the payload as a
     // belt-and-suspenders self-check on the receiver.
-    await room.localParticipant.publishData(encoder.encode(JSON.stringify({ room: newRoom, targets })), {
+    await room.localParticipant.publishData(encoder.encode(JSON.stringify({ room: newRoom, targets, main })), {
       reliable: true,
       topic: TOPIC_SIDEROOM,
       destinationIdentities: targets,
