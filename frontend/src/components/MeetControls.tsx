@@ -51,6 +51,8 @@ interface Props {
   onLeave: () => void
   /** Host-only: broadcast a Moment of Recognition. Absent for participants. */
   onCelebrate?: (m: Omit<Moment, 'id'>) => void
+  /** Open the "move people aside" picker (any participant). */
+  onMoveAside?: () => void
 }
 
 /**
@@ -58,7 +60,7 @@ interface Props {
  * pickers · present · reactions · raise hand · captions · more · end-call) and a
  * bottom-right corner-chrome group (chat · people). No glass.
  */
-export function MeetControls({ room, activePanel, onTogglePanel, unread, view, onViewChange, sharing = false, isHost = false, recording = false, onToggleRecord, onReaction, onOpenPip, onLeave, onCelebrate }: Props) {
+export function MeetControls({ room, activePanel, onTogglePanel, unread, view, onViewChange, sharing = false, isHost = false, recording = false, onToggleRecord, onReaction, onOpenPip, onLeave, onCelebrate, onMoveAside }: Props) {
   useRoomEvents(room, CONTROL_EVENTS)
   const isMobile = useIsMobile()
   const [popover, setPopover] = useState<null | 'reactions' | 'more' | 'mic' | 'cam'>(null)
@@ -191,6 +193,15 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
                   {copied ? 'Link copied' : 'Copy link'}
                 </button>
+                {onMoveAside && (
+                  <button
+                    onClick={() => { onMoveAside(); close() }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '10px', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, background: 'var(--teal-tint)', color: 'var(--text)' }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="7" r="3" /><path d="M3.5 20a6 6 0 0 1 11 0" /><path d="M15 8l4 4-4 4" /><path d="M19 12h-6" /></svg>
+                    Move people aside
+                  </button>
+                )}
                 {isHost && onCelebrate && (
                   <button
                     onClick={() => { setShowComposer(true); close() }}

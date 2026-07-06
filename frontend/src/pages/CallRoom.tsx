@@ -12,6 +12,9 @@ import { useRecording } from '../lib/recording'
 import { useRaiseHandChime } from '../lib/raisehand'
 import { useJoinChime } from '../lib/joinchime'
 import { useCallPip } from '../lib/callpip'
+import { useSideRoom } from '../lib/sideroom'
+import { generateRoomId } from '../lib/rooms'
+import { SideRoomPicker, SideRoomInvite, SideRoomBanner } from '../components/SideRoom'
 import { RippleLoader } from '../components/RippleLoader'
 import { MeetTopBar } from '../components/MeetTopBar'
 import { MeetControls } from '../components/MeetControls'
@@ -22,7 +25,10 @@ import { RemoteAudio } from '../components/RemoteAudio'
 import { SidePanel, type PanelName } from '../components/SidePanel'
 import { ReactionsOverlay } from '../components/ReactionsOverlay'
 
-export function CallRoom({ join, onLeave }: { join: JoinInfo; onLeave: () => void }) {
+/** Jump the session to another room (side rooms); keeps identity + devices. */
+export type MoveToRoom = (roomId: string, opts?: { asHost?: boolean; parent?: string | null; audioEnabled?: boolean; videoEnabled?: boolean }) => void
+
+export function CallRoom({ join, onLeave, onMoveToRoom, mainRoom }: { join: JoinInfo; onLeave: () => void; onMoveToRoom: MoveToRoom; mainRoom: string | null }) {
   const { room, state, error } = useRoomConnection(join, onLeave)
 
   if (error) {
@@ -36,11 +42,11 @@ export function CallRoom({ join, onLeave }: { join: JoinInfo; onLeave: () => voi
 
   const reconnecting = state === ConnectionState.Reconnecting || state === ConnectionState.SignalReconnecting
 
-  return <CallStage room={room} roomName={join.room} reconnecting={reconnecting} isHost={join.role === 'host'} onLeave={onLeave} />
+  return <CallStage room={room} roomName={join.room} reconnecting={reconnecting} isHost={join.role === 'host'} onLeave={onLeave} onMoveToRoom={onMoveToRoom} mainRoom={mainRoom} />
 }
 
 /** The in-call UI, mounted once we have a connected Room. */
-function CallStage({ room, roomName, reconnecting, isHost, onLeave }: { room: Room; roomName: string; reconnecting: boolean; isHost: boolean; onLeave: () => void }) {
+function CallStage({ room, roomName, reconnecting, isHost, onLeave, onMoveToRoom, mainRoom }: { room: Room; roomName: string; reconnecting: boolean; isHost: boolean; onLeave: () => void; onMoveToRoom: MoveToRoom; mainRoom: string | null }) {
   const isMobile = useIsMobile()
   const [view, setView] = useState<CallView>('tiled')
   const [panel, setPanel] = useState<PanelName | null>(null)
@@ -51,6 +57,11 @@ function CallStage({ room, roomName, reconnecting, isHost, onLeave }: { room: Ro
   const quality = useConnectionQuality(room)
   const mutedByHost = useMutedByHost(room)
   const moments = useMoments(room)
+  const sideroom = useSideRoom(room)
+  const [showAside, setShowAside] = useState(false)
+  // Carry the live mic/cam state into the destination room (not the stale lobby default).
+  const move: MoveToRoom = (roomId, opts) =>
+    onMoveToRoom(roomId, { ...opts, audioEnabled: room.localParticipant.isMicrophoneEnabled, videoEnabled: room.localParticipant.isCameraEnabled })
   useAttendance(room, isHost) // host-only: collect the post-call meeting report
   useRaiseHandChime(room)
   useJoinChime(room)
@@ -138,8 +149,32 @@ function CallStage({ room, roomName, reconnecting, isHost, onLeave }: { room: Ro
 
         <ReactionsOverlay active={reactions.active} />
         {moments.active && <MomentOverlay key={moments.active.id} moment={moments.active} onDone={moments.dismiss} />}
+        {mainRoom && <SideRoomBanner onBack={() => move(mainRoom, { parent: null })} />}
+        {sideroom.incoming && (
+          <SideRoomInvite
+            from={sideroom.incoming.from}
+            onJoin={() => {
+              const target = sideroom.incoming!.room
+              sideroom.dismiss()
+              move(target, { parent: roomName })
+            }}
+            onDismiss={sideroom.dismiss}
+          />
+        )}
         {mutedByHost && <MutedByHostToast />}
-        <MeetControls room={room} activePanel={panel} onTogglePanel={togglePanel} unread={unread} view={view} onViewChange={setView} sharing={sharing} isHost={isHost} recording={recording.active} onToggleRecord={recording.toggle} onReaction={reactions.send} onOpenPip={pip.supported ? pip.open : undefined} onLeave={onLeave} onCelebrate={isHost ? moments.celebrate : undefined} />
+        <MeetControls room={room} activePanel={panel} onTogglePanel={togglePanel} unread={unread} view={view} onViewChange={setView} sharing={sharing} isHost={isHost} recording={recording.active} onToggleRecord={recording.toggle} onReaction={reactions.send} onOpenPip={pip.supported ? pip.open : undefined} onLeave={onLeave} onCelebrate={isHost ? moments.celebrate : undefined} onMoveAside={() => setShowAside(true)} />
+        {showAside && (
+          <SideRoomPicker
+            room={room}
+            onClose={() => setShowAside(false)}
+            onTakeAside={async (ids) => {
+              const newRoom = generateRoomId()
+              await sideroom.invite(newRoom, ids)
+              setShowAside(false)
+              move(newRoom, { asHost: true, parent: roomName })
+            }}
+          />
+        )}
 
         {panel && (
           <SidePanel
