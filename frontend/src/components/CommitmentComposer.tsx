@@ -91,14 +91,14 @@ export function CommitmentPrompt({ prior, onDone, onDismiss }: { prior: SavedCom
         <div style={{ minWidth: 0 }}>
           <div style={{ fontFamily: 'var(--mono)', fontSize: 9.5, fontWeight: 600, letterSpacing: '.16em', textTransform: 'uppercase', color: 'var(--coral)' }}>{t('Welcome back')}</div>
           <div style={{ marginTop: 6, fontSize: 14, fontWeight: 600, color: 'var(--text-dim)' }}>{t('Last time you committed to')}</div>
-          <div style={{ marginTop: 5, fontSize: 16, fontWeight: 700, letterSpacing: '-.01em', color: 'var(--text)', lineHeight: 1.35, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+          <div style={{ marginTop: 5, fontSize: 16, fontWeight: 700, letterSpacing: '-.01em', color: 'var(--text)', lineHeight: 1.35, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
             <span style={{ color: 'var(--coral)', fontWeight: 800 }}>“</span>{prior.text}<span style={{ color: 'var(--coral)', fontWeight: 800 }}>”</span>
           </div>
         </div>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '0 16px 15px' }}>
-        <span style={{ flex: 1, minWidth: 0, fontSize: 12, color: 'var(--text-mute)' }}>{t('No pressure — just closing the loop.')}</span>
+        <span style={{ flex: 1 }} />
         <button onClick={onDismiss} style={{ padding: '9px 14px', borderRadius: 10, border: '1px solid var(--border-strong)', background: 'transparent', color: 'var(--text-dim)', fontFamily: 'var(--font)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{t('Not yet')}</button>
         <button onClick={onDone} style={{ display: 'flex', alignItems: 'center', gap: 7, flex: '0 0 auto', padding: '9px 16px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,var(--coral),#ff9070)', color: '#2a0f08', fontFamily: 'var(--font)', fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: '0 8px 20px rgba(255,126,99,.32)' }}>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
