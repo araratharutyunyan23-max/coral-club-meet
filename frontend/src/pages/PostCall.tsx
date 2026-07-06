@@ -109,24 +109,53 @@ export function PostCall({ summary, isHost = false, onRejoin, onExit }: { summar
       )}
 
       {commitments.length > 0 && (
-        <div style={{ position: 'relative', zIndex: 2, width: 'min(560px, 92vw)', marginTop: 28, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden', textAlign: 'left' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '14px 18px', borderBottom: '1px solid var(--border)' }}>
-            <span style={{ width: 26, height: 26, borderRadius: 8, background: 'var(--teal-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--teal-soft)" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L20 6" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></svg>
-            </span>
-            <div style={{ fontSize: 15, fontWeight: 700, letterSpacing: '-.01em' }}>{t('Commitments')}</div>
-            <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--text-mute)', fontFamily: 'var(--mono)' }}>{commitments.length}</span>
+        <div style={{ position: 'relative', zIndex: 2, width: 'min(560px, 92vw)', marginTop: 28, background: 'var(--bg-elev)', border: '1px solid var(--border)', borderRadius: 18, overflow: 'hidden', textAlign: 'left', boxShadow: '0 24px 60px rgba(0,0,0,0.36)' }}>
+          {/* coral → teal signal edge */}
+          <div style={{ height: 3, background: 'linear-gradient(90deg, var(--coral), var(--teal))' }} />
+
+          <div style={{ padding: '20px 22px 16px', borderBottom: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span style={{ width: 36, height: 36, flex: '0 0 auto', borderRadius: 10, background: 'color-mix(in srgb, var(--coral) 15%, transparent)', border: '1px solid color-mix(in srgb, var(--coral) 40%, transparent)', color: 'var(--coral)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 21V4" /><path d="M5 4h11l-2 4 2 4H5" /></svg>
+                </span>
+                <div>
+                  <div style={{ fontSize: 18, fontWeight: 700, letterSpacing: '-.01em' }}>{t('Commitments')}</div>
+                  <div style={{ marginTop: 3, fontSize: 12.5, fontFamily: 'var(--mono)', fontWeight: 500, color: 'var(--text-mute)', letterSpacing: '.02em' }}>{summary.room}</div>
+                </div>
+              </div>
+              <span title={t('Everyone in the call sees this')} style={{ flex: '0 0 auto', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 999, background: 'color-mix(in srgb, var(--coral) 15%, transparent)', border: '1px solid color-mix(in srgb, var(--coral) 40%, transparent)', color: 'var(--coral)', fontSize: 11, fontWeight: 700, letterSpacing: '.02em', whiteSpace: 'nowrap' }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" /></svg>
+                {t('Everyone')}
+              </span>
+            </div>
+            <div style={{ marginTop: 14, display: 'flex', alignItems: 'baseline', gap: 7 }}>
+              <span style={{ font: '600 10px/1 var(--mono)', letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--text-mute)' }}>{t('This call')}</span>
+              <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text)' }}>{commitments.length === 1 ? t('1 commitment') : t('{n} commitments', { n: commitments.length })}</span>
+            </div>
           </div>
+
           {commitments.map((c, i) => (
-            <div key={c.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 11, padding: '11px 16px', borderTop: i === 0 ? 'none' : '1px solid var(--border)', background: c.mine ? 'var(--teal-tint)' : undefined }}>
-              <Avatar name={c.name} size={30} />
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{c.mine ? t('You') : c.name}</div>
-                <div style={{ fontSize: 13.5, color: 'var(--text-dim)', marginTop: 1 }}>{c.text}</div>
+            <div key={c.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 13, padding: '14px 22px', borderTop: i === 0 ? 'none' : '1px solid var(--border)', background: c.mine ? 'linear-gradient(96deg, var(--teal-tint), transparent 62%)' : undefined }}>
+              <Avatar name={c.name} size={38} />
+              <div style={{ minWidth: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-.01em', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {c.mine ? t('You') : c.name}
+                  {c.mine && <span style={{ font: '700 9px/1 var(--mono)', letterSpacing: '.05em', textTransform: 'uppercase', padding: '3px 5px', borderRadius: 5, background: 'var(--teal-tint)', color: 'var(--teal-soft)' }}>{t('You')}</span>}
+                </div>
+                <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--text)', lineHeight: 1.4 }}>
+                  <span style={{ color: 'var(--coral)', fontWeight: 700 }}>“</span>{c.text}<span style={{ color: 'var(--coral)', fontWeight: 700 }}>”</span>
+                </div>
               </div>
             </div>
           ))}
-          <div style={{ padding: '10px 16px', fontSize: 11.5, color: 'var(--text-mute)', fontFamily: 'var(--mono)', borderTop: '1px solid var(--border)' }}>{t("We'll ask how it went next time.")}</div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '15px 22px', borderTop: '1px solid var(--border)', background: 'var(--surface-2)' }}>
+            <span style={{ flex: '0 0 auto', width: 30, height: 30, borderRadius: '50%', background: 'var(--teal-tint)', border: '1px solid color-mix(in srgb, var(--teal) 40%, transparent)', color: 'var(--teal-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7" /><path d="M3 4v4h4" /></svg>
+            </span>
+            <span style={{ fontSize: 13, color: 'var(--text-dim)' }}>{t("We'll ask how it went next time.")}</span>
+          </div>
         </div>
       )}
     </div>

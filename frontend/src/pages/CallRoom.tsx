@@ -17,6 +17,7 @@ import { useCommitments, markCommitmentDone } from '../lib/commitments'
 import { generateRoomId } from '../lib/rooms'
 import { SideRoomPicker, SideRoomInvite, SideRoomBanner } from '../components/SideRoom'
 import { CommitmentComposer, CommitmentPrompt } from '../components/CommitmentComposer'
+import { CommitmentsBoard } from '../components/CommitmentsBoard'
 import { RippleLoader } from '../components/RippleLoader'
 import { MeetTopBar } from '../components/MeetTopBar'
 import { MeetControls } from '../components/MeetControls'
@@ -66,6 +67,7 @@ function CallStage({ room, roomName, reconnecting, isHost, onLeave, onMoveToRoom
   const [showAside, setShowAside] = useState(false)
   const commitments = useCommitments(room, roomName)
   const [showCommit, setShowCommit] = useState(false)
+  const [showBoard, setShowBoard] = useState(false)
   // Follow-through: ask about last session's commitment (per-browser, until auth).
   const [showPrompt, setShowPrompt] = useState(true)
   // Carry the live mic/cam state into the destination room (not the stale lobby default).
@@ -180,7 +182,8 @@ function CallStage({ room, roomName, reconnecting, isHost, onLeave, onMoveToRoom
           />
         )}
         {mutedByHost && <MutedByHostToast />}
-        <MeetControls room={room} activePanel={panel} onTogglePanel={togglePanel} unread={unread} view={view} onViewChange={setView} sharing={sharing} isHost={isHost} recording={recording.active} onToggleRecord={recording.toggle} onReaction={reactions.send} onOpenPip={pip.supported ? pip.open : undefined} onLeave={onLeave} onCelebrate={isHost ? moments.celebrate : undefined} onMoveAside={() => setShowAside(true)} onLeaveCommitment={() => setShowCommit(true)} />
+        <MeetControls room={room} activePanel={panel} onTogglePanel={togglePanel} unread={unread} view={view} onViewChange={setView} sharing={sharing} isHost={isHost} recording={recording.active} onToggleRecord={recording.toggle} onReaction={reactions.send} onOpenPip={pip.supported ? pip.open : undefined} onLeave={onLeave} onCelebrate={isHost ? moments.celebrate : undefined} onMoveAside={() => setShowAside(true)} onLeaveCommitment={() => setShowCommit(true)} onOpenCommitmentsBoard={isHost ? () => setShowBoard(true) : undefined} />
+        {showBoard && <CommitmentsBoard items={[...commitments.list].reverse()} onClose={() => setShowBoard(false)} />}
         {showCommit && (
           <CommitmentComposer
             onSend={(text) => { void commitments.send(text); setShowCommit(false) }}

@@ -56,6 +56,8 @@ interface Props {
   onMoveAside?: () => void
   /** Open the "leave a commitment" composer (any participant). */
   onLeaveCommitment?: () => void
+  /** Host-only: open the live commitments board. */
+  onOpenCommitmentsBoard?: () => void
 }
 
 /**
@@ -63,7 +65,7 @@ interface Props {
  * pickers · present · reactions · raise hand · captions · more · end-call) and a
  * bottom-right corner-chrome group (chat · people). No glass.
  */
-export function MeetControls({ room, activePanel, onTogglePanel, unread, view, onViewChange, sharing = false, isHost = false, recording = false, onToggleRecord, onReaction, onOpenPip, onLeave, onCelebrate, onMoveAside, onLeaveCommitment }: Props) {
+export function MeetControls({ room, activePanel, onTogglePanel, unread, view, onViewChange, sharing = false, isHost = false, recording = false, onToggleRecord, onReaction, onOpenPip, onLeave, onCelebrate, onMoveAside, onLeaveCommitment, onOpenCommitmentsBoard }: Props) {
   useRoomEvents(room, CONTROL_EVENTS)
   const isMobile = useIsMobile()
   const t = useT()
@@ -213,6 +215,16 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--teal-soft)" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L20 6" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></svg>
                     {t('Leave a commitment')}
+                  </button>
+                )}
+                {isHost && onOpenCommitmentsBoard && (
+                  <button
+                    onClick={() => { onOpenCommitmentsBoard(); close() }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '10px', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, background: 'var(--fill-subtle)', color: 'var(--text)' }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--teal-soft)" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20h16" /><rect x="5" y="11" width="3.4" height="7" rx="1" /><rect x="10.3" y="6" width="3.4" height="12" rx="1" /><rect x="15.6" y="13" width="3.4" height="5" rx="1" /></svg>
+                    {t('Commitments board')}
+                    <span style={{ marginLeft: 'auto', fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '.08em', color: 'var(--teal-soft)' }}>{t('HOST')}</span>
                   </button>
                 )}
                 {isHost && onCelebrate && (
