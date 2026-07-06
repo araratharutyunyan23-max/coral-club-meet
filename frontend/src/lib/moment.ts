@@ -24,9 +24,9 @@ export interface Moment {
 }
 
 // Animation lifecycle (ms) — kept in sync between the overlay and the hook's
-// fallback auto-clear. in → hold → out ≈ 3.5s, one-shot.
+// fallback auto-clear. in → hold → out ≈ 6s, one-shot (the card holds on screen).
 export const MO_IN = 720
-export const MO_HOLD = 2000
+export const MO_HOLD = 4500
 export const MO_OUT = 800
 export const MO_TOTAL = MO_IN + MO_HOLD + MO_OUT
 
