@@ -12,7 +12,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/coralclub/meet-backend/internal/breakout"
 	"github.com/coralclub/meet-backend/internal/config"
 	"github.com/coralclub/meet-backend/internal/httpapi"
 	"github.com/coralclub/meet-backend/internal/livekit"
@@ -30,8 +29,7 @@ func main() {
 	issuer := livekit.NewIssuer(cfg.LiveKitAPIKey, cfg.LiveKitSecret, cfg.TokenTTL)
 	moderator := livekit.NewModerator(cfg.LiveKitHostURL, cfg.LiveKitAPIKey, cfg.LiveKitSecret)
 	recorder := livekit.NewRecorder(cfg.LiveKitHostURL, cfg.LiveKitAPIKey, cfg.LiveKitSecret, cfg.EgressOutDir)
-	breakoutCoord := breakout.NewCoordinator()
-	api := httpapi.NewServer(issuer, moderator, recorder, breakoutCoord, cfg.LiveKitURL, cfg.RecordingsDir)
+	api := httpapi.NewServer(issuer, moderator, recorder, cfg.LiveKitURL, cfg.RecordingsDir)
 
 	httpServer := &http.Server{
 		Addr:              ":" + cfg.Port,

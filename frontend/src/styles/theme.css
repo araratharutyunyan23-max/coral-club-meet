@@ -1553,10 +1553,3 @@ input {
   .rep-actions { flex-direction: column; align-items: stretch; }
   .rep-btns button { flex: 1; justify-content: center; }
 }
-
-/* Breakout — shared coral helpers (also used by the recognition composer inline)
-   + the "ping/return" pulse for help dots and the closing banner. */
-:root { --coral-tint: rgba(255, 126, 99, 0.15); --coral-line: rgba(255, 126, 99, 0.4); }
-[data-theme='light'] { --coral-tint: rgba(255, 111, 85, 0.13); --coral-line: rgba(255, 111, 85, 0.4); }
-@keyframes bopulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.82); } }
-@media (prefers-reduced-motion: reduce) { [style*='bopulse'] { animation: none !important; } }

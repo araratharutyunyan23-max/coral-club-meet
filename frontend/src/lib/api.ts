@@ -46,38 +46,3 @@ export const admin = {
   recordStart: (room: string) => adminPost('record/start', { room }),
   recordStop: (room: string) => adminPost('record/stop', { room }),
 }
-
-/** Server-authoritative breakout state (returned by GET /api/breakout). */
-export interface BreakoutState {
-  open: boolean
-  groups?: string[][] // group idx -> participant identities
-  message?: string
-  endsAt?: number // epoch ms, 0/absent = no timer
-  help?: string[] // identities who asked for help
-}
-
-async function breakoutPost(action: string, body: Record<string, unknown>): Promise<void> {
-  const res = await fetch(`/api/breakout/${action}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  })
-  if (!res.ok) {
-    const b = (await res.json().catch(() => null)) as { error?: string } | null
-    throw new Error(b?.error ?? `Breakout request failed (${res.status})`)
-  }
-}
-
-/** Breakout groups (server-side participant moves; state polled by every client). */
-export const breakout = {
-  state: async (room: string): Promise<BreakoutState> => {
-    const res = await fetch(`/api/breakout?room=${encodeURIComponent(room)}`)
-    if (!res.ok) return { open: false }
-    return (await res.json()) as BreakoutState
-  },
-  open: (room: string, groups: string[][], durationSec: number, message: string) => breakoutPost('open', { room, groups, durationSec, message }),
-  close: (room: string) => breakoutPost('close', { room }),
-  broadcast: (room: string, message: string) => breakoutPost('broadcast', { room, message }),
-  help: (room: string, identity: string) => breakoutPost('help', { room, identity }),
-  visit: (room: string, from: string, identity: string, group: number) => breakoutPost('visit', { room, from, identity, group }),
-}

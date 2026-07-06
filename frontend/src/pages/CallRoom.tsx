@@ -6,9 +6,6 @@ import { useChat, useReactions } from '../lib/datachannel'
 import { useMoments } from '../lib/moment'
 import { MomentOverlay } from '../components/MomentOverlay'
 import { useAttendance } from '../lib/attendance'
-import { useBreakout, groupRoom } from '../lib/breakout'
-import { BreakoutBanner } from '../components/BreakoutBanner'
-import { BreakoutPanel } from '../components/BreakoutPanel'
 import { useQA } from '../lib/qa'
 import { useMutedByHost } from '../lib/moderation'
 import { useRecording } from '../lib/recording'
@@ -26,7 +23,7 @@ import { SidePanel, type PanelName } from '../components/SidePanel'
 import { ReactionsOverlay } from '../components/ReactionsOverlay'
 
 export function CallRoom({ join, onLeave }: { join: JoinInfo; onLeave: () => void }) {
-  const { room, state, error, switchRoom } = useRoomConnection(join, onLeave)
+  const { room, state, error } = useRoomConnection(join, onLeave)
 
   if (error) {
     return <CenterMessage title="Couldn't join the call" detail={error} actionLabel="Back to lobby" onAction={onLeave} />
@@ -39,11 +36,11 @@ export function CallRoom({ join, onLeave }: { join: JoinInfo; onLeave: () => voi
 
   const reconnecting = state === ConnectionState.Reconnecting || state === ConnectionState.SignalReconnecting
 
-  return <CallStage room={room} roomName={join.room} reconnecting={reconnecting} isHost={join.role === 'host'} onLeave={onLeave} switchRoom={switchRoom} />
+  return <CallStage room={room} roomName={join.room} reconnecting={reconnecting} isHost={join.role === 'host'} onLeave={onLeave} />
 }
 
 /** The in-call UI, mounted once we have a connected Room. */
-function CallStage({ room, roomName, reconnecting, isHost, onLeave, switchRoom }: { room: Room; roomName: string; reconnecting: boolean; isHost: boolean; onLeave: () => void; switchRoom: (roomName: string) => void }) {
+function CallStage({ room, roomName, reconnecting, isHost, onLeave }: { room: Room; roomName: string; reconnecting: boolean; isHost: boolean; onLeave: () => void }) {
   const isMobile = useIsMobile()
   const [view, setView] = useState<CallView>('tiled')
   const [panel, setPanel] = useState<PanelName | null>(null)
@@ -54,31 +51,10 @@ function CallStage({ room, roomName, reconnecting, isHost, onLeave, switchRoom }
   const quality = useConnectionQuality(room)
   const mutedByHost = useMutedByHost(room)
   const moments = useMoments(room)
-  const bo = useBreakout(room, roomName, isHost)
-  const [showBreakout, setShowBreakout] = useState(false)
   useAttendance(room, isHost) // host-only: collect the post-call meeting report
   useRaiseHandChime(room)
   useJoinChime(room)
 
-  // Brief "Returning to the main room…" banner when a participant's group closes.
-  const [boClosing, setBoClosing] = useState(false)
-  const prevGroup = useRef<number | null>(null)
-  useEffect(() => {
-    if (prevGroup.current != null && bo.myGroup == null && bo.visiting == null) {
-      setBoClosing(true)
-      const t = window.setTimeout(() => setBoClosing(false), 1600)
-      prevGroup.current = bo.myGroup
-      return () => window.clearTimeout(t)
-    }
-    prevGroup.current = bo.myGroup
-  }, [bo.myGroup, bo.visiting])
-
-  // Fallback for self-hosted LiveKit (no server-side MoveParticipant): each client
-  // reconnects itself to its breakout group room — or back to the main room.
-  const boTarget = bo.visiting != null ? groupRoom(roomName, bo.visiting) : bo.myGroup != null ? groupRoom(roomName, bo.myGroup) : roomName
-  useEffect(() => {
-    switchRoom(boTarget)
-  }, [boTarget, switchRoom])
   const pip = useCallPip(room, onLeave)
   const participants = useParticipants(room)
   const alone = participants.length <= 1
@@ -162,16 +138,8 @@ function CallStage({ room, roomName, reconnecting, isHost, onLeave, switchRoom }
 
         <ReactionsOverlay active={reactions.active} />
         {moments.active && <MomentOverlay key={moments.active.id} moment={moments.active} onDone={moments.dismiss} />}
-        {bo.visiting != null ? (
-          <BreakoutBanner host group={bo.visiting} endsAt={bo.state.endsAt} onBack={bo.backToControl} />
-        ) : bo.myGroup != null ? (
-          <BreakoutBanner group={bo.myGroup} endsAt={bo.state.endsAt} message={bo.state.message} asked={bo.askedHelp} onAskHelp={bo.askHelp} />
-        ) : boClosing ? (
-          <BreakoutBanner group={0} closing />
-        ) : null}
         {mutedByHost && <MutedByHostToast />}
-        <MeetControls room={room} activePanel={panel} onTogglePanel={togglePanel} unread={unread} view={view} onViewChange={setView} sharing={sharing} isHost={isHost} recording={recording.active} onToggleRecord={recording.toggle} onReaction={reactions.send} onOpenPip={pip.supported ? pip.open : undefined} onLeave={onLeave} onCelebrate={isHost ? moments.celebrate : undefined} onOpenBreakout={isHost ? () => setShowBreakout(true) : undefined} />
-        {showBreakout && <BreakoutPanel room={room} bo={bo} onClose={() => setShowBreakout(false)} />}
+        <MeetControls room={room} activePanel={panel} onTogglePanel={togglePanel} unread={unread} view={view} onViewChange={setView} sharing={sharing} isHost={isHost} recording={recording.active} onToggleRecord={recording.toggle} onReaction={reactions.send} onOpenPip={pip.supported ? pip.open : undefined} onLeave={onLeave} onCelebrate={isHost ? moments.celebrate : undefined} />
 
         {panel && (
           <SidePanel

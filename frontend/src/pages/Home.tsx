@@ -57,10 +57,6 @@ export function Home({ onCreate }: { onCreate: () => void }) {
                   <span className="t">Recognition moments</span>
                 </div>
                 <div className="feat">
-                  <span className="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="6" r="2.4" /><circle cx="18" cy="6" r="2.4" /><circle cx="18" cy="18" r="2.4" /><circle cx="6" cy="18" r="2.4" /><path d="M8.4 6H14M8.4 18H14M6 8.4v7.2M18 8.4v7.2" /></svg></span>
-                  <span className="t">Breakout groups</span>
-                </div>
-                <div className="feat">
                   <span className="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20h16" /><rect x="5" y="11" width="3.4" height="7" rx="1" /><rect x="10.3" y="6" width="3.4" height="12" rx="1" /><rect x="15.6" y="13" width="3.4" height="5" rx="1" /></svg></span>
                   <span className="t">Meeting report</span>
                 </div>

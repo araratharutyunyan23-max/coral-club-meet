@@ -10,24 +10,21 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 
-	"github.com/coralclub/meet-backend/internal/breakout"
 	"github.com/coralclub/meet-backend/internal/livekit"
 )
 
-// Server wires the token issuer, moderator, recorder and breakout coordinator
-// into HTTP handlers.
+// Server wires the token issuer, moderator and recorder into HTTP handlers.
 type Server struct {
 	issuer        *livekit.Issuer
 	moderator     *livekit.Moderator
 	recorder      *livekit.Recorder
-	breakout      *breakout.Coordinator
 	livekitURL    string
 	recordingsDir string
 }
 
 // NewServer constructs a Server.
-func NewServer(issuer *livekit.Issuer, moderator *livekit.Moderator, recorder *livekit.Recorder, breakoutCoord *breakout.Coordinator, livekitURL, recordingsDir string) *Server {
-	return &Server{issuer: issuer, moderator: moderator, recorder: recorder, breakout: breakoutCoord, livekitURL: livekitURL, recordingsDir: recordingsDir}
+func NewServer(issuer *livekit.Issuer, moderator *livekit.Moderator, recorder *livekit.Recorder, livekitURL, recordingsDir string) *Server {
+	return &Server{issuer: issuer, moderator: moderator, recorder: recorder, livekitURL: livekitURL, recordingsDir: recordingsDir}
 }
 
 // Router builds the HTTP handler with middleware and routes.
@@ -59,16 +56,6 @@ func (s *Server) Router(allowedOrigins []string) http.Handler {
 			r.Post("/lock", s.handleLock)
 			r.Post("/record/start", s.handleRecordStart)
 			r.Post("/record/stop", s.handleRecordStop)
-		})
-
-		// Breakout groups (host-triggered; auth stubbed — see breakout.go).
-		r.Route("/breakout", func(r chi.Router) {
-			r.Get("/", s.handleBreakoutState) // ?room=<main>
-			r.Post("/open", s.handleBreakoutOpen)
-			r.Post("/close", s.handleBreakoutClose)
-			r.Post("/broadcast", s.handleBreakoutBroadcast)
-			r.Post("/help", s.handleBreakoutHelp)
-			r.Post("/visit", s.handleBreakoutVisit)
 		})
 	})
 

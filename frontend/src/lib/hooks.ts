@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
+import { useEffect, useReducer, useRef, useState } from 'react'
 import {
   AudioPresets,
   ConnectionQuality,
@@ -11,7 +11,6 @@ import {
   Track,
 } from 'livekit-client'
 import type { JoinInfo } from './types'
-import { fetchToken } from './api'
 
 /** Re-renders the calling component whenever any of the given room events fire. */
 export function useRoomEvents(room: Room, events: readonly RoomEvent[]): void {
@@ -68,57 +67,17 @@ interface Connection {
   room: Room | null
   state: ConnectionState
   error: string | null
-  /** Reconnect the same Room to a different room name (breakout groups). */
-  switchRoom: (roomName: string) => void
 }
 
 /**
  * Creates a Room, connects with the given token, applies the chosen initial
- * device state, and disconnects on unmount. Also supports switching the same
- * Room to another room (breakout) via a fresh token, without a full teardown.
+ * device state, and disconnects on unmount.
  */
 export function useRoomConnection(join: JoinInfo, onLeave: () => void): Connection {
   const [room, setRoom] = useState<Room | null>(null)
   const [state, setState] = useState<ConnectionState>(ConnectionState.Connecting)
   const [error, setError] = useState<string | null>(null)
   const started = useRef(false)
-  const roomRef = useRef<Room | null>(null)
-  const switchingRef = useRef(false)
-  const currentRoomRef = useRef(join.room)
-  const desiredRoomRef = useRef(join.room)
-
-  // Reconnect the existing Room to `target` (a breakout group room, or back to
-  // the main room). Serialised: a switch already in flight picks up the latest
-  // desired room when it finishes. The Disconnected event during the swap is
-  // suppressed so it never reads as the user leaving the call.
-  const switchRoom = useCallback((target: string) => {
-    desiredRoomRef.current = target
-    if (switchingRef.current) return
-    const r = roomRef.current
-    if (!r) return
-    switchingRef.current = true
-    void (async () => {
-      try {
-        while (desiredRoomRef.current !== currentRoomRef.current) {
-          const dest = desiredRoomRef.current
-          const tok = await fetchToken({ room: dest, identity: join.identity, name: join.name, role: join.role })
-          const wantMic = r.localParticipant.isMicrophoneEnabled
-          const wantCam = r.localParticipant.isCameraEnabled
-          await r.disconnect()
-          await r.connect(tok.url, tok.token)
-          currentRoomRef.current = dest
-          await Promise.allSettled([
-            r.localParticipant.setMicrophoneEnabled(wantMic),
-            r.localParticipant.setCameraEnabled(wantCam),
-          ])
-        }
-      } catch (e) {
-        console.error('breakout room switch failed', e)
-      } finally {
-        switchingRef.current = false
-      }
-    })()
-  }, [join.identity, join.name, join.role])
 
   useEffect(() => {
     if (started.current) return // guard against re-entry
@@ -141,14 +100,8 @@ export function useRoomConnection(join: JoinInfo, onLeave: () => void): Connecti
         red: true,
       },
     })
-    roomRef.current = r
     const handleState = (s: ConnectionState) => setState(s)
-    // Suppress the Disconnected → onLeave path during an intentional breakout
-    // room switch (we disconnect the Room only to reconnect it elsewhere).
-    const handleDisconnect = () => {
-      if (switchingRef.current) return
-      onLeave()
-    }
+    const handleDisconnect = () => onLeave()
     r.on(RoomEvent.ConnectionStateChanged, handleState)
     r.on(RoomEvent.Disconnected, handleDisconnect)
 
@@ -190,7 +143,7 @@ export function useRoomConnection(join: JoinInfo, onLeave: () => void): Connecti
     // join/onLeave are stable for the lifetime of a single call.
   }, [])
 
-  return { room, state, error, switchRoom }
+  return { room, state, error }
 }
 
 /**
