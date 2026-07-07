@@ -1,7 +1,7 @@
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { type Room, RoomEvent } from 'livekit-client'
-import { useRoomEvents, useIsMobile } from '../lib/hooks'
+import { useRoomEvents, useIsMobile, useFitScale } from '../lib/hooks'
 import { useT } from '../lib/i18n'
 import type { PanelName } from './SidePanel'
 import type { CallView } from '../lib/types'
@@ -69,6 +69,7 @@ interface Props {
 export function MeetControls({ room, activePanel, onTogglePanel, unread, view, onViewChange, sharing = false, isHost = false, recording = false, onToggleRecord, onReaction, onOpenPip, onLeave, onCelebrate, onMoveAside, onLeaveCommitment, onOpenCommitmentsBoard }: Props) {
   useRoomEvents(room, CONTROL_EVENTS)
   const isMobile = useIsMobile()
+  const clusterScale = useFitScale(384) // shrink the ~384px control cluster to fit phones ≥320px wide
   const t = useT()
   const [popover, setPopover] = useState<null | 'reactions' | 'more' | 'mic' | 'cam'>(null)
   const [showComposer, setShowComposer] = useState(false)
@@ -145,7 +146,7 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
         <MomentComposer room={room} onCelebrate={onCelebrate} onClose={() => setShowComposer(false)} />
       )}
       {/* Centered cluster */}
-      <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%) scale(clamp(0.8, calc((100vw - 14px) / 384), 1))', display: 'flex', alignItems: 'center', gap: isMobile ? 5 : 8 }}>
+      <div style={{ position: 'absolute', left: '50%', top: '50%', transform: `translate(-50%,-50%) scale(${clusterScale})`, display: 'flex', alignItems: 'center', gap: isMobile ? 5 : 8 }}>
         <SplitButton
           compact={isMobile}
           danger={!micOn}

@@ -166,6 +166,31 @@ export function useIsMobile(breakpoint = 768): boolean {
   return mobile
 }
 
+/**
+ * Fraction to scale a fixed-width element by so it fits narrow phones:
+ * clamp(min, (innerWidth - pad) / naturalWidth, 1) — 1 on roomy screens,
+ * shrinking to `min` on very narrow ones. Reactive to resize. Computed in JS
+ * because CSS cannot divide a length by a length to yield a unitless scale
+ * (a `scale(clamp(0.8, calc(100vw/384), 1))` would be type-invalid and dropped).
+ */
+export function useFitScale(naturalWidth: number, pad = 14, min = 0.8): number {
+  const compute = () =>
+    typeof window === 'undefined' ? 1 : Math.max(min, Math.min(1, (window.innerWidth - pad) / naturalWidth))
+  const [scale, setScale] = useState(compute)
+  useEffect(() => {
+    const onResize = () => setScale(compute())
+    onResize()
+    window.addEventListener('resize', onResize)
+    window.addEventListener('orientationchange', onResize)
+    return () => {
+      window.removeEventListener('resize', onResize)
+      window.removeEventListener('orientationchange', onResize)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [naturalWidth, pad, min])
+  return scale
+}
+
 /** True when the viewport is taller than it is wide (portrait). Reactive. */
 export function useIsPortrait(): boolean {
   const [portrait, setPortrait] = useState(() => typeof window !== 'undefined' && window.innerHeight >= window.innerWidth)
