@@ -1,4 +1,5 @@
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { type Room, RoomEvent } from 'livekit-client'
 import { useRoomEvents, useIsMobile } from '../lib/hooks'
 import { useT } from '../lib/i18n'
@@ -144,7 +145,7 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
         <MomentComposer room={room} onCelebrate={onCelebrate} onClose={() => setShowComposer(false)} />
       )}
       {/* Centered cluster */}
-      <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', display: 'flex', alignItems: 'center', gap: isMobile ? 5 : 8 }}>
+      <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%) scale(clamp(0.8, calc((100vw - 14px) / 384), 1))', display: 'flex', alignItems: 'center', gap: isMobile ? 5 : 8 }}>
         <SplitButton
           compact={isMobile}
           danger={!micOn}
@@ -404,6 +405,18 @@ function CornerBtn({ active, badge, onClick, title, children }: { active: boolea
 }
 
 function Popover({ children, align = 'center' }: { children: ReactNode; align?: 'center' }) {
+  const isMobile = useIsMobile()
+  // On phones the control cluster is centered + scaled, so a button-anchored menu
+  // would run off-screen. Portal it to <body> as a viewport-centred sheet above the
+  // control bar — never clipped, escapes the cluster's transform.
+  if (isMobile) {
+    return createPortal(
+      <div style={{ position: 'fixed', left: '50%', bottom: 104, transform: 'translateX(-50%)', zIndex: 60, width: 'max-content', maxWidth: 'calc(100vw - 16px)', maxHeight: '62vh', overflowY: 'auto', padding: 8, background: 'var(--bg-elev)', border: '1px solid var(--border-strong)', borderRadius: 14, boxShadow: '0 18px 50px rgba(0,0,0,.45)' }}>
+        {children}
+      </div>,
+      document.body,
+    )
+  }
   const pos: CSSProperties = align === 'center' ? { left: '50%', transform: 'translateX(-50%)' } : {}
   return (
     <div style={{ position: 'absolute', bottom: 'calc(100% + 10px)', ...pos, padding: 8, background: 'var(--bg-elev)', border: '1px solid var(--border-strong)', borderRadius: 14, boxShadow: '0 14px 44px rgba(0,0,0,.35)', zIndex: 40 }}>

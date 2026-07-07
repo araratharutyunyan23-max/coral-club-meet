@@ -182,4 +182,9 @@ export const RU: Record<string, string> = {
   "Built in — beyond Zoom & Google Meet": "Встроено — чего нет в Zoom и Google Meet",
   "Commitments & follow-through": "Обязательства и контроль",
   "Side rooms": "Отдельные комнаты",
+  "Message everyone": "Сообщение всем",
+  "Mute all": "Заглушить всех",
+  "Lock room": "Закрыть комнату",
+  "Unlock room": "Открыть комнату",
+  "{n} in the call": "{n} на связи",
 }

@@ -52,6 +52,7 @@ export function MeetTopBar({ room, roomName, recording = false }: { room: Room; 
   const participants = useParticipants(room)
   const elapsed = useElapsed(room)
   const isMobile = useIsMobile()
+  const tiny = useIsMobile(360) // hide the centred timer on very narrow screens (it collides with the right group)
   const avatars = participants.slice(0, 3).map((p) => {
     const key = p.name || p.identity
     return { key, initials: initialsFor(key) }
@@ -81,13 +82,15 @@ export function MeetTopBar({ room, roomName, recording = false }: { room: Room; 
         )}
       </div>
 
-      {/* Call duration, centred in the bar */}
-      <span
-        style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', fontFamily: 'var(--mono)', fontSize: isMobile ? 15 : 17, fontWeight: 500, letterSpacing: '.06em', color: 'var(--text)' }}
-        title={t('Call duration')}
-      >
-        {elapsed}
-      </span>
+      {/* Call duration, centred in the bar (hidden on very narrow screens) */}
+      {!tiny && (
+        <span
+          style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', fontFamily: 'var(--mono)', fontSize: isMobile ? 15 : 17, fontWeight: 500, letterSpacing: '.06em', color: 'var(--text)' }}
+          title={t('Call duration')}
+        >
+          {elapsed}
+        </span>
+      )}
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         {firstRaiser && (

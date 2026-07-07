@@ -1,8 +1,10 @@
 import { type FormEvent, useEffect, useRef, useState } from 'react'
 import type { ChatMessage } from '../lib/datachannel'
 import { SendIcon } from '../lib/icons'
+import { useT } from '../lib/i18n'
 
 export function ChatPanel({ messages, onSend }: { messages: ChatMessage[]; onSend: (text: string) => void }) {
+  const t = useT()
   const [text, setText] = useState('')
   const endRef = useRef<HTMLDivElement>(null)
 
@@ -36,7 +38,7 @@ export function ChatPanel({ messages, onSend }: { messages: ChatMessage[]; onSen
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Message everyone"
+          placeholder={t('Message everyone')}
           style={{
             flex: 1,
             height: 40,

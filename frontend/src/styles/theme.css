@@ -1454,7 +1454,7 @@ input {
 [data-theme='light'] .report { box-shadow: 0 20px 46px rgba(20, 40, 38, 0.14); }
 
 .rep-head { padding: 20px 22px 16px; border-bottom: 1px solid var(--border); }
-.rep-head-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.rep-head-top { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px 16px; }
 .rep-title { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; }
 .rep-room { margin-top: 3px; font: 500 12.5px/1 var(--mono); color: var(--text-mute); letter-spacing: 0.02em; }
 .rep-hostonly { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; background: var(--teal-tint); border: 1px solid rgba(37, 208, 192, 0.28); color: var(--teal-soft); font-size: 11px; font-weight: 700; letter-spacing: 0.02em; white-space: nowrap; }
@@ -1476,7 +1476,7 @@ input {
 .report .tot-v .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .report .tot-v .t { font-family: var(--mono); font-weight: 500; color: var(--text-dim); font-size: 13.5px; }
 
-.rep-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 22px; }
+.rep-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 12px; padding: 12px 22px; }
 .rep-count { font-size: 13px; font-weight: 600; color: var(--text-dim); }
 .rep-sort { display: flex; align-items: center; gap: 6px; }
 .rep-sort .sl { font: 600 10px/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-mute); margin-right: 2px; }
@@ -1486,7 +1486,7 @@ input {
 .rep-sort button.on { background: var(--bg-elev); color: var(--text); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); }
 [data-theme='light'] .rep-sort button.on { box-shadow: 0 1px 2px rgba(20, 40, 38, 0.08); }
 
-.rep-scroll { overflow-x: hidden; overflow-y: auto; }
+.rep-scroll { overflow-x: auto; overflow-y: auto; }
 .rep-scroll.scroll { max-height: 328px; }
 .rep-scroll::-webkit-scrollbar { width: 10px; }
 .rep-scroll::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 99px; border: 3px solid var(--bg-elev); }

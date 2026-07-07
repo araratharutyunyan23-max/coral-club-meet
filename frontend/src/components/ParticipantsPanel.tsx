@@ -6,9 +6,11 @@ import { notifyModeration } from '../lib/moderation'
 import { raiseRank } from '../lib/raisehand'
 import { initialsFor, userTint } from './Avatar'
 import { HandIcon, MicIcon, MicOffIcon } from '../lib/icons'
+import { useT } from '../lib/i18n'
 
 /** Live roster with host moderation actions (mute, promote, remove, mute-all, lock). */
 export function ParticipantsPanel({ room, isHost }: { room: Room; isHost: boolean }) {
+  const t = useT()
   const participants = useParticipants(room)
   const [locked, setLocked] = useState(() => parseLocked(room.metadata))
   const [busy, setBusy] = useState(false)
@@ -48,14 +50,14 @@ export function ParticipantsPanel({ room, isHost }: { room: Room; isHost: boolea
       {isHost && (
         <div style={{ flex: '0 0 auto', display: 'flex', gap: 8, padding: '10px 12px', borderBottom: '1px solid var(--border)' }}>
           <HostBarButton onClick={muteAll} disabled={busy}>
-            Mute all
+            {t('Mute all')}
           </HostBarButton>
-          <HostBarButton onClick={toggleLock}>{locked ? 'Unlock room' : 'Lock room'}</HostBarButton>
+          <HostBarButton onClick={toggleLock}>{locked ? t('Unlock room') : t('Lock room')}</HostBarButton>
         </div>
       )}
 
       <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: 10 }}>
-        <div style={{ fontSize: 12, color: 'var(--text-mute)', padding: '4px 8px 10px' }}>{participants.length} in the call</div>
+        <div style={{ fontSize: 12, color: 'var(--text-mute)', padding: '4px 8px 10px' }}>{t('{n} in the call', { n: participants.length })}</div>
         {participants.map((p) => (
           <ParticipantRow key={p.sid || p.identity} room={room} participant={p} isLocal={p === room.localParticipant} isHost={isHost} />
         ))}
