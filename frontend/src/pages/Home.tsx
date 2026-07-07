@@ -39,7 +39,6 @@ export function Home({ onCreate }: { onCreate: () => void }) {
         <div className="home-hero">
           <div className="copy">
             <div className="intro">
-              <div className="eyebrow">{t('Self-hosted · Coral Club')}</div>
               <h1>{t('Meetings, the Coral Club way.')}</h1>
             </div>
 
