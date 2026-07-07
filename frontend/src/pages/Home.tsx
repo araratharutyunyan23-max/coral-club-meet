@@ -54,11 +54,19 @@ export function Home({ onCreate }: { onCreate: () => void }) {
             </div>
 
             <div className="home-feats">
-              <div className="cap">{t('Built in — beyond Zoom & Meet')}</div>
+              <div className="cap">{t('Built in — beyond Zoom & Google Meet')}</div>
               <div className="feat-row">
                 <div className="feat">
                   <span className="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 3 6.5 8" /><path d="M15.5 3 17.5 8" /><circle cx="12" cy="15" r="6" /><path d="M9.6 15.2 11.2 16.8 14.4 13.6" /></svg></span>
                   <span className="t">{t('Recognition moments')}</span>
+                </div>
+                <div className="feat">
+                  <span className="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L20 6" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></svg></span>
+                  <span className="t">{t('Commitments & follow-through')}</span>
+                </div>
+                <div className="feat">
+                  <span className="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="7" r="3" /><path d="M3.5 20a6 6 0 0 1 11 0" /><path d="M15 8l4 4-4 4" /><path d="M19 12h-6" /></svg></span>
+                  <span className="t">{t('Side rooms')}</span>
                 </div>
                 <div className="feat">
                   <span className="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20h16" /><rect x="5" y="11" width="3.4" height="7" rx="1" /><rect x="10.3" y="6" width="3.4" height="12" rx="1" /><rect x="15.6" y="13" width="3.4" height="5" rx="1" /></svg></span>

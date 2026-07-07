@@ -179,4 +179,7 @@ export const RU: Record<string, string> = {
   "No commitments yet": "Пока нет обязательств",
   "As people share, they'll appear here live.": "Как только участники поделятся, они появятся здесь в реальном времени.",
   "Commitments board": "Доска обязательств",
+  "Built in — beyond Zoom & Google Meet": "Встроено — чего нет в Zoom и Google Meet",
+  "Commitments & follow-through": "Обязательства и контроль",
+  "Side rooms": "Отдельные комнаты",
 }
