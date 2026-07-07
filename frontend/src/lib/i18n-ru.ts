@@ -187,4 +187,6 @@ export const RU: Record<string, string> = {
   "Lock room": "Закрыть комнату",
   "Unlock room": "Открыть комнату",
   "{n} in the call": "{n} на связи",
+  "Sign out": "Выйти",
+  "Sign in with Google to start a meeting. Guests join by link — no account needed.": "Войдите через Google, чтобы создать встречу. Гости заходят по ссылке — аккаунт не нужен.",
 }

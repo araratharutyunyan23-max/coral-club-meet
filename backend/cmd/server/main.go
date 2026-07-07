@@ -12,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/coralclub/meet-backend/internal/auth"
 	"github.com/coralclub/meet-backend/internal/config"
 	"github.com/coralclub/meet-backend/internal/httpapi"
 	"github.com/coralclub/meet-backend/internal/livekit"
@@ -29,7 +30,14 @@ func main() {
 	issuer := livekit.NewIssuer(cfg.LiveKitAPIKey, cfg.LiveKitSecret, cfg.TokenTTL)
 	moderator := livekit.NewModerator(cfg.LiveKitHostURL, cfg.LiveKitAPIKey, cfg.LiveKitSecret)
 	recorder := livekit.NewRecorder(cfg.LiveKitHostURL, cfg.LiveKitAPIKey, cfg.LiveKitSecret, cfg.EgressOutDir)
-	api := httpapi.NewServer(issuer, moderator, recorder, cfg.LiveKitURL, cfg.RecordingsDir)
+
+	var verifier *auth.GoogleVerifier
+	if cfg.GoogleClientID != "" {
+		verifier = auth.NewGoogleVerifier(cfg.GoogleClientID)
+	}
+	logger.Info("auth", "google_signin", cfg.GoogleClientID != "")
+
+	api := httpapi.NewServer(issuer, moderator, recorder, verifier, cfg.GoogleClientID, cfg.SessionSecret, cfg.LiveKitURL, cfg.RecordingsDir)
 
 	httpServer := &http.Server{
 		Addr:              ":" + cfg.Port,

@@ -21,6 +21,7 @@ type tokenResponse struct {
 	Token string `json:"token"`
 	URL   string `json:"url"`
 	Room  string `json:"room"`
+	Role  string `json:"role"`
 }
 
 func (s *Server) handleHealth(w http.ResponseWriter, _ *http.Request) {
@@ -29,9 +30,11 @@ func (s *Server) handleHealth(w http.ResponseWriter, _ *http.Request) {
 
 // handleToken validates a join request and returns a LiveKit access token.
 //
-// NOTE: authentication is intentionally stubbed for the prototype. Before any
-// real launch, this handler must verify the caller's existing Coral Club
-// session and derive identity/role from it rather than trusting the request body.
+// Role is authoritative from the server when Google sign-in is enabled: host is
+// granted only to the verified owner of the room; everyone else (guests joining
+// by link, signed-in non-owners) is a participant. The client-supplied role is
+// ignored in that mode, so no one can self-grant RoomAdmin. When sign-in is not
+// configured the legacy behavior (client-asserted role) is preserved.
 func (s *Server) handleToken(w http.ResponseWriter, r *http.Request) {
 	var req tokenRequest
 	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, maxBodyBytes)).Decode(&req); err != nil {
@@ -59,6 +62,17 @@ func (s *Server) handleToken(w http.ResponseWriter, r *http.Request) {
 		role = livekit.RoleParticipant
 	}
 
+	// With sign-in enabled the server decides the role, ignoring the body: host
+	// only for the room's verified owner.
+	if s.authEnabled() {
+		role = livekit.RoleParticipant
+		if sess, ok := s.sessionFromRequest(r); ok {
+			if owner, exists := s.rooms.owner(req.Room); exists && owner == sess.Sub {
+				role = livekit.RoleHost
+			}
+		}
+	}
+
 	token, err := s.issuer.Issue(livekit.TokenRequest{
 		Room:     req.Room,
 		Identity: req.Identity,
@@ -70,7 +84,7 @@ func (s *Server) handleToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, tokenResponse{Token: token, URL: s.livekitURL, Room: req.Room})
+	writeJSON(w, http.StatusOK, tokenResponse{Token: token, URL: s.livekitURL, Room: req.Room, Role: string(role)})
 }
 
 func writeJSON(w http.ResponseWriter, status int, v any) {

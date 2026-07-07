@@ -19,6 +19,13 @@ type Config struct {
 	TokenTTL       time.Duration
 	RecordingsDir  string // where the backend serves finished recordings from
 	EgressOutDir   string // path the Egress service writes files to (its mount)
+
+	// Google sign-in. When GoogleClientID is set, creating a meeting requires a
+	// signed-in Google user and host role is derived server-side; empty keeps the
+	// current open behavior. SessionSecret signs our own session cookie and is
+	// required whenever GoogleClientID is set.
+	GoogleClientID string
+	SessionSecret  string
 }
 
 // Load reads configuration from the environment, applying local-development
@@ -52,8 +59,16 @@ func Load() (Config, error) {
 
 	cfg.LiveKitHostURL = env("LIVEKIT_HOST_URL", httpFromWS(cfg.LiveKitURL))
 
+	cfg.GoogleClientID = env("GOOGLE_CLIENT_ID", "")
+	cfg.SessionSecret = os.Getenv("SESSION_SECRET")
+
 	if cfg.LiveKitAPIKey == "" || cfg.LiveKitSecret == "" {
 		return Config{}, fmt.Errorf("LIVEKIT_API_KEY and LIVEKIT_API_SECRET must be set (or set LIVEKIT_DEV=true for local dev credentials)")
+	}
+	// A session signing key is mandatory once Google sign-in is enabled, so prod
+	// can never issue unsigned/forgeable sessions.
+	if cfg.GoogleClientID != "" && cfg.SessionSecret == "" {
+		return Config{}, fmt.Errorf("SESSION_SECRET must be set when GOOGLE_CLIENT_ID is set (generate with: openssl rand -base64 48)")
 	}
 	return cfg, nil
 }

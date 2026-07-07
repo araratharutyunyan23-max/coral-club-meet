@@ -2,6 +2,7 @@ import { createRoot } from 'react-dom/client'
 import './styles/theme.css'
 import { App } from './App'
 import { LangProvider } from './lib/i18n'
+import { AuthProvider } from './lib/auth'
 import { applyTheme, getInitialTheme } from './lib/theme'
 
 // Apply the saved theme before first paint.
@@ -14,6 +15,8 @@ if (!container) throw new Error('Root element #root not found')
 // connect/disconnect the LiveKit Room twice in development.
 createRoot(container).render(
   <LangProvider>
-    <App />
+    <AuthProvider>
+      <App />
+    </AuthProvider>
   </LangProvider>,
 )

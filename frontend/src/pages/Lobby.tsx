@@ -162,7 +162,9 @@ export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin
         speakerDeviceId: speakerDeviceId || undefined,
         blur,
         krisp: true, // Krisp noise cancellation is always on (no lobby toggle).
-        role,
+        // Prefer the server-decided role (authoritative once sign-in is enabled);
+        // fall back to the local hint when the backend doesn't return one.
+        role: result.role ?? role,
       })
     } catch (e) {
       setError(e instanceof Error ? e.message : t('Failed to join'))

@@ -1,7 +1,9 @@
 import { Logo } from '../components/Logo'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { LangToggle } from '../components/LangToggle'
+import { GoogleSignIn } from '../components/GoogleSignIn'
 import { useT } from '../lib/i18n'
+import { useAuth } from '../lib/auth'
 
 /**
  * Landing screen — the "Arrival" hero. Same Signal ripple language as the lobby,
@@ -10,6 +12,8 @@ import { useT } from '../lib/i18n'
  */
 export function Home({ onCreate }: { onCreate: () => void }) {
   const t = useT()
+  const { authRequired, user } = useAuth()
+  const needsSignIn = authRequired && !user
   return (
     <div className="home-screen">
       {/* "Signal" ambient — ripples emitted from the brand mark on the right. */}
@@ -30,6 +34,7 @@ export function Home({ onCreate }: { onCreate: () => void }) {
         <Logo size={30} />
       </div>
       <div style={{ position: 'fixed', zIndex: 4, top: 24, right: 28, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <GoogleSignIn />
         <LangToggle />
         <ThemeToggle />
       </div>
@@ -51,6 +56,9 @@ export function Home({ onCreate }: { onCreate: () => void }) {
                 {t('Create video meeting')}
               </button>
             </div>
+            {needsSignIn && (
+              <div style={{ marginTop: 12, fontSize: 13.5, color: 'var(--text-mute)' }}>{t('Sign in with Google to start a meeting. Guests join by link — no account needed.')}</div>
+            )}
 
             <div className="home-feats">
               <div className="cap">{t('Built in — beyond Zoom & Google Meet')}</div>

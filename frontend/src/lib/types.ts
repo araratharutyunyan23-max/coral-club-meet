@@ -1,3 +1,5 @@
+export type Role = 'host' | 'participant' | 'viewer'
+
 /** Result of the backend token request. */
 export interface TokenResult {
   token: string
@@ -5,9 +7,16 @@ export interface TokenResult {
   room: string
   identity: string
   name: string
+  /** Authoritative role from the server (host only for a room's verified owner). */
+  role?: Role
 }
 
-export type Role = 'host' | 'participant' | 'viewer'
+/** The signed-in Google user (public profile only). */
+export interface AuthUser {
+  email: string
+  name: string
+  picture: string
+}
 
 /** Everything needed to join a call, including the user's initial device state. */
 export interface JoinInfo extends TokenResult {

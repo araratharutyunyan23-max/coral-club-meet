@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import type { AppScreen, CallSummary, JoinInfo, Role } from './lib/types'
-import { fetchToken } from './lib/api'
+import { createRoom, fetchToken } from './lib/api'
+import { useAuth } from './lib/auth'
 import { generateRoomId, isRoomCreator, markRoomCreated, roomFromUrl, setRoomUrl } from './lib/rooms'
 import { Home } from './pages/Home'
 import { Lobby } from './pages/Lobby'
@@ -10,6 +11,7 @@ import { WaitingRoom } from './pages/WaitingRoom'
 
 /** Flow: home → (create/join → /j/<id>) → lobby → call → post-call. */
 export function App() {
+  const { authRequired, user, signIn } = useAuth()
   const [screen, setScreen] = useState<AppScreen>(() => (roomFromUrl() ? 'lobby' : 'home'))
   const [room, setRoom] = useState<string | null>(() => roomFromUrl())
   const [join, setJoin] = useState<JoinInfo | null>(null)
@@ -64,6 +66,11 @@ export function App() {
     // participant everywhere else.
     const role: Role = opts?.asHost || isRoomCreator(roomId) ? 'host' : 'participant'
     try {
+      // With sign-in on, host of a side room means owning it server-side; register
+      // ownership first (best-effort — a failure just yields a participant token).
+      if (authRequired && opts?.asHost) {
+        await createRoom(roomId).catch(() => {})
+      }
       const result = await fetchToken({ room: roomId, identity: join.identity, name: join.name, role })
       if (opts?.asHost) markRoomCreated(roomId)
       setSideParent(opts?.parent ?? null)
@@ -72,7 +79,7 @@ export function App() {
       handleJoin({
         ...join,
         ...result,
-        role,
+        role: result.role ?? role,
         audioEnabled: opts?.audioEnabled ?? join.audioEnabled,
         videoEnabled: opts?.videoEnabled ?? join.videoEnabled,
         waitForHost: false,
@@ -94,7 +101,22 @@ export function App() {
     setScreen('home')
   }
 
-  const createMeeting = () => {
+  const createMeeting = async () => {
+    if (authRequired) {
+      // Only signed-in users can create; the server owns the room id.
+      if (!user) {
+        signIn()
+        return
+      }
+      try {
+        const id = await createRoom()
+        markRoomCreated(id) // keep the local host hint in sync (server stays authoritative)
+        openRoom(id)
+      } catch {
+        signIn() // session likely expired — re-prompt
+      }
+      return
+    }
     const id = generateRoomId()
     markRoomCreated(id)
     openRoom(id)

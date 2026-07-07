@@ -12,9 +12,10 @@ import (
 
 // Host moderation endpoints.
 //
-// NOTE: authentication is intentionally STUBBED for the prototype — these trust
-// the request body. Before launch, every handler here must verify the caller is
-// a host of the target room (e.g. from their validated session / token grants).
+// When Google sign-in is enabled, every handler verifies the caller owns the
+// target room (via s.ownsRoom) before acting through the backend's LiveKit admin
+// credentials, so only a room's host can moderate it. When sign-in is disabled
+// the app keeps its original open behavior.
 
 type adminTarget struct {
 	Room     string `json:"room"`
@@ -24,6 +25,10 @@ type adminTarget struct {
 func (s *Server) handleMute(w http.ResponseWriter, r *http.Request) {
 	req, ok := decodeTarget(w, r)
 	if !ok {
+		return
+	}
+	if !s.ownsRoom(r, req.Room) {
+		writeError(w, http.StatusForbidden, "host only")
 		return
 	}
 	if err := s.moderator.MuteParticipant(req.Room, req.Identity); err != nil {
@@ -43,6 +48,10 @@ func (s *Server) handleRemove(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !s.ownsRoom(r, req.Room) {
+		writeError(w, http.StatusForbidden, "host only")
+		return
+	}
 	if err := s.moderator.RemoveParticipant(req.Room, req.Identity); err != nil {
 		writeError(w, http.StatusBadGateway, "failed to remove participant")
 		return
@@ -53,6 +62,10 @@ func (s *Server) handleRemove(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handlePromote(w http.ResponseWriter, r *http.Request) {
 	req, ok := decodeTarget(w, r)
 	if !ok {
+		return
+	}
+	if !s.ownsRoom(r, req.Room) {
+		writeError(w, http.StatusForbidden, "host only")
 		return
 	}
 	if err := s.moderator.PromoteToStage(req.Room, req.Identity); err != nil {
@@ -73,6 +86,10 @@ func (s *Server) handleMuteAll(w http.ResponseWriter, r *http.Request) {
 	req.Room = strings.TrimSpace(req.Room)
 	if req.Room == "" {
 		writeError(w, http.StatusBadRequest, "room is required")
+		return
+	}
+	if !s.ownsRoom(r, req.Room) {
+		writeError(w, http.StatusForbidden, "host only")
 		return
 	}
 	muted, err := s.moderator.MuteAll(req.Room, strings.TrimSpace(req.Except))
@@ -97,6 +114,10 @@ func (s *Server) handleLock(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "room is required")
 		return
 	}
+	if !s.ownsRoom(r, req.Room) {
+		writeError(w, http.StatusForbidden, "host only")
+		return
+	}
 	if err := s.moderator.SetLocked(req.Room, req.Locked); err != nil {
 		writeError(w, http.StatusBadGateway, "failed to update room")
 		return
@@ -114,6 +135,10 @@ func (s *Server) handleRecordStart(w http.ResponseWriter, r *http.Request) {
 	req.Room = strings.TrimSpace(req.Room)
 	if req.Room == "" {
 		writeError(w, http.StatusBadRequest, "room is required")
+		return
+	}
+	if !s.ownsRoom(r, req.Room) {
+		writeError(w, http.StatusForbidden, "host only")
 		return
 	}
 	id, err := s.recorder.Start(req.Room)
@@ -134,6 +159,10 @@ func (s *Server) handleRecordStop(w http.ResponseWriter, r *http.Request) {
 	req.Room = strings.TrimSpace(req.Room)
 	if req.Room == "" {
 		writeError(w, http.StatusBadRequest, "room is required")
+		return
+	}
+	if !s.ownsRoom(r, req.Room) {
+		writeError(w, http.StatusForbidden, "host only")
 		return
 	}
 	if err := s.recorder.Stop(req.Room); err != nil {
