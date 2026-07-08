@@ -1359,7 +1359,32 @@ input {
   text-wrap: balance;
   color: var(--text);
 }
-.wc-gbtn { min-height: 40px; display: flex; justify-content: center; }
+/* Custom Google button matching the design; the real (invisible) Google button
+   is layered on top as the click target so the native flow is preserved. */
+.wc-gbtn-wrap { position: relative; width: 250px; height: 40px; }
+.wc-gbtn-custom {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none; /* clicks fall through to the real button on top */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 999px;
+  background: #131314;
+  color: #e3e3e3;
+  border: 1px solid #5f6368;
+  font-family: var(--font);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: .01em;
+  white-space: nowrap;
+}
+.wc-gbtn-wrap:hover .wc-gbtn-custom { background: #1c1c1e; border-color: #6c7075; }
+[data-theme='light'] .wc-gbtn-custom { background: #131314; color: #e3e3e3; border-color: #3c4043; }
+.wc-gbtn-custom .g { width: 18px; height: 18px; flex: 0 0 auto; }
+.wc-gbtn-real { position: absolute; inset: 0; z-index: 2; opacity: 0; }
 .wc-sub {
   margin: 0;
   color: var(--text-dim);
