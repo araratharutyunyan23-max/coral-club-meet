@@ -1386,7 +1386,10 @@ input {
   background: var(--surround);
   container-type: inline-size;
   font-family: var(--font);
+  /* Brighter Signal rings on the front door than the default ambient. */
+  --ripple-ring: rgba(52, 230, 211, 0.72);
 }
+[data-theme='light'] .welcome-screen { --ripple-ring: rgba(15, 156, 141, 0.6); }
 .wc-corner {
   position: absolute;
   z-index: 4;

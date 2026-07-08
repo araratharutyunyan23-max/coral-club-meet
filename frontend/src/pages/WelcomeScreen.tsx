@@ -30,7 +30,7 @@ export function WelcomeScreen() {
       <div
         className="sf"
         aria-hidden="true"
-        style={{ '--ox': '50%', '--oy': '44%', '--sf-rip': '0.4', '--sf-con': '0.62', '--sf-bloom': '0.82', '--sf-dur': '13s', '--sf-spread': '2.2' } as CSSProperties}
+        style={{ '--ox': '50%', '--oy': '44%', '--sf-rip': '0.68', '--sf-con': '0.9', '--sf-bloom': '0.98', '--sf-dur': '13s', '--sf-spread': '2.2' } as CSSProperties}
       >
         <div className="sf-depth" />
         <div className="sf-contours" />
