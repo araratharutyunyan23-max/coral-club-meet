@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useAuth } from '../lib/auth'
-import { useT } from '../lib/i18n'
+import { useLang, useT } from '../lib/i18n'
 
 /** Sign-in affordance for the top-right chrome cluster. Renders nothing when the
  *  backend doesn't require sign-in; the official Google button when signed out;
@@ -8,11 +8,12 @@ import { useT } from '../lib/i18n'
 export function GoogleSignIn() {
   const { authRequired, user, gisReady, renderButton, signOut } = useAuth()
   const t = useT()
+  const { lang } = useLang()
   const slot = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!user && gisReady && slot.current) renderButton(slot.current)
-  }, [user, gisReady, renderButton])
+    if (!user && gisReady && slot.current) renderButton(slot.current, { locale: lang })
+  }, [user, gisReady, renderButton, lang])
 
   if (!authRequired) return null
 

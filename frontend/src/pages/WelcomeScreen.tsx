@@ -2,7 +2,7 @@ import { useEffect, useRef, type CSSProperties } from 'react'
 import { LangToggle } from '../components/LangToggle'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { useAuth } from '../lib/auth'
-import { useT } from '../lib/i18n'
+import { useLang, useT } from '../lib/i18n'
 
 /**
  * Signed-out front door (Direction A · "Beacon"). Shown on the bare home when
@@ -12,18 +12,22 @@ import { useT } from '../lib/i18n'
  */
 export function WelcomeScreen() {
   const t = useT()
+  const { lang } = useLang()
   const { gisReady, renderButton } = useAuth()
   const slot = useRef<HTMLDivElement>(null)
 
-  // Render (and re-render on theme flip) the official Google button in the slot.
+  // Render the official Google button in the slot, in the app's language (Google
+  // otherwise localizes it from the user's own Google/browser locale). Re-render
+  // when the language changes (effect dep) or the theme flips (observer).
   useEffect(() => {
     const el = slot.current
     if (!el || !gisReady) return
-    renderButton(el)
-    const obs = new MutationObserver(() => renderButton(el))
+    const render = () => renderButton(el, { locale: lang })
+    render()
+    const obs = new MutationObserver(render)
     obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
     return () => obs.disconnect()
-  }, [gisReady, renderButton])
+  }, [gisReady, renderButton, lang])
 
   return (
     <div className="welcome-screen">
