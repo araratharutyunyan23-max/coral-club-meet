@@ -1683,17 +1683,6 @@ input {
 .rep-empty h4 { margin: 0 0 3px; font-size: 14px; font-weight: 600; }
 .rep-empty p { margin: 0; font-size: 13px; color: var(--text-dim); max-width: 52ch; }
 
-.rep-actions { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 15px 22px; border-top: 1px solid var(--border); background: var(--surface-2); }
-.rep-gen { font: 500 11.5px/1.4 var(--mono); color: var(--text-mute); }
-.rep-btns { display: flex; gap: 10px; }
-.rep-btns button { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 11px; font-size: 13.5px; cursor: pointer; }
-.rep-btns button svg { width: 16px; height: 16px; }
-.report .btn-copy { border: 1px solid var(--border-strong); background: transparent; color: var(--text); font-weight: 600; }
-.report .btn-copy:hover { background: var(--fill-subtle); }
-.report .btn-copy.ok { color: var(--teal-soft); border-color: rgba(37, 208, 192, 0.4); }
-.report .btn-csv { border: 1px solid transparent; background: var(--teal); color: #04211e; font-weight: 700; }
-.report .btn-csv:hover { background: var(--teal-bright); }
-
 /* mobile reflow — driven by the card's own width (container query on .report) */
 @container (max-width: 560px) {
   .report .rep-row { grid-template-columns: 1fr auto; row-gap: 10px; padding: 13px 18px; }
@@ -1702,13 +1691,11 @@ input {
   .report .sub-times { display: flex; align-items: center; gap: 6px; font: 500 11px/1 var(--mono); color: var(--text-mute); }
   .report .present { font-size: 17px; }
   .report .talk { grid-column: 1 / -1; }
-  .rep-head, .report .tot, .rep-toolbar, .rep-actions { padding-left: 18px; padding-right: 18px; }
+  .rep-head, .report .tot, .rep-toolbar { padding-left: 18px; padding-right: 18px; }
   /* On the narrowest cards the "SORT" label + segmented buttons exceed the row;
      let the sort control wrap its label above the buttons so it never overshoots
      the card's content box (the seg alone fits). */
   .rep-sort { flex-wrap: wrap; }
   .rep-totals { grid-template-columns: 1fr; }
   .report .tot + .tot { border-left: none; border-top: 1px solid var(--border); }
-  .rep-actions { flex-direction: column; align-items: stretch; }
-  .rep-btns button { flex: 1; justify-content: center; }
 }
