@@ -71,6 +71,15 @@ func (s *Server) handleToken(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// A locked room admits only its host; everyone else is turned away. Fail open
+	// if the lock state can't be read (never block joins on a transient error).
+	if role != livekit.RoleHost {
+		if locked, err := s.moderator.IsLocked(req.Room); err == nil && locked {
+			writeError(w, http.StatusForbidden, "room is locked")
+			return
+		}
+	}
+
 	token, err := s.issuer.Issue(livekit.TokenRequest{
 		Room:     req.Room,
 		Identity: req.Identity,

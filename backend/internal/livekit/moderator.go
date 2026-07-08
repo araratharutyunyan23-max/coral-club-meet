@@ -2,6 +2,7 @@ package livekit
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -117,8 +118,8 @@ func (m *Moderator) PromoteToStage(room, identity string) error {
 	return err
 }
 
-// SetLocked records the room's locked state in its metadata. NOTE: enforcement
-// requires the token endpoint to reject joins when locked — wired in a later pass.
+// SetLocked records the room's locked state in its metadata. Enforcement is in
+// the token endpoint (see IsLocked), which turns away non-host joiners.
 func (m *Moderator) SetLocked(room string, locked bool) error {
 	ctx, cancel := timeoutCtx()
 	defer cancel()
@@ -128,4 +129,28 @@ func (m *Moderator) SetLocked(room string, locked bool) error {
 	}
 	_, err := m.client.UpdateRoomMetadata(ctx, &livekit.UpdateRoomMetadataRequest{Room: room, Metadata: metadata})
 	return err
+}
+
+// IsLocked reports whether the room is currently locked (per its metadata). A
+// room that does not exist yet is not locked.
+func (m *Moderator) IsLocked(room string) (bool, error) {
+	ctx, cancel := timeoutCtx()
+	defer cancel()
+	list, err := m.client.ListRooms(ctx, &livekit.ListRoomsRequest{Names: []string{room}})
+	if err != nil {
+		return false, err
+	}
+	for _, r := range list.Rooms {
+		if r.Name != room || r.Metadata == "" {
+			continue
+		}
+		var meta struct {
+			Locked bool `json:"locked"`
+		}
+		if err := json.Unmarshal([]byte(r.Metadata), &meta); err != nil {
+			return false, nil
+		}
+		return meta.Locked, nil
+	}
+	return false, nil
 }

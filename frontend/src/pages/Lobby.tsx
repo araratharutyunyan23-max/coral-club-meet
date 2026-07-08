@@ -167,7 +167,8 @@ export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin
         role: result.role ?? role,
       })
     } catch (e) {
-      setError(e instanceof Error ? e.message : t('Failed to join'))
+      const msg = e instanceof Error ? e.message : ''
+      setError(msg === 'room is locked' ? t('This room is locked by the host.') : msg || t('Failed to join'))
       setBusy(false)
     }
   }
