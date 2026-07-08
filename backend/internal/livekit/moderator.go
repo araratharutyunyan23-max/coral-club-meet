@@ -131,16 +131,29 @@ func (m *Moderator) SetLocked(room string, locked bool) error {
 	return err
 }
 
-// ParticipantCount returns how many participants are currently in the room. A
-// room that does not exist yet (nobody has joined) counts as 0.
-func (m *Moderator) ParticipantCount(room string) (int, error) {
+// ParticipantNames returns up to `limit` display names of the people currently in
+// the room, plus the total count. Used by the pre-join presence indicator, which
+// renders only initials + a per-person hue client-side. A room that does not exist
+// yet (nobody has joined) is empty.
+func (m *Moderator) ParticipantNames(room string, limit int) (names []string, total int, err error) {
 	ctx, cancel := timeoutCtx()
 	defer cancel()
 	list, err := m.client.ListParticipants(ctx, &livekit.ListParticipantsRequest{Room: room})
 	if err != nil {
-		return 0, err
+		return nil, 0, err
 	}
-	return len(list.Participants), nil
+	names = make([]string, 0, limit)
+	for _, p := range list.Participants {
+		if len(names) >= limit {
+			break
+		}
+		n := p.Name
+		if n == "" {
+			n = p.Identity
+		}
+		names = append(names, n)
+	}
+	return names, len(list.Participants), nil
 }
 
 // IsLocked reports whether the room is currently locked (per its metadata). A

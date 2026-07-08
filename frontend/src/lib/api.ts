@@ -85,15 +85,20 @@ export async function logout(): Promise<void> {
   await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {})
 }
 
-/** How many people are already in a room (for the pre-join lobby). Fail-safe: 0. */
-export async function fetchPresence(room: string): Promise<number> {
+/** Who's already in a room (for the pre-join lobby): a total count + up to 4
+ *  display names (used for initials only). Fail-safe: empty. */
+export interface Presence {
+  count: number
+  names: string[]
+}
+export async function fetchPresence(room: string): Promise<Presence> {
   try {
     const res = await fetch(`/api/presence?room=${encodeURIComponent(room)}`)
-    if (!res.ok) return 0
-    const data = (await res.json()) as { count?: number }
-    return typeof data.count === 'number' ? data.count : 0
+    if (!res.ok) return { count: 0, names: [] }
+    const d = (await res.json()) as { count?: number; names?: string[] }
+    return { count: typeof d.count === 'number' ? d.count : 0, names: Array.isArray(d.names) ? d.names : [] }
   } catch {
-    return 0
+    return { count: 0, names: [] }
   }
 }
 
