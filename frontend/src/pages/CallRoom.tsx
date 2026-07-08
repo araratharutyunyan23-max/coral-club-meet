@@ -76,6 +76,10 @@ function CallStage({ room, roomName, reconnecting, isHost, onLeave, onMoveToRoom
   // The true main room to return to (survives nested side rooms).
   const trueMain = mainRoom ?? roomName
   useAttendance(room, true) // collect the post-call meeting report for every participant
+  // Advertise the host role (LiveKit attribute) so every participant's report identifies the host.
+  useEffect(() => {
+    if (isHost) void room.localParticipant.setAttributes({ role: 'host' }).catch(() => {})
+  }, [room, isHost])
   useRaiseHandChime(room)
   useJoinChime(room)
 

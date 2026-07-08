@@ -33,6 +33,7 @@ interface RawP {
   id: string
   name: string
   isLocal: boolean
+  role: 'host' | 'member'
   sessions: RawSession[]
   talkMs: number
   hadTalk: boolean
@@ -50,13 +51,20 @@ const store: Store = { valid: false, room: '', startedAt: 0, endedAt: null, peop
 
 const now = () => Date.now()
 
+// Role is read from the participant's own attribute (the host sets role="host"),
+// so every viewer's report identifies the host correctly — not "whoever I am".
+function roleOf(p: Participant): 'host' | 'member' {
+  return p.attributes?.role === 'host' ? 'host' : 'member'
+}
+
 function ensure(p: Participant): RawP {
   let rp = store.people.get(p.identity)
   if (!rp) {
-    rp = { id: p.identity, name: p.name || p.identity, isLocal: p.isLocal, sessions: [], talkMs: 0, hadTalk: false, speakingSince: null }
+    rp = { id: p.identity, name: p.name || p.identity, isLocal: p.isLocal, role: roleOf(p), sessions: [], talkMs: 0, hadTalk: false, speakingSince: null }
     store.people.set(p.identity, rp)
-  } else if (p.name) {
-    rp.name = p.name
+  } else {
+    if (p.name) rp.name = p.name
+    if (roleOf(p) === 'host') rp.role = 'host' // upgrade once the host attribute arrives
   }
   return rp
 }
@@ -120,10 +128,12 @@ export function useAttendance(room: Room, enabled: boolean) {
     const onConnected = (p: RemoteParticipant) => openSession(p, now())
     const onDisconnected = (p: RemoteParticipant) => closeSession(p, now())
     const onSpeakersChanged = (speakers: Participant[]) => onSpeakers(speakers)
+    const onAttrs = (_changed: Record<string, string>, p: Participant) => void ensure(p) // pick up the host role when it propagates
 
     room.on(RoomEvent.ParticipantConnected, onConnected)
     room.on(RoomEvent.ParticipantDisconnected, onDisconnected)
     room.on(RoomEvent.ActiveSpeakersChanged, onSpeakersChanged)
+    room.on(RoomEvent.ParticipantAttributesChanged, onAttrs)
 
     return () => {
       const t = now()
@@ -137,6 +147,7 @@ export function useAttendance(room: Room, enabled: boolean) {
       room.off(RoomEvent.ParticipantConnected, onConnected)
       room.off(RoomEvent.ParticipantDisconnected, onDisconnected)
       room.off(RoomEvent.ActiveSpeakersChanged, onSpeakersChanged)
+      room.off(RoomEvent.ParticipantAttributesChanged, onAttrs)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [room, enabled])
@@ -174,7 +185,7 @@ export function buildReport(expectedRoom?: string): MeetingReport | null {
     participants.push({
       id: rp.id,
       name: rp.name,
-      role: rp.isLocal ? 'host' : 'member',
+      role: rp.role,
       isLocal: rp.isLocal,
       joined: joined === Infinity ? store.startedAt : joined,
       left: stillIn ? null : left,
