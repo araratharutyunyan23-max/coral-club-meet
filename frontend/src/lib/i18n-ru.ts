@@ -124,8 +124,6 @@ export const RU: Record<string, string> = {
   "person": "участник",
   "people": "участников",
   "{n} still in call": "{n} ещё на связи",
-  "Sort": "Сортировка",
-  "Time present": "Присутствие",
   "Talk-time": "Активность",
   "Participant": "Участник",
   "Joined": "Вход",
