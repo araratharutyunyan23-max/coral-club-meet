@@ -1694,9 +1694,6 @@ input {
 .report .tot-v .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .report .tot-v .t { font-family: var(--mono); font-weight: 500; color: var(--text-dim); font-size: 13.5px; }
 
-.rep-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; padding: 12px 22px; }
-.rep-count { font-size: 13px; font-weight: 600; color: var(--text-dim); }
-
 .rep-scroll { overflow-x: auto; overflow-y: auto; }
 .rep-scroll.scroll { max-height: 328px; }
 .rep-scroll::-webkit-scrollbar { width: 10px; }
@@ -1747,7 +1744,7 @@ input {
   .report .sub-times { display: flex; align-items: center; gap: 6px; font: 500 11px/1 var(--mono); color: var(--text-mute); }
   .report .present { font-size: 17px; }
   .report .talk { grid-column: 1 / -1; }
-  .rep-head, .report .tot, .rep-toolbar { padding-left: 18px; padding-right: 18px; }
+  .rep-head, .report .tot { padding-left: 18px; padding-right: 18px; }
   .rep-totals { grid-template-columns: 1fr; }
   .report .tot + .tot { border-left: none; border-top: 1px solid var(--border); }
 }

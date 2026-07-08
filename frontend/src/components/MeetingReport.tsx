@@ -57,8 +57,6 @@ export function MeetingReport({ report }: { report: Report }) {
   const longest = byPresent[0]
   const active = comparable ? [...talkers].sort((a, b) => (b.talkMs as number) - (a.talkMs as number))[0] : null
   const avg = rows.length ? rows.reduce((s, p) => s + p.presentMs, 0) / rows.length : 0
-  const inCall = rows.filter((p) => p.left === null).length
-
   return (
     <section className="report">
       <div className="rep-head">
@@ -94,12 +92,6 @@ export function MeetingReport({ report }: { report: Report }) {
         <Total k={t('Avg attendance')}>
           <span className="t" style={{ color: 'var(--text)', fontSize: 15 }}>{fmtDur(avg)}</span>
         </Total>
-      </div>
-
-      <div className="rep-toolbar">
-        <div className="rep-count">
-          {rows.length} {rows.length === 1 ? t('person') : t('people')}{inCall ? ` · ${t('{n} still in call', { n: inCall })}` : ''}
-        </div>
       </div>
 
       <div className={`rep-scroll${rows.length > 8 ? ' scroll' : ''}`}>
