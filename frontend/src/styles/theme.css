@@ -1306,6 +1306,68 @@ input {
   .sf-signal .rp:nth-child(4) { display: none; }
 }
 
+/* ===== Welcome / sign-in — "Beacon" (Direction A) ============================
+   The signed-out front door: Ripple mark centred as the Signal-field emitter,
+   one action (the official Google button). Foreground sits above the field
+   (z-index 2); container-type lets the beacon scale with the viewport. */
+.welcome-screen {
+  position: relative;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--surround);
+  container-type: inline-size;
+  font-family: var(--font);
+}
+.wc-corner {
+  position: absolute;
+  z-index: 4;
+  top: 20px;
+  right: 22px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.wc-beacon {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: clamp(15px, 2.4cqw, 26px);
+  padding: 24px;
+}
+.wc-mark { width: clamp(74px, 12cqw, 132px); height: auto; }
+.wc-wm {
+  margin-top: -6px;
+  font-weight: 600;
+  font-size: clamp(16px, 2.4cqw, 22px);
+  letter-spacing: .01em;
+  color: var(--text);
+}
+.wc-wm span { color: var(--text-mute); font-weight: 500; }
+.wc-hl {
+  margin: 0;
+  font-weight: 800;
+  letter-spacing: -.022em;
+  line-height: 1.08;
+  font-size: clamp(26px, 4.4cqw, 46px);
+  max-width: 15ch;
+  text-wrap: balance;
+  color: var(--text);
+}
+.wc-gbtn { min-height: 40px; display: flex; justify-content: center; }
+.wc-sub {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: clamp(13px, 1.6cqw, 16px);
+  max-width: 40ch;
+  text-wrap: pretty;
+}
+
 /* =====================================================================
    Moment of Recognition — in-call celebration overlay (host-triggered).
    The honoured avatar is the Signal-Field origin: a coral wave blooms,

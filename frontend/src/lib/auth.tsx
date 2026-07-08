@@ -33,7 +33,7 @@ interface AuthCtx {
   gisReady: boolean
   user: AuthUser | null
   /** Renders the official Google button into an element (preferred entry point). */
-  renderButton: (el: HTMLElement) => void
+  renderButton: (el: HTMLElement, opts?: Record<string, unknown>) => void
   /** One Tap / account-chooser prompt — a fallback for gating the Create button. */
   signIn: () => void
   signOut: () => Promise<void>
@@ -111,17 +111,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     document.head.appendChild(sc)
   }, [authRequired, clientId, onCredential])
 
-  const renderButton = useCallback((el: HTMLElement) => {
+  const renderButton = useCallback((el: HTMLElement, opts?: Record<string, unknown>) => {
     const g = gis()
     if (!g?.accounts?.id) return
+    // Match the app theme: filled on the dark surface, outline on Tide.
+    const dark = document.documentElement.dataset.theme !== 'light'
     el.innerHTML = ''
     g.accounts.id.renderButton(el, {
       type: 'standard',
-      theme: 'outline',
+      theme: dark ? 'filled_black' : 'outline',
       size: 'large',
       text: 'signin_with',
       shape: 'pill',
       logo_alignment: 'left',
+      ...opts,
     })
   }, [])
 

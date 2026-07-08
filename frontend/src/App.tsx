@@ -4,6 +4,7 @@ import { createRoom, fetchToken } from './lib/api'
 import { useAuth } from './lib/auth'
 import { generateRoomId, isRoomCreator, markRoomCreated, roomFromUrl, setRoomUrl } from './lib/rooms'
 import { Home } from './pages/Home'
+import { WelcomeScreen } from './pages/WelcomeScreen'
 import { Lobby } from './pages/Lobby'
 import { CallRoom } from './pages/CallRoom'
 import { PostCall } from './pages/PostCall'
@@ -11,7 +12,7 @@ import { WaitingRoom } from './pages/WaitingRoom'
 
 /** Flow: home → (create/join → /j/<id>) → lobby → call → post-call. */
 export function App() {
-  const { authRequired, user, signIn } = useAuth()
+  const { authRequired, user, signIn, ready } = useAuth()
   const [screen, setScreen] = useState<AppScreen>(() => (roomFromUrl() ? 'lobby' : 'home'))
   const [room, setRoom] = useState<string | null>(() => roomFromUrl())
   const [join, setJoin] = useState<JoinInfo | null>(null)
@@ -102,6 +103,7 @@ export function App() {
   }
 
   const createMeeting = async () => {
+    if (!ready) return // wait for /api/config so we don't create a client-only room when auth is required
     if (authRequired) {
       // Only signed-in users can create; the server owns the room id.
       if (!user) {
@@ -124,6 +126,9 @@ export function App() {
   const role: Role = room && isRoomCreator(room) ? 'host' : 'participant'
 
   if (screen === 'home' || !room) {
+    // Signed-out front door when sign-in is required (guests with a room link
+    // never reach here — they route to the lobby).
+    if (authRequired && ready && !user) return <WelcomeScreen />
     return <Home onCreate={createMeeting} />
   }
   if (screen === 'waiting' && join) {
