@@ -33,7 +33,7 @@ ufw allow 7881/tcp
 
 cd /opt/coral-club-meet
 cat > .env <<'EOF'                       # secrets — never commit; chmod 600
-LIVEKIT_URL=wss://178-105-146-99.sslip.io
+LIVEKIT_URL=wss://meet-coralclub.com
 LIVEKIT_API_KEY=<apikey>
 LIVEKIT_API_SECRET=<long-random-secret>
 ALLOWED_ORIGINS=*
@@ -45,7 +45,7 @@ docker compose -f docker-compose.prod.yml up -d --build --remove-orphans
 ```
 
 Caddy provisions the TLS cert on first start (port 80 must be reachable). Open
-**https://178-105-146-99.sslip.io**.
+**https://meet-coralclub.com**.
 
 ## Redeploy
 
