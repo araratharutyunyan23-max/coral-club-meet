@@ -2,7 +2,7 @@
 # proxies /api -> backend and the LiveKit signaling (/rtc) -> the local SFU.
 # Swap the hostname here when a real domain (e.g. meet.coralclub.online) is pointed
 # at this box. Everything runs on host networking, so upstreams are on localhost.
-178-105-107-69.sslip.io {
+178-105-146-99.sslip.io {
 	encode zstd gzip
 
 	# LiveKit signaling: WebSocket (/rtc) + validation (/rtc/validate) -> local SFU

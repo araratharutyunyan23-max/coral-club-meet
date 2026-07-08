@@ -17,14 +17,14 @@ The repo's root `docker-compose.yml` is the local-dev stack — not used in prod
 ## Server
 
 - Hetzner CAX11 (ARM64, Ubuntu 24.04), Docker + Compose + Node 20 preinstalled.
-- Repo at `/opt/coral-club-meet`. Public host: `178-105-107-69.sslip.io` (sslip.io
-  resolves it to the box IP `178.105.107.69`). Swap the hostname in `infra/Caddyfile`
+- Repo at `/opt/coral-club-meet`. Public host: `178-105-146-99.sslip.io` (sslip.io
+  resolves it to the box IP `178.105.146.99`). Swap the hostname in `infra/Caddyfile`
   + `.env` `LIVEKIT_URL` when a real domain is pointed here.
 
 ## First-time setup
 
 ```bash
-ssh root@178.105.107.69
+ssh root@178.105.146.99
 mkdir -p /opt/coral-club-meet            # copy the repo here
 
 # firewall: LiveKit media (signaling 7880 + API 8080 stay local, not opened)
@@ -33,7 +33,7 @@ ufw allow 7881/tcp
 
 cd /opt/coral-club-meet
 cat > .env <<'EOF'                       # secrets — never commit; chmod 600
-LIVEKIT_URL=wss://178-105-107-69.sslip.io
+LIVEKIT_URL=wss://178-105-146-99.sslip.io
 LIVEKIT_API_KEY=<apikey>
 LIVEKIT_API_SECRET=<long-random-secret>
 ALLOWED_ORIGINS=*
@@ -45,7 +45,7 @@ docker compose -f docker-compose.prod.yml up -d --build --remove-orphans
 ```
 
 Caddy provisions the TLS cert on first start (port 80 must be reachable). Open
-**https://178-105-107-69.sslip.io**.
+**https://178-105-146-99.sslip.io**.
 
 ## Redeploy
 
