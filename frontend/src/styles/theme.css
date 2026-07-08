@@ -1432,9 +1432,9 @@ input {
 .welcome-screen {
   --wc-ease: cubic-bezier(.16, 1, .3, 1);
   --wc-glow: rgba(52, 230, 211, .6);
-  --wc-sw-draw: .95s;
-  --wc-sw-stagger: .13s;
-  --wc-sw-lead: .45s;
+  --wc-sw-draw: .62s;
+  --wc-sw-stagger: .085s;
+  --wc-sw-lead: .3s;
 }
 [data-theme='light'] .welcome-screen { --wc-glow: rgba(15, 156, 141, .5); }
 .wc-pulse {
@@ -1443,10 +1443,10 @@ input {
   border-radius: 50%; border: 1.5px solid var(--teal-bright);
   opacity: 0; transform: translate(-50%, -50%) scale(.16);
   pointer-events: none; will-change: transform, opacity;
-  animation: wcEmit 1.9s var(--wc-ease) both;
+  animation: wcEmit 1.5s var(--wc-ease) both;
 }
-.wc-pulse.wc-p2 { animation-delay: .18s; }
-.wc-core { animation: wcCoreFlare 1.9s var(--wc-ease) both; }
+.wc-pulse.wc-p2 { animation-delay: .16s; }
+.wc-core { animation: wcCoreFlare 1.5s var(--wc-ease) both; }
 .wc-l {
   display: inline-block; color: var(--text);
   will-change: transform, opacity, filter;
