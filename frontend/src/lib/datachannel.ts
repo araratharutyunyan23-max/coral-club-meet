@@ -91,7 +91,7 @@ export function useReactions(room: Room) {
     const y = 112 + Math.random() * 44 // 112..156px above the control bar
     const rise = 210 + Math.random() * 70 // 210..280px
     const sway = (Math.random() - 0.5) * 32 // ±16px
-    const dur = 2.7 + Math.random() * 0.7 // 2.7..3.4s
+    const dur = 3.6 + Math.random() * 0.8 // 3.6..4.4s
     setActive((prev) => [...prev, { id, emoji, label: mine ? 'You' : name, hue: hueFor(name), x, y, rise, sway, dur }])
     const t = setTimeout(() => {
       timers.current.delete(t)

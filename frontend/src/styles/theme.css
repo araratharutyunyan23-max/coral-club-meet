@@ -246,12 +246,12 @@ input {
   position: absolute;
   left: 0;
   bottom: 0;
-  width: 46px;
-  height: 46px;
-  margin: 0 0 -23px -23px;
+  width: 58px;
+  height: 58px;
+  margin: 0 0 -29px -29px;
   display: grid;
   place-items: center;
-  font-size: 33px;
+  font-size: 44px;
   line-height: 1;
   filter: drop-shadow(0 5px 11px rgba(0, 0, 0, 0.45));
   animation: rxPop 0.52s var(--rx-ease) both;
