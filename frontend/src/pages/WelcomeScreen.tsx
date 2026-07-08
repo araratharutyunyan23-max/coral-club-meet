@@ -4,6 +4,18 @@ import { ThemeToggle } from '../components/ThemeToggle'
 import { useAuth } from '../lib/auth'
 import { useT } from '../lib/i18n'
 
+// "Coral Club Meet" split into words → letters with a running index, so the
+// Signal-write reveal can light them up one after another (CSS keys off --i).
+const WM_WORDS: { warm: boolean; letters: { ch: string; i: number }[] }[] = (() => {
+  const src: [string, boolean][] = [
+    ['Coral', false],
+    ['Club', false],
+    ['Meet', true],
+  ]
+  let i = 0
+  return src.map(([text, warm]) => ({ warm, letters: [...text].map((ch) => ({ ch, i: i++ })) }))
+})()
+
 /**
  * Signed-out front door (Direction A · "Beacon"). Shown on the bare home when
  * sign-in is required and there is no session. The Ripple mark sits at centre as
@@ -50,23 +62,38 @@ export function WelcomeScreen() {
       </div>
 
       <div className="wc-beacon">
-        <svg className="wc-mark" viewBox="0 0 120 120" aria-hidden="true">
-          <defs>
-            <linearGradient id="ccWelcomeMark" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stopColor="#34e6d3" />
-              <stop offset="1" stopColor="#0f9c8d" />
-            </linearGradient>
-          </defs>
-          <g stroke="url(#ccWelcomeMark)" fill="none" strokeWidth="3.2" strokeLinecap="round">
-            <path d="M60 22a38 38 0 0 1 0 76" />
-            <path d="M60 38a22 22 0 0 1 0 44" />
-            <path d="M60 6a54 54 0 0 1 0 108" opacity=".5" />
-          </g>
-          <circle cx="60" cy="60" r="8.4" fill="#ff7e63" />
-        </svg>
+        <div className="wc-mark-wrap">
+          <span className="wc-pulse" aria-hidden="true" />
+          <span className="wc-pulse wc-p2" aria-hidden="true" />
+          <svg className="wc-mark" viewBox="0 0 120 120" aria-hidden="true">
+            <defs>
+              <linearGradient id="ccWelcomeMark" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stopColor="#34e6d3" />
+                <stop offset="1" stopColor="#0f9c8d" />
+              </linearGradient>
+            </defs>
+            <g stroke="url(#ccWelcomeMark)" fill="none" strokeWidth="3.2" strokeLinecap="round">
+              <path d="M60 22a38 38 0 0 1 0 76" />
+              <path d="M60 38a22 22 0 0 1 0 44" />
+              <path d="M60 6a54 54 0 0 1 0 108" opacity=".5" />
+            </g>
+            <circle className="wc-core" cx="60" cy="60" r="8.4" fill="#ff7e63" />
+          </svg>
+        </div>
 
-        <div className="wc-wm">
-          Coral Club <span>Meet</span>
+        {/* "Coral Club Meet" — the Signal writes the name letter by letter (once on load). */}
+        <div className="wc-wm" role="img" aria-label="Coral Club Meet">
+          <span className="wc-wm-inner">
+            {WM_WORDS.map((w, wi) => (
+              <span key={wi} className={w.warm ? 'wc-w warm' : 'wc-w'}>
+                {w.letters.map((l) => (
+                  <span key={l.i} className="wc-l" style={{ '--i': l.i } as CSSProperties}>
+                    {l.ch}
+                  </span>
+                ))}
+              </span>
+            ))}
+          </span>
         </div>
 
         <h1 className="wc-hl">{t('Sign in to create a meeting.')}</h1>

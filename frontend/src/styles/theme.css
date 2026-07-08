@@ -1411,7 +1411,8 @@ input {
   gap: clamp(15px, 2.4cqw, 26px);
   padding: 24px;
 }
-.wc-mark { width: clamp(74px, 12cqw, 132px); height: auto; }
+.wc-mark-wrap { position: relative; display: grid; place-items: center; }
+.wc-mark { width: clamp(74px, 12cqw, 132px); height: auto; position: relative; z-index: 1; }
 .wc-wm {
   margin-top: -6px;
   font-weight: 600;
@@ -1419,7 +1420,59 @@ input {
   letter-spacing: .01em;
   color: var(--text);
 }
-.wc-wm span { color: var(--text-mute); font-weight: 500; }
+.wc-wm-inner { display: inline-flex; align-items: baseline; gap: .32em; }
+.wc-w { display: inline-block; }
+.wc-w.warm { font-weight: 500; }
+.wc-w.warm .wc-l { color: var(--text-mute); }
+
+/* ===== "Coral Club Meet" reveal — Signal-write (plays once on mount, ~2.95s) ====
+   The mark emits one pulse + core flare, then the name writes itself letter by
+   letter, each lit by a teal signal glow that settles to crisp type. The base
+   state IS the finished wordmark, so reduced-motion just shows it settled. */
+.welcome-screen {
+  --wc-ease: cubic-bezier(.16, 1, .3, 1);
+  --wc-glow: rgba(52, 230, 211, .6);
+  --wc-sw-draw: .95s;
+  --wc-sw-stagger: .13s;
+  --wc-sw-lead: .45s;
+}
+[data-theme='light'] .welcome-screen { --wc-glow: rgba(15, 156, 141, .5); }
+.wc-pulse {
+  position: absolute; top: 50%; left: 50%;
+  width: clamp(150px, 32cqw, 300px); height: clamp(150px, 32cqw, 300px);
+  border-radius: 50%; border: 1.5px solid var(--teal-bright);
+  opacity: 0; transform: translate(-50%, -50%) scale(.16);
+  pointer-events: none; will-change: transform, opacity;
+  animation: wcEmit 1.9s var(--wc-ease) both;
+}
+.wc-pulse.wc-p2 { animation-delay: .18s; }
+.wc-core { animation: wcCoreFlare 1.9s var(--wc-ease) both; }
+.wc-l {
+  display: inline-block; color: var(--text);
+  will-change: transform, opacity, filter;
+  animation: wcLetter var(--wc-sw-draw) var(--wc-ease) both;
+  animation-delay: calc(var(--wc-sw-lead) + var(--i) * var(--wc-sw-stagger));
+}
+@keyframes wcEmit {
+  0% { transform: translate(-50%, -50%) scale(.16); opacity: 0; }
+  14% { opacity: .55; }
+  100% { transform: translate(-50%, -50%) scale(2.9); opacity: 0; }
+}
+@keyframes wcCoreFlare {
+  0% { filter: drop-shadow(0 0 0 transparent); }
+  18% { filter: drop-shadow(0 0 11px var(--coral)); }
+  100% { filter: drop-shadow(0 0 4px color-mix(in srgb, var(--coral) 55%, transparent)); }
+}
+@keyframes wcLetter {
+  0% { opacity: 0; transform: translateY(5px); filter: blur(7px); text-shadow: 0 0 0 transparent; }
+  30% { opacity: 1; text-shadow: 0 0 18px var(--wc-glow), 0 0 7px var(--wc-glow); }
+  70% { filter: blur(0); }
+  100% { opacity: 1; transform: translateY(0); filter: blur(0); text-shadow: 0 0 0 transparent; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wc-l, .wc-core, .wc-pulse { animation: none !important; }
+  .wc-pulse { opacity: 0; }
+}
 .wc-hl {
   margin: 0;
   font-weight: 800;
