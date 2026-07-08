@@ -13,12 +13,12 @@ function formatDuration(totalSec: number): string {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
 }
 
-export function PostCall({ summary, isHost = false, onRejoin, onExit }: { summary: CallSummary; isHost?: boolean; onRejoin: () => void; onExit: () => void }) {
-  // The host gets the attendance report, built once (useState initializer) from
-  // the call's collected session/talk data. buildReport verifies it matches this
-  // room and consumes it, so it's null if we're not the host, nothing was
-  // recorded, or a previous call's data would otherwise leak through.
-  const [report] = useState(() => (isHost ? buildReport(summary.room) : null))
+export function PostCall({ summary, onRejoin, onExit }: { summary: CallSummary; onRejoin: () => void; onExit: () => void }) {
+  // Every participant gets the attendance report, built once (useState initializer)
+  // from the call's collected session/talk data. buildReport verifies it matches
+  // this room and consumes it, so it's null only if nothing was recorded or a
+  // previous call's data would otherwise leak through.
+  const [report] = useState(() => buildReport(summary.room))
   // Commitments left during the call — shown to everyone (accountability is public).
   const [commitments] = useState(() => getCommitments(summary.room))
   const hasPanel = !!report || commitments.length > 0
@@ -96,17 +96,7 @@ export function PostCall({ summary, isHost = false, onRejoin, onExit }: { summar
         </button>
       </div>
 
-      {report && (
-        <>
-          <div className="hostrule">
-            <span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
-              {t('Host only')}
-            </span>
-          </div>
-          <MeetingReport report={report} />
-        </>
-      )}
+      {report && <MeetingReport report={report} />}
 
       {commitments.length > 0 && (
         <div style={{ position: 'relative', zIndex: 2, width: 'min(560px, 92vw)', marginTop: 28, background: 'var(--bg-elev)', border: '1px solid var(--border)', borderRadius: 18, overflow: 'hidden', textAlign: 'left', boxShadow: '0 24px 60px rgba(0,0,0,0.36)' }}>

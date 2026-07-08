@@ -75,7 +75,7 @@ function CallStage({ room, roomName, reconnecting, isHost, onLeave, onMoveToRoom
     onMoveToRoom(roomId, { ...opts, audioEnabled: room.localParticipant.isMicrophoneEnabled, videoEnabled: room.localParticipant.isCameraEnabled })
   // The true main room to return to (survives nested side rooms).
   const trueMain = mainRoom ?? roomName
-  useAttendance(room, isHost) // host-only: collect the post-call meeting report
+  useAttendance(room, true) // collect the post-call meeting report for every participant
   useRaiseHandChime(room)
   useJoinChime(room)
 

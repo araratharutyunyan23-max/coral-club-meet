@@ -1596,12 +1596,6 @@ input {
 :root { --talk-track: rgba(255, 255, 255, 0.07); --talk-fill: var(--teal); }
 [data-theme='light'] { --talk-track: rgba(0, 0, 0, 0.07); }
 
-/* HOST ONLY divider rule (in PostCall, above the report) */
-.hostrule { position: relative; z-index: 2; display: flex; align-items: center; gap: 14px; width: 100%; max-width: 720px; margin: 34px auto 16px; }
-.hostrule::before, .hostrule::after { content: ''; height: 1px; background: var(--border); flex: 1; }
-.hostrule span { font: 600 10px/1 var(--mono); letter-spacing: 0.22em; text-transform: uppercase; color: var(--text-mute); display: inline-flex; align-items: center; gap: 7px; }
-.hostrule span svg { width: 12px; height: 12px; color: var(--teal-soft); }
-
 .report {
   position: relative; z-index: 2; container-type: inline-size;
   width: 100%; max-width: 720px; margin: 0 auto; text-align: left;
@@ -1615,9 +1609,6 @@ input {
 .rep-head-top { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px 16px; }
 .rep-title { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; }
 .rep-room { margin-top: 3px; font: 500 12.5px/1 var(--mono); color: var(--text-mute); letter-spacing: 0.02em; }
-.rep-hostonly { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; background: var(--teal-tint); border: 1px solid rgba(37, 208, 192, 0.28); color: var(--teal-soft); font-size: 11px; font-weight: 700; letter-spacing: 0.02em; white-space: nowrap; }
-[data-theme='light'] .rep-hostonly { border-color: rgba(15, 156, 141, 0.3); }
-.rep-hostonly svg { width: 12px; height: 12px; }
 .rep-meta { margin-top: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
 .report .fact { display: inline-flex; align-items: baseline; gap: 7px; }
 .report .fact .k { font: 600 10px/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-mute); }

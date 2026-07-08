@@ -67,10 +67,6 @@ export function MeetingReport({ report }: { report: Report }) {
             <div className="rep-title">{t('Meeting report')}</div>
             <div className="rep-room">{report.room}</div>
           </div>
-          <div className="rep-hostonly" title={t('Only the host can see this report')}>
-            <LockIcon />
-            {t('Host only')}
-          </div>
         </div>
         <div className="rep-meta">
           <span className="fact"><span className="k">{t('Date')}</span><span className="v">{dateLabel(report.startedAt)}</span></span>
@@ -176,9 +172,6 @@ function Total({ k, children }: { k: string; children: React.ReactNode }) {
 }
 
 /* ---- icons ---- */
-function LockIcon() {
-  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
-}
 function SessionsIcon() {
   return <svg className="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="14" height="14" rx="2" /><path d="M21 7v12a2 2 0 0 1-2 2H7" /></svg>
 }
