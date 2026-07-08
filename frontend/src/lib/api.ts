@@ -86,19 +86,28 @@ export async function logout(): Promise<void> {
 }
 
 /** Who's already in a room (for the pre-join lobby): a total count + up to 4
- *  display names (used for initials only). Fail-safe: empty. */
+ *  members as initials + hue only (never names/identities). */
+export interface PresenceMember {
+  initials: string
+  hue: number
+}
 export interface Presence {
   count: number
-  names: string[]
+  members: PresenceMember[]
 }
-export async function fetchPresence(room: string): Promise<Presence> {
+/** Returns null on any failure so the caller can keep the last known value instead
+ *  of falsely flipping to "empty". */
+export async function fetchPresence(room: string): Promise<Presence | null> {
   try {
     const res = await fetch(`/api/presence?room=${encodeURIComponent(room)}`)
-    if (!res.ok) return { count: 0, names: [] }
-    const d = (await res.json()) as { count?: number; names?: string[] }
-    return { count: typeof d.count === 'number' ? d.count : 0, names: Array.isArray(d.names) ? d.names : [] }
+    if (!res.ok) return null
+    const d = (await res.json()) as { count?: number; members?: PresenceMember[] }
+    return {
+      count: typeof d.count === 'number' ? d.count : 0,
+      members: Array.isArray(d.members) ? d.members : [],
+    }
   } catch {
-    return { count: 0, names: [] }
+    return null
   }
 }
 

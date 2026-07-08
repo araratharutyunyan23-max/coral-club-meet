@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import { fetchPresence, type Presence } from '../lib/api'
-import { initialsFor, userTint } from './Avatar'
 import { useT } from '../lib/i18n'
 
 const POLL_MS = 5000
@@ -8,8 +7,10 @@ const POLL_MS = 5000
 /**
  * Pre-join presence — a live read of who's already in the room, shown on the
  * lobby before you join. Up to 4 circles with initials + a per-person hue
- * (matching the in-call avatars), the total count capped at "9+", and an empty
- * room that leans on the brand ("you'll be first"). Updates every few seconds.
+ * (matching the in-call avatars, computed server-side so names never reach the
+ * client), the total count capped at "9+", and an empty room that leans on the
+ * brand ("you'll be first"). Updates every few seconds; keeps the last known
+ * value on a transient fetch error rather than flipping to "empty".
  */
 export function LobbyPresence({ room }: { room: string }) {
   const t = useT()
@@ -21,7 +22,7 @@ export function LobbyPresence({ room }: { room: string }) {
     let cancelled = false
     const tick = async () => {
       const p = await fetchPresence(room)
-      if (!cancelled) setData(p)
+      if (!cancelled && p) setData(p) // null = fetch failed → keep last known
     }
     void tick()
     const id = window.setInterval(() => void tick(), POLL_MS)
@@ -64,17 +65,17 @@ export function LobbyPresence({ room }: { room: string }) {
       </span>
     )
   } else {
-    const extra = data.count - data.names.length
+    const hasMore = data.count > data.members.length
     inner = (
       <span className="lobby-presence" aria-live="polite">
         <span className="lp-dot" aria-hidden="true" />
         <span className="lp-stack" aria-hidden="true">
-          {data.names.slice(0, 4).map((name, i) => (
-            <span key={i} className="lp-av" style={userTint(name)}>
-              {initialsFor(name)}
+          {data.members.slice(0, 4).map((m, i) => (
+            <span key={i} className="lp-av" style={{ background: `hsl(${m.hue} 54% 47%)` }}>
+              {m.initials}
             </span>
           ))}
-          {extra > 0 && <span className="lp-av lp-more">+{extra > 9 ? '9' : extra}</span>}
+          {hasMore && <span className="lp-av lp-more">+</span>}
         </span>
         <span className="lp-count">
           <span ref={rollRef} className="lp-roll">

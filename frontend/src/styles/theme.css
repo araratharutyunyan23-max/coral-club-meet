@@ -1306,9 +1306,10 @@ input {
   .sf-signal .rp:nth-child(4) { display: none; }
 }
 
-/* ===== Lobby pre-join presence — "who's already here" (faceless, Dir B) ======
-   A live count + up to 4 anonymous tinted circles, shown before you join. The
-   hue palette is by position (reveals no identity). Empty room → brand ripple. */
+/* ===== Lobby pre-join presence — "who's already here" ========================
+   A live count + up to 4 circles (initials + a per-person hue, computed
+   server-side so names never reach the client), shown before you join. Empty
+   room → brand ripple. */
 .lobby-presrow {
   margin-bottom: 14px;
   padding: 11px 13px;

@@ -238,7 +238,7 @@ export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin
               state and helpers (DeviceRow / ToggleRow / SpeakerGlyph) are kept
               in place for an easy restore. */}
 
-          {/* Live read of how many people are already in the room (faceless). */}
+          {/* Live read of who's already in the room (count + initials). */}
           <LobbyPresence room={room} />
 
           <input
