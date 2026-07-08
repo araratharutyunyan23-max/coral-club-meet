@@ -1,3 +1,4 @@
+import { Fragment, type CSSProperties } from 'react'
 import { Logo } from '../components/Logo'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { LangToggle } from '../components/LangToggle'
@@ -44,7 +45,17 @@ export function Home({ onCreate }: { onCreate: () => void }) {
         <div className="home-hero">
           <div className="copy">
             <div className="intro">
-              <h1>{t('Meetings, the Coral Club way.')}</h1>
+              {/* Word-by-word reveal on load (same Signal spirit as the welcome wordmark). */}
+              <h1>
+                {t('Meetings, the Coral Club way.')
+                  .split(' ')
+                  .map((word, i) => (
+                    <Fragment key={i}>
+                      {i > 0 && ' '}
+                      <span className="hw" style={{ '--i': i } as CSSProperties}>{word}</span>
+                    </Fragment>
+                  ))}
+              </h1>
             </div>
 
             <div className="cta-row">

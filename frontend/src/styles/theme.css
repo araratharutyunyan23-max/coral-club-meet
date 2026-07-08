@@ -717,6 +717,22 @@ input {
   color: var(--text);
   font-size: clamp(40px, 5.4vw, 66px);
 }
+/* Headline reveal — each word rises out of a soft blur in turn (once on mount).
+   Base state is the settled word, so reduced motion just shows it in place. */
+.home-hero h1 .hw {
+  display: inline-block;
+  will-change: transform, opacity, filter;
+  animation: homeWordIn 0.72s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(0.2s + var(--i) * 0.12s);
+}
+@keyframes homeWordIn {
+  0% { opacity: 0; transform: translateY(0.42em); filter: blur(6px); }
+  60% { opacity: 1; }
+  100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-hero h1 .hw { animation: none !important; }
+}
 .home-hero .lede {
   margin: 0;
   color: var(--text-dim);
