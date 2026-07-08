@@ -1634,15 +1634,8 @@ input {
 .report .tot-v .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .report .tot-v .t { font-family: var(--mono); font-weight: 500; color: var(--text-dim); font-size: 13.5px; }
 
-.rep-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 12px; padding: 12px 22px; }
+.rep-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; padding: 12px 22px; }
 .rep-count { font-size: 13px; font-weight: 600; color: var(--text-dim); }
-.rep-sort { display: flex; align-items: center; gap: 6px; }
-.rep-sort .sl { font: 600 10px/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-mute); margin-right: 2px; }
-.rep-sort .seg2 { display: flex; gap: 2px; padding: 3px; border-radius: 9px; background: var(--fill-subtle); border: 1px solid var(--border); }
-.rep-sort button { font: 600 11.5px/1 var(--font); color: var(--text-dim); background: transparent; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; }
-.rep-sort button:hover { color: var(--text); }
-.rep-sort button.on { background: var(--bg-elev); color: var(--text); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); }
-[data-theme='light'] .rep-sort button.on { box-shadow: 0 1px 2px rgba(20, 40, 38, 0.08); }
 
 .rep-scroll { overflow-x: auto; overflow-y: auto; }
 .rep-scroll.scroll { max-height: 328px; }
@@ -1695,10 +1688,6 @@ input {
   .report .present { font-size: 17px; }
   .report .talk { grid-column: 1 / -1; }
   .rep-head, .report .tot, .rep-toolbar { padding-left: 18px; padding-right: 18px; }
-  /* On the narrowest cards the "SORT" label + segmented buttons exceed the row;
-     let the sort control wrap its label above the buttons so it never overshoots
-     the card's content box (the seg alone fits). */
-  .rep-sort { flex-wrap: wrap; }
   .rep-totals { grid-template-columns: 1fr; }
   .report .tot + .tot { border-left: none; border-top: 1px solid var(--border); }
 }

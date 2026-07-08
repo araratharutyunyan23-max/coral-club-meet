@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { initialsFor, userColor } from './Avatar'
 import { useT } from '../lib/i18n'
 import type { MeetingReport as Report, ReportParticipant } from '../lib/attendance'
@@ -50,11 +49,10 @@ function normalise(people: ReportParticipant[]) {
  */
 export function MeetingReport({ report }: { report: Report }) {
   const t = useT()
-  const [sortBy, setSortBy] = useState<'present' | 'talk'>('present')
-
   const { rows, talkers, comparable } = normalise(report.participants)
   const byPresent = [...rows].sort((a, b) => b.presentMs - a.presentMs)
-  const sorted = sortBy === 'talk' ? [...rows].sort((a, b) => (b.talkMs ?? -1) - (a.talkMs ?? -1) || b.presentMs - a.presentMs) : byPresent
+  // Always sorted by activity (talk-time); falls back to time present when there's no talk data.
+  const sorted = [...rows].sort((a, b) => (b.talkMs ?? -1) - (a.talkMs ?? -1) || b.presentMs - a.presentMs)
 
   const longest = byPresent[0]
   const active = comparable ? [...talkers].sort((a, b) => (b.talkMs as number) - (a.talkMs as number))[0] : null
@@ -105,13 +103,6 @@ export function MeetingReport({ report }: { report: Report }) {
       <div className="rep-toolbar">
         <div className="rep-count">
           {rows.length} {rows.length === 1 ? t('person') : t('people')}{inCall ? ` · ${t('{n} still in call', { n: inCall })}` : ''}
-        </div>
-        <div className="rep-sort">
-          <span className="sl">{t('Sort')}</span>
-          <div className="seg2">
-            <button className={sortBy === 'present' ? 'on' : ''} onClick={() => setSortBy('present')}>{t('Time present')}</button>
-            <button className={sortBy === 'talk' ? 'on' : ''} onClick={() => setSortBy('talk')}>{t('Talk-time')}</button>
-          </div>
         </div>
       </div>
 
