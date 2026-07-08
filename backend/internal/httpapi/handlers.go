@@ -28,6 +28,22 @@ func (s *Server) handleHealth(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 }
 
+// handlePresence returns how many people are currently in a room, so the pre-join
+// lobby can show it before someone joins. Public (guests need it); reveals only a
+// count, never identities. A missing/not-yet-created room reports 0.
+func (s *Server) handlePresence(w http.ResponseWriter, r *http.Request) {
+	room := strings.TrimSpace(r.URL.Query().Get("room"))
+	if room == "" || len(room) > 256 {
+		writeError(w, http.StatusBadRequest, "room is required")
+		return
+	}
+	count, err := s.moderator.ParticipantCount(room)
+	if err != nil {
+		count = 0 // room not created yet → nobody in it
+	}
+	writeJSON(w, http.StatusOK, map[string]int{"count": count})
+}
+
 // handleToken validates a join request and returns a LiveKit access token.
 //
 // Role is authoritative from the server when Google sign-in is enabled: host is

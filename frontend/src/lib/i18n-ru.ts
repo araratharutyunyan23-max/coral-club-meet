@@ -193,4 +193,6 @@ export const RU: Record<string, string> = {
   "Guests join by link — no account needed.": "Гости присоединяются по ссылке — аккаунт не нужен.",
   "Sign in with Google": "Войти через Google",
   "This room is locked by the host.": "Комната закрыта хостом.",
+  "in the call": "в звонке",
+  "You'll be the first here": "Вы будете первым",
 }

@@ -5,6 +5,7 @@ import { Logo } from '../components/Logo'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { LangToggle } from '../components/LangToggle'
 import { initialsFor } from '../components/Avatar'
+import { LobbyPresence } from '../components/LobbyPresence'
 import { CameraIcon, CameraOffIcon, MicIcon, MicOffIcon } from '../lib/icons'
 import { useIsMobile } from '../lib/hooks'
 import { useT } from '../lib/i18n'
@@ -236,6 +237,9 @@ export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin
               uses the system default devices in the meantime. The supporting
               state and helpers (DeviceRow / ToggleRow / SpeakerGlyph) are kept
               in place for an easy restore. */}
+
+          {/* Live read of how many people are already in the room (faceless). */}
+          <LobbyPresence room={room} />
 
           <input
             value={name}

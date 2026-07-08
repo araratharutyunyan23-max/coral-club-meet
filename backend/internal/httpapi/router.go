@@ -69,6 +69,9 @@ func (s *Server) Router(allowedOrigins []string) http.Handler {
 		// Open to guests: role is derived server-side (host only for the owner).
 		r.Post("/token", s.handleToken)
 
+		// Open to guests: how many people are already in a room (pre-join count).
+		r.Get("/presence", s.handlePresence)
+
 		// Google sign-in: verify credential → session cookie; who-am-i; logout.
 		r.Route("/auth", func(r chi.Router) {
 			r.Post("/google", s.handleGoogleLogin)

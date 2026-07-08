@@ -85,6 +85,18 @@ export async function logout(): Promise<void> {
   await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {})
 }
 
+/** How many people are already in a room (for the pre-join lobby). Fail-safe: 0. */
+export async function fetchPresence(room: string): Promise<number> {
+  try {
+    const res = await fetch(`/api/presence?room=${encodeURIComponent(room)}`)
+    if (!res.ok) return 0
+    const data = (await res.json()) as { count?: number }
+    return typeof data.count === 'number' ? data.count : 0
+  } catch {
+    return 0
+  }
+}
+
 /** Creates a server-owned meeting (requires a session). Pass a room id to claim
  *  a specific one (host-owned side rooms); omit it for a fresh id. */
 export async function createRoom(room?: string): Promise<string> {
