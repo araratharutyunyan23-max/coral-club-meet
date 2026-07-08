@@ -69,7 +69,7 @@ export function WelcomeScreen() {
           Coral Club <span>Meet</span>
         </div>
 
-        <h1 className="wc-hl">{t('Sign in to start a meeting.')}</h1>
+        <h1 className="wc-hl">{t('Sign in to create a meeting.')}</h1>
 
         {/* Custom-styled button (visual) with the real Google button layered on top,
             invisible, as the actual click target. */}
