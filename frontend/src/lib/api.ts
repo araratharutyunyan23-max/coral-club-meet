@@ -7,13 +7,26 @@ interface TokenParams {
   role?: Role
 }
 
+// Durable host proof: the server returns a signed grant when we create a room; we
+// keep it per-room and present it (X-Room-Grant) so host powers survive backend
+// restarts. Kept in localStorage since a reload/rejoin must still carry it.
+function grantHeader(room?: string): Record<string, string> {
+  if (!room) return {}
+  try {
+    const g = localStorage.getItem('cc-grant:' + room)
+    return g ? { 'X-Room-Grant': g } : {}
+  } catch {
+    return {}
+  }
+}
+
 /** Requests a LiveKit access token from the backend for the given room/user.
  *  The returned `role` is authoritative (the server decides host vs participant
  *  when sign-in is enabled); callers should prefer it over any local guess. */
 export async function fetchToken(params: TokenParams): Promise<TokenResult> {
   const res = await fetch('/api/token', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...grantHeader(params.room) },
     body: JSON.stringify(params),
   })
 
@@ -84,14 +97,21 @@ export async function createRoom(room?: string): Promise<string> {
     const body = (await res.json().catch(() => null)) as { error?: string } | null
     throw new Error(body?.error ?? `Could not create meeting (${res.status})`)
   }
-  const data = (await res.json()) as { room: string }
+  const data = (await res.json()) as { room: string; grant?: string }
+  if (data.grant) {
+    try {
+      localStorage.setItem('cc-grant:' + data.room, data.grant)
+    } catch {
+      /* storage unavailable — host powers won't survive a backend restart, but the session still does */
+    }
+  }
   return data.room
 }
 
 async function adminPost(action: string, body: Record<string, unknown>): Promise<void> {
   const res = await fetch(`/api/admin/${action}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...grantHeader(body.room as string | undefined) },
     body: JSON.stringify(body),
   })
   if (!res.ok) {

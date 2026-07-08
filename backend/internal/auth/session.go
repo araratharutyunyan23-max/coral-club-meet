@@ -65,3 +65,47 @@ func sign(input, secret string) string {
 	mac.Write([]byte(input))
 	return base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
 }
+
+// RoomGrant is a durable, signed proof that a user owns (hosts) a specific room.
+// It is issued when the room is created and presented via the X-Room-Grant header
+// so host powers survive backend restarts without persisting any server state.
+type RoomGrant struct {
+	Room string `json:"room"`
+	Sub  string `json:"sub"`
+	Exp  int64  `json:"exp"`
+}
+
+// SignRoomGrant returns a compact HS256 grant token, expiring after ttl.
+func SignRoomGrant(room, sub, secret string, ttl time.Duration) (string, error) {
+	g := RoomGrant{Room: room, Sub: sub, Exp: time.Now().Add(ttl).Unix()}
+	payload, err := json.Marshal(g)
+	if err != nil {
+		return "", err
+	}
+	body := base64.RawURLEncoding.EncodeToString(payload)
+	signingInput := sessionHeader + "." + body
+	return signingInput + "." + sign(signingInput, secret), nil
+}
+
+// VerifyRoomGrant validates the signature and expiry and returns the grant.
+func VerifyRoomGrant(token, secret string) (RoomGrant, error) {
+	parts := strings.Split(token, ".")
+	if len(parts) != 3 {
+		return RoomGrant{}, errors.New("malformed grant")
+	}
+	if !hmac.Equal([]byte(sign(parts[0]+"."+parts[1], secret)), []byte(parts[2])) {
+		return RoomGrant{}, errors.New("bad grant signature")
+	}
+	payload, err := base64.RawURLEncoding.DecodeString(parts[1])
+	if err != nil {
+		return RoomGrant{}, errors.New("malformed grant payload")
+	}
+	var g RoomGrant
+	if err := json.Unmarshal(payload, &g); err != nil {
+		return RoomGrant{}, errors.New("malformed grant payload")
+	}
+	if g.Exp == 0 || time.Now().Unix() > g.Exp {
+		return RoomGrant{}, errors.New("grant expired")
+	}
+	return g, nil
+}

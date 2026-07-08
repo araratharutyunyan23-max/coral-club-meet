@@ -12,6 +12,7 @@ import (
 const (
 	sessionCookie = "cc_session"
 	sessionTTL    = 12 * time.Hour
+	roomGrantTTL  = 30 * 24 * time.Hour // durable host proof, survives restarts
 )
 
 // authEnabled reports whether Google sign-in is configured. When false, the app
@@ -109,7 +110,8 @@ type createRoomRequest struct {
 }
 
 type createRoomResponse struct {
-	Room string `json:"room"`
+	Room  string `json:"room"`
+	Grant string `json:"grant"` // durable host proof for X-Room-Grant
 }
 
 // handleCreateRoom registers a room owned by the signed-in caller (guarded by
@@ -138,7 +140,12 @@ func (s *Server) handleCreateRoom(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.rooms.set(room, sess.Sub)
-	writeJSON(w, http.StatusOK, createRoomResponse{Room: room})
+	grant, err := auth.SignRoomGrant(room, sess.Sub, s.sessionSecret, roomGrantTTL)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to create room grant")
+		return
+	}
+	writeJSON(w, http.StatusOK, createRoomResponse{Room: room, Grant: grant})
 }
 
 func (s *Server) setSessionCookie(w http.ResponseWriter, value string, maxAge int) {
@@ -171,7 +178,7 @@ func (s *Server) sessionFromRequest(r *http.Request) (auth.Session, bool) {
 
 // ownsRoom reports whether the caller may perform host/moderation actions on a
 // room. With sign-in disabled the app keeps its legacy open behavior; with it
-// enabled, the caller must have a valid session and be the room's owner.
+// enabled, the caller must have a valid session and be the room's host.
 func (s *Server) ownsRoom(r *http.Request, room string) bool {
 	if !s.authEnabled() {
 		return true
@@ -180,8 +187,24 @@ func (s *Server) ownsRoom(r *http.Request, room string) bool {
 	if !ok {
 		return false
 	}
-	owner, exists := s.rooms.owner(room)
-	return exists && owner == sess.Sub
+	return s.isRoomHost(r, room, sess)
+}
+
+// isRoomHost reports whether the session hosts `room`, via the in-memory owner
+// map or a valid durable room grant (X-Room-Grant header). A valid grant
+// re-populates the map, so host powers survive backend restarts without any
+// persisted server state.
+func (s *Server) isRoomHost(r *http.Request, room string, sess auth.Session) bool {
+	if owner, ok := s.rooms.owner(room); ok {
+		return owner == sess.Sub
+	}
+	if g := r.Header.Get("X-Room-Grant"); g != "" {
+		if grant, err := auth.VerifyRoomGrant(g, s.sessionSecret); err == nil && grant.Room == room && grant.Sub == sess.Sub {
+			s.rooms.set(room, sess.Sub)
+			return true
+		}
+	}
+	return false
 }
 
 // requireSession guards routes that need a signed-in user (create-room).
