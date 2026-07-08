@@ -1678,21 +1678,6 @@ input {
 .rep-head-top { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px 16px; }
 .rep-title { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; }
 .rep-room { margin-top: 3px; font: 500 12.5px/1 var(--mono); color: var(--text-mute); letter-spacing: 0.02em; }
-.rep-meta { margin-top: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
-.report .fact { display: inline-flex; align-items: baseline; gap: 7px; }
-.report .fact .k { font: 600 10px/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-mute); }
-.report .fact .v { font-size: 13.5px; font-weight: 600; color: var(--text); }
-.report .fact .v.mono { font-family: var(--mono); font-weight: 500; font-size: 13px; }
-.report .fact + .fact { padding-left: 16px; border-left: 1px solid var(--border); }
-
-.rep-totals { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--surface-2); border-bottom: 1px solid var(--border); }
-.report .tot { padding: 14px 22px; }
-.report .tot + .tot { border-left: 1px solid var(--border); }
-.report .tot-k { font: 600 10px/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-mute); }
-.report .tot-v { margin-top: 8px; font-size: 15px; font-weight: 700; letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; min-width: 0; }
-.report .tot-v .hue { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; }
-.report .tot-v .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.report .tot-v .t { font-family: var(--mono); font-weight: 500; color: var(--text-dim); font-size: 13.5px; }
 
 .rep-scroll { overflow-x: auto; overflow-y: auto; }
 .rep-scroll.scroll { max-height: 328px; }
@@ -1744,7 +1729,5 @@ input {
   .report .sub-times { display: flex; align-items: center; gap: 6px; font: 500 11px/1 var(--mono); color: var(--text-mute); }
   .report .present { font-size: 17px; }
   .report .talk { grid-column: 1 / -1; }
-  .rep-head, .report .tot { padding-left: 18px; padding-right: 18px; }
-  .rep-totals { grid-template-columns: 1fr; }
-  .report .tot + .tot { border-left: none; border-top: 1px solid var(--border); }
+  .rep-head { padding-left: 18px; padding-right: 18px; }
 }

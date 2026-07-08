@@ -16,17 +16,6 @@ function clock(ms: number): string {
   const d = new Date(ms)
   return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`
 }
-function dateLabel(ms: number): string {
-  try {
-    return new Date(ms).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
-  } catch {
-    return ''
-  }
-}
-function firstName(name: string): string {
-  const parts = name.trim().split(/\s+/)
-  return parts[0] + (parts[1] ? ' ' + parts[1][0] + '.' : '')
-}
 
 type Row = ReportParticipant & { pct: number | null }
 
@@ -43,20 +32,16 @@ function normalise(people: ReportParticipant[]) {
 }
 
 /**
- * Host-only post-call summary: who attended, how long, and (best-effort) who
- * spoke — with CSV / copy export. Presence is the hero; talk-time gracefully
- * omits per row when unavailable. Styles live in theme.css (.report / .rep-*).
+ * Post-call summary: who attended, how long, and (best-effort) who spoke.
+ * Just the title and the participant table — presence is the hero; talk-time
+ * gracefully omits per row when unavailable. Rows are sorted by activity.
+ * Styles live in theme.css (.report / .rep-*).
  */
 export function MeetingReport({ report }: { report: Report }) {
   const t = useT()
-  const { rows, talkers, comparable } = normalise(report.participants)
-  const byPresent = [...rows].sort((a, b) => b.presentMs - a.presentMs)
+  const { rows } = normalise(report.participants)
   // Always sorted by activity (talk-time); falls back to time present when there's no talk data.
   const sorted = [...rows].sort((a, b) => (b.talkMs ?? -1) - (a.talkMs ?? -1) || b.presentMs - a.presentMs)
-
-  const longest = byPresent[0]
-  const active = comparable ? [...talkers].sort((a, b) => (b.talkMs as number) - (a.talkMs as number))[0] : null
-  const avg = rows.length ? rows.reduce((s, p) => s + p.presentMs, 0) / rows.length : 0
   return (
     <section className="report">
       <div className="rep-head">
@@ -66,32 +51,6 @@ export function MeetingReport({ report }: { report: Report }) {
             <div className="rep-room">{report.room}</div>
           </div>
         </div>
-        <div className="rep-meta">
-          <span className="fact"><span className="k">{t('Date')}</span><span className="v">{dateLabel(report.startedAt)}</span></span>
-          <span className="fact"><span className="k">{t('Duration')}</span><span className="v mono">{fmtDur(report.durationMs)}</span></span>
-          <span className="fact"><span className="k">{t('People')}</span><span className="v">{rows.length}</span></span>
-        </div>
-      </div>
-
-      <div className="rep-totals">
-        <Total k={t('Longest present')}>
-          <span className="hue" style={{ background: userColor(longest.name) }} />
-          <span className="nm">{firstName(longest.name)}</span>
-          <span className="t">{fmtDur(longest.presentMs)}</span>
-        </Total>
-        <Total k={t('Most active')}>
-          {active ? (
-            <>
-              <span className="hue" style={{ background: userColor(active.name) }} />
-              <span className="nm">{firstName(active.name)}</span>
-            </>
-          ) : (
-            <span className="t" style={{ fontSize: 14 }}>{t('Not enough data')}</span>
-          )}
-        </Total>
-        <Total k={t('Avg attendance')}>
-          <span className="t" style={{ color: 'var(--text)', fontSize: 15 }}>{fmtDur(avg)}</span>
-        </Total>
       </div>
 
       <div className={`rep-scroll${rows.length > 8 ? ' scroll' : ''}`}>
@@ -151,15 +110,6 @@ export function MeetingReport({ report }: { report: Report }) {
       )}
 
     </section>
-  )
-}
-
-function Total({ k, children }: { k: string; children: React.ReactNode }) {
-  return (
-    <div className="tot">
-      <div className="tot-k">{k}</div>
-      <div className="tot-v">{children}</div>
-    </div>
   )
 }
 
