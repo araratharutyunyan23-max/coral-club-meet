@@ -16,17 +16,14 @@ export function WelcomeScreen() {
   const { gisReady, renderButton } = useAuth()
   const slot = useRef<HTMLDivElement>(null)
 
-  // Render the official Google button in the slot, in the app's language (Google
-  // otherwise localizes it from the user's own Google/browser locale). Re-render
-  // when the language changes (effect dep) or the theme flips (observer).
+  // Render the official Google button in the slot. Force the dark "filled_black"
+  // treatment (per the Beacon design — the screen is dark-dominant) and the app's
+  // language (Google otherwise localizes from the user's own Google/browser
+  // locale). Re-render when the language changes.
   useEffect(() => {
     const el = slot.current
     if (!el || !gisReady) return
-    const render = () => renderButton(el, { locale: lang })
-    render()
-    const obs = new MutationObserver(render)
-    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
-    return () => obs.disconnect()
+    renderButton(el, { locale: lang, theme: 'filled_black' })
   }, [gisReady, renderButton, lang])
 
   return (
