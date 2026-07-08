@@ -126,9 +126,11 @@ export function App() {
   const role: Role = room && isRoomCreator(room) ? 'host' : 'participant'
 
   if (screen === 'home' || !room) {
-    // Signed-out front door when sign-in is required (guests with a room link
-    // never reach here — they route to the lobby).
-    if (authRequired && ready && !user) return <WelcomeScreen />
+    // Hold on a neutral dark screen (same surround background) until /api/config
+    // resolves, so we never flash the signed-in Home before switching to the
+    // sign-in screen. Guests with a room link never reach here (they go to lobby).
+    if (!ready) return <div style={{ position: 'fixed', inset: 0, background: 'var(--surround)' }} />
+    if (authRequired && !user) return <WelcomeScreen />
     return <Home onCreate={createMeeting} />
   }
   if (screen === 'waiting' && join) {
