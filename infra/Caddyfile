@@ -25,17 +25,24 @@ meet-coralclub.com, 178-105-146-99.sslip.io {
 	# Static SPA frontend
 	handle {
 		root * /srv
-		# Hashed build assets are immutable and cache forever.
-		header /assets/* Cache-Control "public, max-age=31536000, immutable"
-		header /manifest.webmanifest Content-Type "application/manifest+json"
-		# Everything else is the SPA shell (index.html served for "/" and every
-		# client route via try_files). It must never be cached, or browsers keep
-		# loading a stale index.html that points at old asset hashes. The header
-		# directive matches the *request* path, so match all non-asset paths here
-		# rather than "/index.html" (which "/" never hits).
-		@spa not path /assets/*
-		header @spa Cache-Control "no-store"
-		try_files {path} /index.html
-		file_server
+
+		# Hashed build assets are content-addressed → cache forever.
+		@assets path /assets/*
+		handle @assets {
+			header Cache-Control "public, max-age=31536000, immutable"
+			file_server
+		}
+
+		# Everything else is the SPA shell: index.html is served for "/" and every
+		# client route via try_files. It must never be cached, or browsers keep
+		# loading a stale index.html that points at old asset hashes. An
+		# unconditional header here reliably covers the try_files fallback — a
+		# `not path /assets/*` matcher does NOT fire for "/" once try_files rewrites.
+		handle {
+			header Cache-Control "no-store"
+			header /manifest.webmanifest Content-Type "application/manifest+json"
+			try_files {path} /index.html
+			file_server
+		}
 	}
 }
