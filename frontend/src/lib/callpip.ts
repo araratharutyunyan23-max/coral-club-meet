@@ -1,9 +1,13 @@
 import { useEffect, useRef } from 'react'
 import { type Participant, type Room, RoomEvent, Track } from 'livekit-client'
 
-// Floating call window (Document Picture-in-Picture), opened on demand from the
+// Floating call window (Document Picture-in-Picture). Opens automatically when the
+// user switches away to another tab, and can also be opened on demand from the
 // "Mini window" menu item. Shows the active speaker plus mic / leave controls,
 // stays on top, and closes when the user comes back to the tab. Chromium-only.
+// Auto-open works without a click because Chromium allows it while the page is
+// capturing camera/mic (a call); requestWindow() must be invoked synchronously
+// inside the visibilitychange handler, which it is (no await precedes it).
 
 interface DocPiP {
   requestWindow(opts?: { width?: number; height?: number }): Promise<Window>
@@ -78,13 +82,20 @@ export function useCallPip(room: Room, onLeave: () => void): { supported: boolea
       if (handBtn) handBtn.style.background = lp.attributes?.handRaised ? 'rgba(255,126,99,.85)' : NEUTRAL
     }
 
-    const open = async () => {
+    const open = async (auto = false) => {
       if (pipRef.current || opening) return
       const api = getDocPiP()
       if (!api) return
       opening = true
       try {
         const win = await api.requestWindow({ width: 280, height: 200 })
+        // Auto-open races the user coming back: if they've already returned to the
+        // tab by the time the window resolved, don't leave an orphan PiP open.
+        if (auto && document.visibilityState === 'visible') {
+          win.close()
+          opening = false
+          return
+        }
         pipRef.current = win
         opening = false
         // Fresh window → fresh <video>; force the next refresh to (re)bind.
@@ -181,9 +192,12 @@ export function useCallPip(room: Room, onLeave: () => void): { supported: boolea
     ] as const
     events.forEach((e) => room.on(e, refresh))
 
-    // Tidy up the floating window when the user returns to the tab.
+    // Auto-open the floating window when the user leaves the tab; tidy it up when
+    // they return. open() is a no-op if one is already open / opening.
     const onVisibility = () => {
-      if (document.visibilityState === 'visible' && pipRef.current) {
+      if (document.visibilityState === 'hidden') {
+        void open(true)
+      } else if (pipRef.current) {
         pipRef.current.close()
         pipRef.current = null
       }
