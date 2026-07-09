@@ -1670,7 +1670,9 @@ input {
   width: 100%; max-width: 720px; margin: 0 auto; text-align: left;
   background: var(--bg-elev); border: 1px solid var(--border); border-radius: var(--radius-lg, 18px);
   overflow: hidden; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.36);
-  --rep-cols: minmax(0, 1fr) 62px 104px 92px 168px;
+  /* Fixed columns sized for the longer of the EN/RU labels ("ПРИСУТСТВИЕ", "На связи")
+     plus their values, so headers never clip when the UI is in Russian. */
+  --rep-cols: minmax(0, 1fr) 62px 104px 106px 158px;
 }
 [data-theme='light'] .report { box-shadow: 0 20px 46px rgba(20, 40, 38, 0.14); }
 
@@ -1684,7 +1686,7 @@ input {
 .rep-scroll::-webkit-scrollbar { width: 10px; }
 .rep-scroll::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 99px; border: 3px solid var(--bg-elev); }
 .rep-colhead { display: grid; grid-template-columns: var(--rep-cols); column-gap: 16px; align-items: center; padding: 0 22px 8px; position: sticky; top: 0; background: var(--bg-elev); z-index: 2; }
-.rep-colhead > span { font: 600 9.5px/1 var(--mono); letter-spacing: 0.13em; text-transform: uppercase; color: var(--text-mute); }
+.rep-colhead > span { font: 600 9.5px/1 var(--mono); letter-spacing: 0.13em; text-transform: uppercase; color: var(--text-mute); white-space: nowrap; }
 .rep-colhead .r { text-align: right; }
 .rep-rows { display: flex; flex-direction: column; }
 .rep-row { display: grid; grid-template-columns: var(--rep-cols); column-gap: 16px; align-items: center; padding: 11px 22px; border-top: 1px solid var(--border); }
