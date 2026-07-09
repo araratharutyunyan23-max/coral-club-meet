@@ -2,8 +2,8 @@ import { createContext, useCallback, useContext, useMemo, useState, type ReactNo
 import { RU } from './i18n-ru'
 
 // Lightweight i18n. The English source string is the key; a missing Russian
-// entry falls back to the English argument, so the UI is never blank. The chosen
-// language is remembered (localStorage) and auto-detected from the browser first.
+// entry falls back to the English argument, so the UI is never blank. Russian is
+// the default; an explicit choice via the toggle is remembered (localStorage).
 
 export type Lang = 'en' | 'ru'
 const KEY = 'cc-lang'
@@ -11,7 +11,7 @@ const KEY = 'cc-lang'
 export { RU }
 
 // Non-reactive translate for use outside React components (lib code, toasts).
-let currentLang: Lang = 'en'
+let currentLang: Lang = 'ru'
 export function tr(en: string, vars?: Record<string, string | number>): string {
   let s = currentLang === 'ru' ? (RU[en] ?? en) : en
   if (vars) for (const k in vars) s = s.split('{' + k + '}').join(String(vars[k]))
@@ -19,18 +19,14 @@ export function tr(en: string, vars?: Record<string, string | number>): string {
 }
 
 function detect(): Lang {
+  // Honour an explicit saved choice; otherwise default to Russian.
   try {
     const v = localStorage.getItem(KEY)
     if (v === 'en' || v === 'ru') return v
   } catch {
     /* ignore */
   }
-  try {
-    if (navigator.language && navigator.language.toLowerCase().startsWith('ru')) return 'ru'
-  } catch {
-    /* ignore */
-  }
-  return 'en'
+  return 'ru'
 }
 
 interface Ctx {
