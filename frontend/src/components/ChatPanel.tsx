@@ -35,10 +35,11 @@ function linkify(text: string): ReactNode[] {
   return nodes
 }
 
-export function ChatPanel({ messages, onSend }: { messages: ChatMessage[]; onSend: (text: string) => void }) {
+export function ChatPanel({ messages, onSend, onSendImage }: { messages: ChatMessage[]; onSend: (text: string) => void; onSendImage: (file: File) => void }) {
   const t = useT()
   const [text, setText] = useState('')
   const endRef = useRef<HTMLDivElement>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -48,6 +49,14 @@ export function ChatPanel({ messages, onSend }: { messages: ChatMessage[]; onSen
     e.preventDefault()
     onSend(text)
     setText('')
+  }
+
+  // Send every image in a FileList (the attach picker).
+  const sendFiles = (files: FileList | null) => {
+    if (!files) return
+    Array.from(files).forEach((f) => {
+      if (f.type.startsWith('image/')) onSendImage(f)
+    })
   }
 
   return (
@@ -68,8 +77,49 @@ export function ChatPanel({ messages, onSend }: { messages: ChatMessage[]; onSen
 
       <form onSubmit={submit} style={{ flex: '0 0 auto', display: 'flex', gap: 8, padding: 12, borderTop: '1px solid var(--border)' }}>
         <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          multiple
+          hidden
+          onChange={(e) => {
+            sendFiles(e.target.files)
+            e.target.value = '' // allow re-selecting the same file
+          }}
+        />
+        <button
+          type="button"
+          title={t('Attach image')}
+          aria-label={t('Attach image')}
+          onClick={() => fileRef.current?.click()}
+          style={{
+            width: 40,
+            height: 40,
+            flex: '0 0 auto',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 10,
+            border: '1px solid var(--border-strong)',
+            background: 'transparent',
+            color: 'var(--text-dim)',
+          }}
+        >
+          <PaperclipIcon size={18} />
+        </button>
+        <input
           value={text}
           onChange={(e) => setText(e.target.value)}
+          onPaste={(e) => {
+            // Screenshots are pasted (Ctrl+V) — grab any image on the clipboard.
+            const imgs = Array.from(e.clipboardData.items).filter((it) => it.kind === 'file' && it.type.startsWith('image/'))
+            if (imgs.length === 0) return
+            e.preventDefault()
+            imgs.forEach((it) => {
+              const f = it.getAsFile()
+              if (f) onSendImage(f)
+            })
+          }}
           placeholder={t('Message everyone')}
           style={{
             flex: 1,
@@ -107,13 +157,14 @@ export function ChatPanel({ messages, onSend }: { messages: ChatMessage[]; onSen
 }
 
 function ChatBubble({ message }: { message: ChatMessage }) {
+  const img = message.image
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: message.mine ? 'flex-end' : 'flex-start', gap: 3 }}>
       {!message.mine && <div style={{ fontSize: 11.5, color: 'var(--text-mute)', paddingLeft: 2 }}>{message.from}</div>}
       <div
         style={{
           maxWidth: '85%',
-          padding: '8px 11px',
+          padding: img ? 3 : '8px 11px',
           borderRadius: 10,
           fontSize: 13.5,
           lineHeight: 1.4,
@@ -123,8 +174,26 @@ function ChatBubble({ message }: { message: ChatMessage }) {
           wordBreak: 'break-word',
         }}
       >
-        {linkify(message.text)}
+        {img ? (
+          <a href={img.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block' }}>
+            <img
+              src={img.url}
+              alt={img.name || 'image'}
+              style={{ display: 'block', maxWidth: '100%', maxHeight: 300, borderRadius: 7, cursor: 'zoom-in' }}
+            />
+          </a>
+        ) : (
+          linkify(message.text)
+        )}
       </div>
     </div>
+  )
+}
+
+function PaperclipIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21.44 11.05l-9.19 9.19a5 5 0 0 1-7.07-7.07l9.19-9.19a3 3 0 0 1 4.24 4.24l-9.2 9.19a1 1 0 0 1-1.41-1.41l8.49-8.49" />
+    </svg>
   )
 }

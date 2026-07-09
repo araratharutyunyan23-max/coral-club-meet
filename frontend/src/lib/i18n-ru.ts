@@ -158,6 +158,7 @@ export const RU: Record<string, string> = {
   "Commitments & follow-through": "Обязательства и контроль",
   "Side rooms": "Отдельные комнаты",
   "Message everyone": "Сообщение всем",
+  "Attach image": "Прикрепить изображение",
   "Mute all": "Заглушить всех",
   "Lock room": "Закрыть комнату",
   "Unlock room": "Открыть комнату",

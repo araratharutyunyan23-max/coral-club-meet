@@ -26,6 +26,7 @@ interface Props {
   messages: ChatMessage[]
   qa: QAApi
   onSend: (text: string) => void
+  onSendImage: (file: File) => void
   onClose: () => void
 }
 
@@ -33,7 +34,7 @@ interface Props {
  * Flat Meet-style sheet: slides in from the right and sits beside the (shrunk)
  * stage — it never floats over the video. Matches the inset stage's rounding.
  */
-export function SidePanel({ room, panel, isHost, messages, qa, onSend, onClose }: Props) {
+export function SidePanel({ room, panel, isHost, messages, qa, onSend, onSendImage, onClose }: Props) {
   const t = useT()
   const isMobile = useIsMobile()
   return (
@@ -98,7 +99,7 @@ export function SidePanel({ room, panel, isHost, messages, qa, onSend, onClose }
       </div>
 
       <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-        {panel === 'chat' && <ChatPanel messages={messages} onSend={onSend} />}
+        {panel === 'chat' && <ChatPanel messages={messages} onSend={onSend} onSendImage={onSendImage} />}
         {panel === 'participants' && <ParticipantsPanel room={room} isHost={isHost} />}
         {panel === 'qa' && <QAPanel questions={qa.questions} onAsk={qa.ask} onUpvote={qa.upvote} />}
         {panel === 'info' && <InfoPanel roomName={room.name} />}

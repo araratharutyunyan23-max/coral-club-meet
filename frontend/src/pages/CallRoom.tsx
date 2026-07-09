@@ -218,6 +218,7 @@ function CallStage({ room, roomName, reconnecting, isHost, onLeave, onMoveToRoom
             messages={chat.messages}
             qa={qa}
             onSend={chat.send}
+            onSendImage={chat.sendImage}
             onClose={() => setPanel(null)}
           />
         )}
