@@ -1721,27 +1721,13 @@ input {
 .rep-empty h4 { margin: 0 0 3px; font-size: 14px; font-weight: 600; }
 .rep-empty p { margin: 0; font-size: 13px; color: var(--text-dim); max-width: 52ch; }
 
-/* Responsive reflow — driven by the card's own width (container query on .report),
-   so the report adapts to whatever space it's given, not the viewport. Three tiers:
-   wide → 5 columns; medium → fold Joined/Left under the name (3 columns);
-   narrow → drop Talk-time onto its own row. */
-
-/* medium (tablet / narrow window): the 5-column grid gets cramped below ~690px,
-   so fold the exact Joined/Left clock times into the name's sub-line instead.
-   Set grid-template-columns on the descendants directly — a container can't
-   restyle itself via @container, so a --rep-cols override on .report is ignored. */
-@container (max-width: 690px) {
-  .rep-colhead, .report .rep-row { grid-template-columns: minmax(0, 1fr) 96px minmax(140px, 176px); }
-  .rep-colhead .col-j, .rep-colhead .col-l { display: none; }
-  .report .joined, .report .left { display: none; }
-  .report .sub-times { display: flex; align-items: center; gap: 6px; font: 500 11px/1 var(--mono); color: var(--text-mute); }
-  .rep-head { padding-left: 18px; padding-right: 18px; }
-}
-
-/* narrow (phone): stack Talk-time under the row so the name has full width. */
-@container (max-width: 460px) {
+/* mobile reflow — driven by the card's own width (container query on .report) */
+@container (max-width: 560px) {
   .report .rep-row { grid-template-columns: 1fr auto; row-gap: 10px; padding: 13px 18px; }
   .rep-colhead { display: none; }
+  .report .joined, .report .left { display: none; }
+  .report .sub-times { display: flex; align-items: center; gap: 6px; font: 500 11px/1 var(--mono); color: var(--text-mute); }
   .report .present { font-size: 17px; }
   .report .talk { grid-column: 1 / -1; }
+  .rep-head { padding-left: 18px; padding-right: 18px; }
 }
