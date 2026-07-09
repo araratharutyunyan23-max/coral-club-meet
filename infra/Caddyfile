@@ -25,11 +25,16 @@ meet-coralclub.com, 178-105-146-99.sslip.io {
 	# Static SPA frontend
 	handle {
 		root * /srv
+		# Hashed build assets are immutable and cache forever.
 		header /assets/* Cache-Control "public, max-age=31536000, immutable"
 		header /manifest.webmanifest Content-Type "application/manifest+json"
-		header /manifest.webmanifest Cache-Control "no-store"
-		header /sw.js Cache-Control "no-store"
-		header /index.html Cache-Control "no-store"
+		# Everything else is the SPA shell (index.html served for "/" and every
+		# client route via try_files). It must never be cached, or browsers keep
+		# loading a stale index.html that points at old asset hashes. The header
+		# directive matches the *request* path, so match all non-asset paths here
+		# rather than "/index.html" (which "/" never hits).
+		@spa not path /assets/*
+		header @spa Cache-Control "no-store"
 		try_files {path} /index.html
 		file_server
 	}

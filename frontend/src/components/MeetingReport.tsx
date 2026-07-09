@@ -54,13 +54,6 @@ export function MeetingReport({ report }: { report: Report }) {
       </div>
 
       <div className={`rep-scroll${rows.length > 8 ? ' scroll' : ''}`}>
-        <div className="rep-colhead">
-          <span>{t('Participant')}</span>
-          <span className="r">{t('Joined')}</span>
-          <span className="r">{t('Left')}</span>
-          <span className="r">{t('Present')}</span>
-          <span>{t('Talk-time')}</span>
-        </div>
         <div className="rep-rows">
           {sorted.map((p) => (
             <div key={p.id} className={`rep-row${p.isLocal ? ' you' : ''}`}>
