@@ -16,17 +16,8 @@ export function ThemeToggle() {
     <button
       onClick={toggle}
       title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-      style={{
-        width: 32,
-        height: 32,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: 8,
-        border: '1px solid var(--border)',
-        background: 'transparent',
-        color: 'var(--text-dim)',
-      }}
+      className="chip-btn"
+      style={{ width: 32, height: 32 }}
     >
       {theme === 'dark' ? <SunIcon size={17} /> : <MoonIcon size={17} />}
     </button>

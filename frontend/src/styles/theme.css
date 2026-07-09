@@ -50,6 +50,11 @@
   --fill-hover: rgba(255, 255, 255, 0.07);
   --glass: rgba(16, 18, 22, 0.72);
 
+  /* Chrome chip buttons (RU / theme / sign-out) — solid enough to read on the near-black home. */
+  --chip-bg: #171b21;
+  --chip-bg-hover: #222833;
+  --chip-border: rgba(255, 255, 255, 0.16);
+
   /* Gentle, quiet Ripple rings in the solo/waiting stage. */
   --ripple-ring: rgba(37, 208, 192, 0.6);
 
@@ -93,6 +98,10 @@
   --fill-subtle: rgba(0, 0, 0, 0.04);
   --fill-hover: rgba(0, 0, 0, 0.06);
   --glass: rgba(255, 255, 255, 0.72);
+
+  --chip-bg: #eef2f0;
+  --chip-bg-hover: #e1e8e4;
+  --chip-border: rgba(0, 0, 0, 0.16);
 
   --ripple-ring: rgba(15, 156, 141, 0.55);
   --rx-bloom: rgba(255, 111, 85, 0.7); /* softer coral on Tide; teal ring already flips */
@@ -154,6 +163,25 @@ button:hover:not(:disabled) {
 }
 button:active:not(:disabled) {
   transform: scale(0.96);
+}
+
+/* Chrome chip buttons — RU / theme toggle / sign-out in the top-right cluster.
+   Solid fill + defined border so they read clearly on the near-black home. */
+.chip-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid var(--chip-border);
+  background: var(--chip-bg);
+  color: var(--text);
+}
+.chip-btn:hover:not(:disabled) {
+  background: var(--chip-bg-hover);
+}
+.chip-btn:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
 }
 
 input {

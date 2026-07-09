@@ -45,18 +45,8 @@ export function GoogleSignIn() {
         </span>
         <button
           onClick={() => void signOut()}
-          style={{
-            height: 32,
-            padding: '0 10px',
-            display: 'flex',
-            alignItems: 'center',
-            borderRadius: 8,
-            border: '1px solid var(--border)',
-            background: 'transparent',
-            color: 'var(--text-dim)',
-            font: '600 12.5px/1 var(--font)',
-            cursor: 'pointer',
-          }}
+          className="chip-btn"
+          style={{ height: 32, padding: '0 10px', font: '600 12.5px/1 var(--font)' }}
         >
           {t('Sign out')}
         </button>
