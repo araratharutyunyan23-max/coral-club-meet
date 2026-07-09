@@ -56,8 +56,8 @@ export function MeetingReport({ report }: { report: Report }) {
       <div className={`rep-scroll${rows.length > 8 ? ' scroll' : ''}`}>
         <div className="rep-colhead">
           <span>{t('Participant')}</span>
-          <span className="r">{t('Joined')}</span>
-          <span className="r">{t('Left')}</span>
+          <span className="r col-j">{t('Joined')}</span>
+          <span className="r col-l">{t('Left')}</span>
           <span className="r">{t('Present')}</span>
           <span>{t('Talk-time')}</span>
         </div>
