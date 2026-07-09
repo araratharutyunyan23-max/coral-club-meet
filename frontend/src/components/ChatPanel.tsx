@@ -1,7 +1,39 @@
-import { type FormEvent, useEffect, useRef, useState } from 'react'
+import { type FormEvent, type ReactNode, useEffect, useRef, useState } from 'react'
 import type { ChatMessage } from '../lib/datachannel'
 import { SendIcon } from '../lib/icons'
 import { useT } from '../lib/i18n'
+
+// Turn bare URLs in a message into clickable links, safely: we build React <a>
+// nodes (never dangerouslySetInnerHTML), and only match http(s):// or www. URLs,
+// so a "javascript:" href can never be produced.
+const URL_RE = /(https?:\/\/[^\s]+|www\.[^\s]+)/gi
+const LINK_STYLE = { color: 'var(--teal-soft)', textDecoration: 'underline', wordBreak: 'break-all' as const }
+
+function linkify(text: string): ReactNode[] {
+  const nodes: ReactNode[] = []
+  const re = new RegExp(URL_RE) // fresh lastIndex per call
+  let last = 0
+  let key = 0
+  let m: RegExpExecArray | null
+  while ((m = re.exec(text)) !== null) {
+    let url = m[0]
+    // Don't swallow trailing punctuation (sentence period, closing bracket, …).
+    const trail = url.match(/[.,!?;:)\]}'"»]+$/)
+    if (trail) url = url.slice(0, url.length - trail[0].length)
+    if (!url) continue
+    if (m.index > last) nodes.push(text.slice(last, m.index))
+    const href = url.startsWith('http') ? url : `https://${url}`
+    nodes.push(
+      <a key={key++} href={href} target="_blank" rel="noopener noreferrer nofollow" style={LINK_STYLE}>
+        {url}
+      </a>,
+    )
+    last = m.index + url.length
+    re.lastIndex = last // resume just after the URL so trailing punctuation rejoins the text
+  }
+  if (last < text.length) nodes.push(text.slice(last))
+  return nodes
+}
 
 export function ChatPanel({ messages, onSend }: { messages: ChatMessage[]; onSend: (text: string) => void }) {
   const t = useT()
@@ -91,7 +123,7 @@ function ChatBubble({ message }: { message: ChatMessage }) {
           wordBreak: 'break-word',
         }}
       >
-        {message.text}
+        {linkify(message.text)}
       </div>
     </div>
   )
