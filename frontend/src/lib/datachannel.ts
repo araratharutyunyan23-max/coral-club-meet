@@ -185,9 +185,9 @@ export function useReactions(room: Room) {
     // even on short/landscape viewports.
     const x = 7 + Math.random() * 21 // 7%..28% — left gutter
     const y = 112 + Math.random() * 44 // 112..156px above the control bar
-    const rise = 210 + Math.random() * 70 // 210..280px
-    const sway = (Math.random() - 0.5) * 32 // ±16px
-    const dur = 3.6 + Math.random() * 0.8 // 3.6..4.4s
+    const rise = 230 + Math.random() * 80 // 230..310px
+    const sway = (Math.random() - 0.5) * 36 // ±18px
+    const dur = 5.2 + Math.random() * 1.1 // 5.2..6.3s — linger longer on screen
     setActive((prev) => [...prev, { id, emoji, label: mine ? 'You' : name, hue: hueFor(name), x, y, rise, sway, dur }])
     const t = setTimeout(() => {
       timers.current.delete(t)
