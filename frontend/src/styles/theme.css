@@ -274,14 +274,14 @@ input {
   position: absolute;
   left: 0;
   bottom: 0;
-  width: 64px;
-  height: 64px;
-  margin: 0 0 -32px -32px;
+  width: 52px;
+  height: 52px;
+  margin: 0 0 -26px -26px;
   display: grid;
   place-items: center;
-  font-size: 52px;
+  font-size: 40px;
   line-height: 1;
-  filter: drop-shadow(0 6px 13px rgba(0, 0, 0, 0.45));
+  filter: drop-shadow(0 5px 11px rgba(0, 0, 0, 0.45));
   /* pop in, then keep it alive with a gentle looping wiggle (rotate + pulse) */
   animation: rxPop 0.5s var(--rx-ease) both, rxWiggle 1.35s ease-in-out 0.5s infinite;
 }
