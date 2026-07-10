@@ -9,6 +9,8 @@ import { LobbyPresence } from '../components/LobbyPresence'
 import { CameraIcon, CameraOffIcon, MicIcon, MicOffIcon } from '../lib/icons'
 import { useIsMobile } from '../lib/hooks'
 import { useT } from '../lib/i18n'
+import { BackgroundPicker } from '../components/BackgroundPicker'
+import { type BgId, bgById, getSavedBg, saveBg } from '../lib/backgrounds'
 
 const selectStyle: CSSProperties = {
   flex: 1,
@@ -27,7 +29,7 @@ export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin
   const [name, setName] = useState('')
   const [camOn, setCamOn] = useState(false)
   const [micOn, setMicOn] = useState(false)
-  const [blur, setBlur] = useState(false)
+  const [bg, setBg] = useState<BgId>('none')
   const [remember, setRemember] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -134,7 +136,13 @@ export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin
     } catch {
       // localStorage unavailable (private mode / blocked) — just skip.
     }
+    setBg(getSavedBg()) // restore the remembered camera background
   }, [])
+
+  const chooseBg = (id: BgId) => {
+    setBg(id)
+    saveBg(id)
+  }
 
   async function handleJoin() {
     if (!name.trim()) {
@@ -161,7 +169,7 @@ export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin
         audioDeviceId: audioDeviceId || undefined,
         videoDeviceId: videoDeviceId || undefined,
         speakerDeviceId: speakerDeviceId || undefined,
-        blur,
+        bg,
         krisp: true, // Krisp noise cancellation is always on (no lobby toggle).
         // Prefer the server-decided role (authoritative once sign-in is enabled);
         // fall back to the local hint when the backend doesn't return one.
@@ -200,10 +208,11 @@ export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin
       </div>
 
       <div style={{ position: 'relative', zIndex: 2, display: 'flex', gap: isMobile ? 16 : 28, alignItems: 'center', justifyContent: 'center', margin: 'auto 0', maxWidth: 1040, width: '100%', alignSelf: 'center', flexWrap: 'wrap' }}>
-        {/* preview */}
-        <div style={{ flex: '1.5 1 420px', minWidth: 320, position: 'relative', aspectRatio: '16 / 10', borderRadius: 'var(--radius-lg)', overflow: 'hidden', background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: '0 24px 60px rgba(0,0,0,0.4)' }}>
+        {/* preview (outer wrapper is not clipped, so the picker popover can overflow it) */}
+        <div style={{ flex: '1.5 1 420px', minWidth: 320, position: 'relative' }}>
+        <div style={{ position: 'relative', aspectRatio: '16 / 10', borderRadius: 'var(--radius-lg)', overflow: 'hidden', background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: '0 24px 60px rgba(0,0,0,0.4)' }}>
           {camOn ? (
-            <video ref={videoRef} autoPlay playsInline muted style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)', filter: blur ? 'blur(8px)' : undefined }} />
+            <video ref={videoRef} autoPlay playsInline muted style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)', filter: bgById(bg).kind === 'blur' ? 'blur(8px)' : undefined }} />
           ) : (
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface-2)' }}>
               <div style={{ width: 88, height: 88, borderRadius: '50%', background: 'var(--teal-tint)', border: '1px solid rgba(37,208,192,.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 30, fontWeight: 600, color: 'var(--teal-soft)' }}>
@@ -228,6 +237,13 @@ export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin
             <RoundToggle on={micOn} onClick={() => setMicOn((v) => !v)} onIcon={<MicIcon />} offIcon={<MicOffIcon />} />
             <RoundToggle on={camOn} onClick={() => setCamOn((v) => !v)} onIcon={<CameraIcon />} offIcon={<CameraOffIcon />} />
           </div>
+        </div>
+          {/* camera background picker — sits over the preview's bottom-right */}
+          {camOn && (
+            <div style={{ position: 'absolute', right: 12, bottom: 12, zIndex: 5 }}>
+              <BackgroundPicker value={bg} onChange={chooseBg} />
+            </div>
+          )}
         </div>
 
         {/* join card */}

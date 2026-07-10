@@ -25,7 +25,7 @@ export interface JoinInfo extends TokenResult {
   audioDeviceId?: string
   videoDeviceId?: string
   speakerDeviceId?: string
-  blur?: boolean
+  bg?: import('./backgrounds').BgId
   krisp?: boolean
   role?: Role
   waitForHost?: boolean

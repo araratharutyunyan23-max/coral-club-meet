@@ -127,7 +127,7 @@ export function useRoomConnection(join: JoinInfo, onLeave: () => void): Connecti
         // Krisp's model / blur's segmenter just turn on a beat later).
         if (join.speakerDeviceId) void r.switchActiveDevice('audiooutput', join.speakerDeviceId).catch(() => {})
         if (join.krisp !== false && join.audioEnabled) void applyNoiseFilter(r).catch(() => {})
-        if (join.blur && join.videoEnabled) void applyBackgroundBlur(r).catch(() => {})
+        if (join.bg && join.bg !== 'none' && join.videoEnabled) void applyCameraBg(r, join.bg).catch(() => {})
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Could not connect to the call')
       }
@@ -215,14 +215,14 @@ export function useConnectionQuality(room: Room): ConnectionQuality {
   return room.localParticipant.connectionQuality
 }
 
-// These pull in heavy WASM/ML bundles (MediaPipe for blur, a ~6MB Krisp model),
-// so they're imported dynamically — they split into their own chunks and are
-// only fetched when the feature is actually applied, not on first page load.
-async function applyBackgroundBlur(room: Room) {
+// These pull in heavy WASM/ML bundles (MediaPipe for backgrounds, a ~6MB Krisp
+// model), so they're imported dynamically — they split into their own chunks and
+// are only fetched when the feature is actually applied, not on first page load.
+async function applyCameraBg(room: Room, id: import('./backgrounds').BgId) {
   const track = room.localParticipant.getTrackPublication(Track.Source.Camera)?.track as LocalVideoTrack | undefined
   if (!track) return
-  const { BackgroundBlur } = await import('@livekit/track-processors')
-  await track.setProcessor(BackgroundBlur(10))
+  const { applyBackground } = await import('./backgrounds')
+  await applyBackground(track, id)
 }
 
 async function applyNoiseFilter(room: Room) {
