@@ -29,6 +29,10 @@ export interface JoinInfo extends TokenResult {
   krisp?: boolean
   role?: Role
   waitForHost?: boolean
+  /** The camera/mic stream already acquired in the lobby (within the user's tap).
+   *  Reused on join so iOS/WebKit doesn't reject a second getUserMedia that would
+   *  run outside the gesture (after the async token fetch + connect). */
+  mediaStream?: MediaStream
 }
 
 /** Layout modes offered in the control bar's layout switcher. */

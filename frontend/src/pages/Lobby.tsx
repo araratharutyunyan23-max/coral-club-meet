@@ -101,7 +101,16 @@ export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: camOn ? (videoDeviceId ? { deviceId: { exact: videoDeviceId } } : true) : false,
-          audio: micOn ? (audioDeviceId ? { deviceId: { exact: audioDeviceId } } : true) : false,
+          // Echo/noise/gain processing so the reused mic track matches the call's
+          // audioCaptureDefaults (the track is published as-is on join).
+          audio: micOn
+            ? {
+                ...(audioDeviceId ? { deviceId: { exact: audioDeviceId } } : {}),
+                echoCancellation: true,
+                noiseSuppression: true,
+                autoGainControl: true,
+              }
+            : false,
         })
         if (cancelled) {
           stream.getTracks().forEach((t) => t.stop())
@@ -157,7 +166,10 @@ export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin
     } catch {
       // localStorage unavailable — joining still proceeds.
     }
-    teardown()
+    // Hand the already-granted lobby stream over to the call instead of tearing
+    // it down and re-acquiring — on iOS a second getUserMedia after the async
+    // token fetch / connect runs outside the tap gesture and is rejected.
+    const media = handoffStream()
     try {
       const slug = name.trim().toLowerCase().replace(/\s+/g, '-')
       const identity = `${slug}-${Math.random().toString(36).slice(2, 7)}`
@@ -171,15 +183,29 @@ export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin
         speakerDeviceId: speakerDeviceId || undefined,
         bg,
         krisp: true, // Krisp noise cancellation is always on (no lobby toggle).
+        mediaStream: media,
         // Prefer the server-decided role (authoritative once sign-in is enabled);
         // fall back to the local hint when the backend doesn't return one.
         role: result.role ?? role,
       })
     } catch (e) {
+      // Join failed — we already handed off the preview stream, so stop it here.
+      media?.getTracks().forEach((tr) => tr.stop())
       const msg = e instanceof Error ? e.message : ''
       setError(msg === 'room is locked' ? t('This room is locked by the host.') : msg || t('Failed to join'))
       setBusy(false)
     }
+  }
+
+  /** Detach the preview stream and return it for the call to reuse, WITHOUT
+   *  stopping its tracks (and clear streamRef so the unmount cleanup won't stop
+   *  them either). Returns undefined when there's no live stream. */
+  function handoffStream(): MediaStream | undefined {
+    stopMeter()
+    const s = streamRef.current
+    streamRef.current = null
+    if (videoRef.current) videoRef.current.srcObject = null
+    return s ?? undefined
   }
 
   return (

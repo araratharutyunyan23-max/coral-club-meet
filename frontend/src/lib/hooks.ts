@@ -3,8 +3,8 @@ import {
   AudioPresets,
   ConnectionQuality,
   ConnectionState,
-  type LocalAudioTrack,
-  type LocalVideoTrack,
+  LocalAudioTrack,
+  LocalVideoTrack,
   type Participant,
   Room,
   RoomEvent,
@@ -108,18 +108,30 @@ export function useRoomConnection(join: JoinInfo, onLeave: () => void): Connecti
     void (async () => {
       try {
         await r.connect(join.url, join.token)
-        // Publish mic + camera in parallel and show the room as soon as the user
-        // is connected and publishing — don't make them stare at the spinner.
-        await Promise.all([
-          r.localParticipant.setMicrophoneEnabled(
-            join.audioEnabled,
-            join.audioDeviceId ? { deviceId: join.audioDeviceId } : undefined,
-          ),
-          r.localParticipant.setCameraEnabled(
-            join.videoEnabled,
-            join.videoDeviceId ? { deviceId: join.videoDeviceId } : undefined,
-          ),
-        ])
+        // Publish mic + camera and show the room as soon as the user is connected
+        // and publishing — don't make them stare at the spinner. Reuse the stream
+        // captured in the lobby when present (so iOS doesn't reject a fresh
+        // getUserMedia outside the tap); otherwise acquire tracks here.
+        const stream = join.mediaStream
+        const vt = stream?.getVideoTracks()[0]
+        const at = stream?.getAudioTracks()[0]
+        // userProvidedTrack=false so LiveKit owns them: muting camera stops the
+        // hardware (kills the indicator light), and it reacquires on unmute /
+        // after app backgrounding. Those reacquires happen in a tap or on
+        // foreground, not at join, so the iOS gesture fix still holds.
+        if (join.videoEnabled && vt) {
+          await r.localParticipant.publishTrack(new LocalVideoTrack(vt, undefined, false), { source: Track.Source.Camera })
+        } else if (join.videoEnabled) {
+          await r.localParticipant.setCameraEnabled(true, join.videoDeviceId ? { deviceId: join.videoDeviceId } : undefined)
+        }
+        if (join.audioEnabled && at) {
+          await r.localParticipant.publishTrack(new LocalAudioTrack(at, undefined, false), { source: Track.Source.Microphone })
+        } else if (join.audioEnabled) {
+          await r.localParticipant.setMicrophoneEnabled(true, join.audioDeviceId ? { deviceId: join.audioDeviceId } : undefined)
+        }
+        // Release any handed-off track we didn't end up publishing (toggled off).
+        if (stream && !join.videoEnabled) vt?.stop()
+        if (stream && !join.audioEnabled) at?.stop()
         setRoom(r)
 
         // Best-effort enhancements, applied to the already-live tracks AFTER the
