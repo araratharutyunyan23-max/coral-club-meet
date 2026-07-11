@@ -4,45 +4,20 @@ import { useIsMobile } from '../lib/hooks'
 import { useT } from '../lib/i18n'
 
 /**
- * Camera background picker — a "Background" button that opens a popover (a bottom
- * sheet on phones): blur chips on top, then a grid of image backgrounds. Same
- * component is used in the lobby preview and in-call. Styles live in theme.css
- * (.bgp-*). The selection is a controlled value; the parent applies the effect.
+ * The blur chips + image-background grid (two radiogroups + the "unavailable"
+ * note). Reused by the lobby picker popover and the in-call effects panel — the
+ * chrome (trigger button / popover / sheet) lives in the callers. Styles: .bgp-*.
  */
-export function BackgroundPicker({
+export function BackgroundGrid({
   value,
   onChange,
   unavailable = false,
-  placement = 'br',
 }: {
   value: BgId
   onChange: (id: BgId) => void
   unavailable?: boolean
-  /** Desktop anchor corner of the button the popover points at. */
-  placement?: 'br' | 'bl'
 }) {
   const t = useT()
-  const isMobile = useIsMobile()
-  const [open, setOpen] = useState(false)
-  const wrapRef = useRef<HTMLDivElement>(null)
-
-  // Close on Escape and on a click outside the picker.
-  useEffect(() => {
-    if (!open) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false)
-    }
-    const onDown = (e: MouseEvent) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('keydown', onKey)
-    document.addEventListener('mousedown', onDown)
-    return () => {
-      document.removeEventListener('keydown', onKey)
-      document.removeEventListener('mousedown', onDown)
-    }
-  }, [open])
-
   const chips = BACKGROUNDS.filter((b) => b.kind !== 'image')
   const images = BACKGROUNDS.filter((b) => b.kind === 'image')
 
@@ -50,12 +25,6 @@ export function BackgroundPicker({
     if (unavailable && p.id !== 'none') return
     onChange(p.id)
   }
-
-  const Silhouette = () => (
-    <svg className="bgp-fig" viewBox="0 0 120 92" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
-      <circle cx="60" cy="32" r="18" /><rect x="24" y="56" width="72" height="58" rx="32" />
-    </svg>
-  )
 
   const Chip = (p: BgPreset) => {
     const on = value === p.id
@@ -91,7 +60,6 @@ export function BackgroundPicker({
 
   const Thumb = (p: BgPreset) => {
     const on = value === p.id
-    const dis = unavailable
     return (
       <button
         key={p.id}
@@ -99,12 +67,14 @@ export function BackgroundPicker({
         role="radio"
         aria-checked={on}
         aria-label={`${t('Background')}: ${t(p.label)}`}
-        disabled={dis}
+        disabled={unavailable}
         className="bgp-thumb"
         onClick={() => pick(p)}
       >
         <span className="bgp-view" style={{ background: bgSwatchCss(p) }}>
-          <Silhouette />
+          <svg className="bgp-fig" viewBox="0 0 120 92" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+            <circle cx="60" cy="32" r="18" /><rect x="24" y="56" width="72" height="58" rx="32" />
+          </svg>
           {p.brand && <span className="bgp-dot" aria-hidden="true" />}
           <span className="bgp-check" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
@@ -114,6 +84,60 @@ export function BackgroundPicker({
       </button>
     )
   }
+
+  return (
+    <>
+      {unavailable && (
+        <div className="bgp-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" /><line x1="12" y1="9" x2="12" y2="13.5" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
+          <span>{t("Effects aren't available on this device — only “None”.")}</span>
+        </div>
+      )}
+      <div className="bgp-chips" role="radiogroup" aria-label={t('Background')}>{chips.map(Chip)}</div>
+      <div className="bgp-sec">{t('Images')}</div>
+      <div className="bgp-grid" role="radiogroup" aria-label={t('Image backgrounds')}>{images.map(Thumb)}</div>
+    </>
+  )
+}
+
+/**
+ * Camera background picker for the lobby — a "Background" button that opens a
+ * popover (a bottom sheet on phones) around a BackgroundGrid. The in-call version
+ * lives in the control bar and reuses BackgroundGrid directly. Styles: .bgp-*.
+ */
+export function BackgroundPicker({
+  value,
+  onChange,
+  unavailable = false,
+  placement = 'br',
+}: {
+  value: BgId
+  onChange: (id: BgId) => void
+  unavailable?: boolean
+  /** Desktop anchor corner of the button the popover points at. */
+  placement?: 'br' | 'bl'
+}) {
+  const t = useT()
+  const isMobile = useIsMobile()
+  const [open, setOpen] = useState(false)
+  const wrapRef = useRef<HTMLDivElement>(null)
+
+  // Close on Escape and on a click outside the picker.
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    const onDown = (e: MouseEvent) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('keydown', onKey)
+    document.addEventListener('mousedown', onDown)
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.removeEventListener('mousedown', onDown)
+    }
+  }, [open])
 
   const panel = (
     <div
@@ -129,15 +153,7 @@ export function BackgroundPicker({
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><line x1="6" y1="6" x2="18" y2="18" /><line x1="18" y1="6" x2="6" y2="18" /></svg>
         </button>
       </div>
-      {unavailable && (
-        <div className="bgp-note">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" /><line x1="12" y1="9" x2="12" y2="13.5" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
-          <span>{t("Effects aren't available on this device — only “None”.")}</span>
-        </div>
-      )}
-      <div className="bgp-chips" role="radiogroup" aria-label={t('Background')}>{chips.map(Chip)}</div>
-      <div className="bgp-sec">{t('Images')}</div>
-      <div className="bgp-grid" role="radiogroup" aria-label={t('Image backgrounds')}>{images.map(Thumb)}</div>
+      <BackgroundGrid value={value} onChange={onChange} unavailable={unavailable} />
       {!isMobile && <span className="bgp-arrow" aria-hidden="true" />}
     </div>
   )

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { ConnectionQuality, ConnectionState, type Room, Track } from 'livekit-client'
 import type { CallView, JoinInfo } from '../lib/types'
-import { useConnectionQuality, useIsMobile, useParticipants, useRoomConnection } from '../lib/hooks'
+import { useCallBackground, useConnectionQuality, useIsMobile, useParticipants, useRoomConnection } from '../lib/hooks'
 import { useChat, useReactions } from '../lib/datachannel'
 import { useMoments } from '../lib/moment'
 import { MomentOverlay } from '../components/MomentOverlay'
@@ -84,6 +84,7 @@ function CallStage({ room, roomName, reconnecting, isHost, onLeave, onMoveToRoom
   useJoinChime(room)
 
   const pip = useCallPip(room, onLeave)
+  const background = useCallBackground(room)
   const participants = useParticipants(room)
   const alone = participants.length <= 1
   // Someone presenting a screen → auto-spotlight it (Telemost-style: shared
@@ -186,7 +187,7 @@ function CallStage({ room, roomName, reconnecting, isHost, onLeave, onMoveToRoom
           />
         )}
         {mutedByHost && <MutedByHostToast />}
-        <MeetControls room={room} activePanel={panel} onTogglePanel={togglePanel} unread={unread} view={view} onViewChange={setView} sharing={sharing} isHost={isHost} recording={recording.active} onToggleRecord={recording.toggle} onReaction={reactions.send} onOpenPip={pip.supported ? pip.open : undefined} onLeave={onLeave} onCelebrate={isHost ? moments.celebrate : undefined} onMoveAside={() => setShowAside(true)} onLeaveCommitment={() => setShowCommit(true)} onOpenCommitmentsBoard={isHost ? () => setShowBoard(true) : undefined} />
+        <MeetControls room={room} activePanel={panel} onTogglePanel={togglePanel} unread={unread} view={view} onViewChange={setView} sharing={sharing} isHost={isHost} recording={recording.active} onToggleRecord={recording.toggle} onReaction={reactions.send} onOpenPip={pip.supported ? pip.open : undefined} bg={background.bg} onBackgroundChange={background.setBackground} onLeave={onLeave} onCelebrate={isHost ? moments.celebrate : undefined} onMoveAside={() => setShowAside(true)} onLeaveCommitment={() => setShowCommit(true)} onOpenCommitmentsBoard={isHost ? () => setShowBoard(true) : undefined} />
         {showBoard && <CommitmentsBoard items={[...commitments.list].reverse()} onClose={() => setShowBoard(false)} />}
         {showCommit && (
           <CommitmentComposer

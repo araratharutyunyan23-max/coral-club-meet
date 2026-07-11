@@ -6,7 +6,9 @@ import { useT } from '../lib/i18n'
 import type { PanelName } from './SidePanel'
 import type { CallView } from '../lib/types'
 import type { Moment } from '../lib/moment'
+import type { BgId } from '../lib/backgrounds'
 import { MomentComposer } from './MomentComposer'
+import { BackgroundGrid } from './BackgroundPicker'
 import {
   CameraIcon,
   CameraOffIcon,
@@ -50,6 +52,9 @@ interface Props {
   onToggleRecord?: () => void
   onReaction?: (emoji: string) => void
   onOpenPip?: () => void
+  /** Current camera background + setter (in-call background switching). */
+  bg?: BgId
+  onBackgroundChange?: (id: BgId) => void
   onLeave: () => void
   /** Host-only: broadcast a Moment of Recognition. Absent for participants. */
   onCelebrate?: (m: Omit<Moment, 'id'>) => void
@@ -66,12 +71,12 @@ interface Props {
  * pickers · present · reactions · raise hand · captions · more · end-call) and a
  * bottom-right corner-chrome group (chat · people). No glass.
  */
-export function MeetControls({ room, activePanel, onTogglePanel, unread, view, onViewChange, sharing = false, isHost = false, recording = false, onToggleRecord, onReaction, onOpenPip, onLeave, onCelebrate, onMoveAside, onLeaveCommitment, onOpenCommitmentsBoard }: Props) {
+export function MeetControls({ room, activePanel, onTogglePanel, unread, view, onViewChange, sharing = false, isHost = false, recording = false, onToggleRecord, onReaction, onOpenPip, bg, onBackgroundChange, onLeave, onCelebrate, onMoveAside, onLeaveCommitment, onOpenCommitmentsBoard }: Props) {
   useRoomEvents(room, CONTROL_EVENTS)
   const isMobile = useIsMobile()
-  const clusterScale = useFitScale(384) // shrink the ~384px control cluster to fit phones ≥320px wide
+  const clusterScale = useFitScale(onBackgroundChange ? 438 : 384) // shrink the control cluster to fit phones ≥320px wide (wider with the effects button)
   const t = useT()
-  const [popover, setPopover] = useState<null | 'reactions' | 'more' | 'mic' | 'cam'>(null)
+  const [popover, setPopover] = useState<null | 'reactions' | 'more' | 'mic' | 'cam' | 'bg'>(null)
   const [showComposer, setShowComposer] = useState(false)
   const [confirmStopShare, setConfirmStopShare] = useState(false)
   const [mediaError, setMediaError] = useState<string | null>(null)
@@ -188,6 +193,21 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
             </Popover>
           )}
         </div>
+        {onBackgroundChange && (
+          <div style={{ position: 'relative' }}>
+            <RoundBtn title={t('Background & effects')} active={popover === 'bg'} onClick={() => setPopover((p) => (p === 'bg' ? null : 'bg'))}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3 1.9 4.6L18.5 9l-4.6 1.9L12 15.5 10.1 11 5.5 9l4.6-1.4L12 3z" /><circle cx="18.5" cy="18.5" r="2.5" /></svg>
+            </RoundBtn>
+            {popover === 'bg' && (
+              <Popover align="center">
+                <div style={{ width: 300, maxWidth: '82vw', maxHeight: 'min(58vh, 380px)', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text)', marginBottom: 10 }}>{t('Background & effects')}</div>
+                  <BackgroundGrid value={bg ?? 'none'} onChange={onBackgroundChange} />
+                </div>
+              </Popover>
+            )}
+          </div>
+        )}
         <RoundBtn title={t('Raise hand')} accent={handRaised} coral onClick={toggleHand}><HandIcon /></RoundBtn>
         <div style={{ position: 'relative' }}>
           <RoundBtn title={t('More options')} active={popover === 'more'} onClick={() => setPopover((p) => (p === 'more' ? null : 'more'))}><MoreIcon /></RoundBtn>

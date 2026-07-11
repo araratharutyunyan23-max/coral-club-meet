@@ -1,15 +1,17 @@
-import { useEffect, useReducer, useRef, useState } from 'react'
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import {
   AudioPresets,
   ConnectionQuality,
   ConnectionState,
   type LocalAudioTrack,
+  type LocalTrackPublication,
   type LocalVideoTrack,
   type Participant,
   Room,
   RoomEvent,
   Track,
 } from 'livekit-client'
+import { applyBackground, type BgId, getSavedBg, saveBg } from './backgrounds'
 import type { JoinInfo } from './types'
 
 /** Re-renders the calling component whenever any of the given room events fire. */
@@ -215,13 +217,55 @@ export function useConnectionQuality(room: Room): ConnectionQuality {
   return room.localParticipant.connectionQuality
 }
 
-// These pull in heavy WASM/ML bundles (MediaPipe for backgrounds, a ~6MB Krisp
-// model), so they're imported dynamically — they split into their own chunks and
-// are only fetched when the feature is actually applied, not on first page load.
-async function applyCameraBg(room: Room, id: import('./backgrounds').BgId) {
+/**
+ * In-call camera background: remembers the chosen preset and applies it to the
+ * live camera track — on change, and whenever the camera track (re)appears so
+ * toggling the camera off/on keeps the effect. Krisp / the segmenter WASM load
+ * lazily inside applyBackground, only when a non-"none" background is applied.
+ */
+export function useCallBackground(room: Room): { bg: BgId; setBackground: (id: BgId) => void } {
+  const [bg, setBgState] = useState<BgId>(() => getSavedBg())
+  const bgRef = useRef(bg)
+  bgRef.current = bg
+  // Serialize applies so a fast switch — especially to "none", whose path skips
+  // the WASM import the blur/image paths await — can't finish before an in-flight
+  // apply and leave the wrong effect on the track (order-preserving, latest wins).
+  const applyChain = useRef<Promise<void>>(Promise.resolve())
+
+  const applyToCamera = useCallback(
+    (id: BgId) => {
+      const track = room.localParticipant.getTrackPublication(Track.Source.Camera)?.track as LocalVideoTrack | undefined
+      if (!track) return
+      applyChain.current = applyChain.current.then(() => applyBackground(track, id).catch(() => {}))
+    },
+    [room],
+  )
+
+  useEffect(() => {
+    const onPublished = (pub: LocalTrackPublication) => {
+      if (pub.source === Track.Source.Camera) applyToCamera(bgRef.current)
+    }
+    room.on(RoomEvent.LocalTrackPublished, onPublished)
+    return () => {
+      room.off(RoomEvent.LocalTrackPublished, onPublished)
+    }
+  }, [room, applyToCamera])
+
+  const setBackground = useCallback(
+    (id: BgId) => {
+      setBgState(id)
+      saveBg(id)
+      applyToCamera(id)
+    },
+    [applyToCamera],
+  )
+
+  return { bg, setBackground }
+}
+
+async function applyCameraBg(room: Room, id: BgId) {
   const track = room.localParticipant.getTrackPublication(Track.Source.Camera)?.track as LocalVideoTrack | undefined
   if (!track) return
-  const { applyBackground } = await import('./backgrounds')
   await applyBackground(track, id)
 }
 
