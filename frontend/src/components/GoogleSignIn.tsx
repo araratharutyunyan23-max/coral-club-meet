@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useAuth } from '../lib/auth'
+import { useIsMobile } from '../lib/hooks'
 import { useLang, useT } from '../lib/i18n'
 
 /** Sign-in affordance for the top-right chrome cluster. Renders nothing when the
@@ -9,6 +10,7 @@ export function GoogleSignIn() {
   const { authRequired, user, gisReady, renderButton, signOut } = useAuth()
   const t = useT()
   const { lang } = useLang()
+  const isMobile = useIsMobile()
   const slot = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -30,19 +32,23 @@ export function GoogleSignIn() {
             style={{ borderRadius: '50%', flex: '0 0 auto' }}
           />
         )}
-        <span
-          style={{
-            fontSize: 13,
-            fontWeight: 500,
-            color: 'var(--text-dim)',
-            maxWidth: 140,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {user.name || user.email}
-        </span>
+        {/* Name is hidden on phones so the top-right cluster (avatar + buttons)
+            doesn't collide with the logo on the left. */}
+        {!isMobile && (
+          <span
+            style={{
+              fontSize: 13,
+              fontWeight: 500,
+              color: 'var(--text-dim)',
+              maxWidth: 140,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {user.name || user.email}
+          </span>
+        )}
         <button
           onClick={() => void signOut()}
           className="chip-btn"

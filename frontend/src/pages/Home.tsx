@@ -1,8 +1,9 @@
 import { Fragment, type CSSProperties } from 'react'
-import { Logo } from '../components/Logo'
+import { Logo, RippleMark } from '../components/Logo'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { LangToggle } from '../components/LangToggle'
 import { GoogleSignIn } from '../components/GoogleSignIn'
+import { useIsMobile } from '../lib/hooks'
 import { useT } from '../lib/i18n'
 import { useAuth } from '../lib/auth'
 
@@ -14,6 +15,7 @@ import { useAuth } from '../lib/auth'
 export function Home({ onCreate }: { onCreate: () => void }) {
   const t = useT()
   const { authRequired, user } = useAuth()
+  const isMobile = useIsMobile()
   const needsSignIn = authRequired && !user
   return (
     <div className="home-screen">
@@ -32,7 +34,8 @@ export function Home({ onCreate }: { onCreate: () => void }) {
 
       {/* chrome */}
       <div style={{ position: 'fixed', zIndex: 4, top: 24, left: 28 }}>
-        <Logo size={30} />
+        {/* Mark-only on phones so the header can't collide with the right-hand cluster. */}
+        {isMobile ? <RippleMark size={30} /> : <Logo size={30} />}
       </div>
       <div style={{ position: 'fixed', zIndex: 4, top: 24, right: 28, display: 'flex', alignItems: 'center', gap: 8 }}>
         <GoogleSignIn />
