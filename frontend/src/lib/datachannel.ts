@@ -39,6 +39,8 @@ async function prepareImage(file: File): Promise<Blob> {
 export interface ChatMessage {
   id: string
   from: string
+  /** Stable participant id — messages group by this, not the display name. */
+  identity: string
   text: string
   ts: number
   mine: boolean
@@ -71,7 +73,7 @@ export function useChat(room: Room) {
         const data = JSON.parse(decoder.decode(payload)) as { id: string; text: string; ts: number }
         setMessages((prev) => [
           ...prev,
-          { id: data.id, from: participant?.name || participant?.identity || 'Guest', text: data.text, ts: data.ts, mine: false },
+          { id: data.id, from: participant?.name || participant?.identity || 'Guest', identity: participant?.identity || 'guest', text: data.text, ts: data.ts, mine: false },
         ])
       } catch {
         // ignore malformed payloads
@@ -96,7 +98,7 @@ export function useChat(room: Room) {
           const from = p?.name || info.identity || 'Guest'
           setMessages((prev) => [
             ...prev,
-            { id: `${info.identity}-img-${Date.now()}-${imgSeq.current++}`, from, text: '', ts: Date.now(), mine: false, image: { url, name: reader.info.name } },
+            { id: `${info.identity}-img-${Date.now()}-${imgSeq.current++}`, from, identity: info.identity || 'guest', text: '', ts: Date.now(), mine: false, image: { url, name: reader.info.name } },
           ])
         } catch {
           // ignore a failed/aborted transfer
@@ -134,7 +136,7 @@ export function useChat(room: Room) {
     })
     setMessages((prev) => [
       ...prev,
-      { id, from: room.localParticipant.name || room.localParticipant.identity, text, ts, mine: true },
+      { id, from: room.localParticipant.name || room.localParticipant.identity, identity: room.localParticipant.identity, text, ts, mine: true },
     ])
   }
 
@@ -154,7 +156,7 @@ export function useChat(room: Room) {
     urls.current.add(url)
     setMessages((prev) => [
       ...prev,
-      { id, from: room.localParticipant.name || room.localParticipant.identity, text: '', ts, mine: true, image: { url, name } },
+      { id, from: room.localParticipant.name || room.localParticipant.identity, identity: room.localParticipant.identity, text: '', ts, mine: true, image: { url, name } },
     ])
     try {
       const type = blob.type || 'image/webp'

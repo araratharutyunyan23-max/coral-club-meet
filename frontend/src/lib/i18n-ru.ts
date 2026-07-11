@@ -180,6 +180,8 @@ export const RU: Record<string, string> = {
   "Side rooms": "Отдельные комнаты",
   "Message everyone": "Сообщение всем",
   "Attach image": "Прикрепить изображение",
+  "No messages yet": "Пока сообщений нет",
+  "Say hello 👋": "Поздоровайтесь 👋",
   "Mute all": "Заглушить всех",
   "Lock room": "Закрыть комнату",
   "Unlock room": "Открыть комнату",

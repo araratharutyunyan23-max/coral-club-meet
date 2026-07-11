@@ -1,5 +1,6 @@
-import { type FormEvent, type ReactNode, useEffect, useRef, useState } from 'react'
+import { type CSSProperties, type FormEvent, type ReactNode, useEffect, useRef, useState } from 'react'
 import type { ChatMessage } from '../lib/datachannel'
+import { hueFor, initialsFor } from './Avatar'
 import { SendIcon } from '../lib/icons'
 import { useT } from '../lib/i18n'
 
@@ -61,16 +62,17 @@ export function ChatPanel({ messages, onSend, onSendImage }: { messages: ChatMes
 
   return (
     <>
-      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div className="cc-list">
         {messages.length === 0 && (
-          <div style={{ margin: 'auto', textAlign: 'center', color: 'var(--text-mute)', fontSize: 13, lineHeight: 1.5 }}>
-            No messages yet.
+          <div className="cc-empty">
+            <div className="cc-rip" aria-hidden="true" />
+            {t('No messages yet')}
             <br />
-            Say hello 👋
+            {t('Say hello 👋')}
           </div>
         )}
-        {messages.map((m) => (
-          <ChatBubble key={m.id} message={m} />
+        {groupMessages(messages).map((g) => (
+          <ChatGroup key={g.key} group={g} />
         ))}
         <div ref={endRef} />
       </div>
@@ -156,34 +158,62 @@ export function ChatPanel({ messages, onSend, onSendImage }: { messages: ChatMes
   )
 }
 
-function ChatBubble({ message }: { message: ChatMessage }) {
-  const img = message.image
+interface ChatGroupData {
+  key: string
+  from: string
+  identity: string
+  mine: boolean
+  ts: number
+  messages: ChatMessage[]
+}
+
+// Group consecutive messages from the same sender within a short window, so the
+// avatar + coloured name + time show once per burst (soft-rail layout). Keyed on
+// the stable identity, not the display name, so two people who share a name (or
+// two unnamed "Guest"s) don't merge into one attributed burst.
+const GROUP_WINDOW = 5 * 60 * 1000
+function groupMessages(messages: ChatMessage[]): ChatGroupData[] {
+  const groups: ChatGroupData[] = []
+  for (const m of messages) {
+    const last = groups[groups.length - 1]
+    const prev = last?.messages[last.messages.length - 1]
+    if (last && prev && last.identity === m.identity && m.ts - prev.ts < GROUP_WINDOW) {
+      last.messages.push(m)
+    } else {
+      groups.push({ key: m.id, from: m.from, identity: m.identity, mine: m.mine, ts: m.ts, messages: [m] })
+    }
+  }
+  return groups
+}
+
+function fmtTime(ts: number): string {
+  const d = new Date(ts)
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+
+/** One sender's burst: a colour rail (their hue) + avatar · name · time, then the
+ *  messages. "Own" bursts recolour to teal with a soft tint (styles: .cc-*). */
+function ChatGroup({ group }: { group: ChatGroupData }) {
+  const t = useT()
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: message.mine ? 'flex-end' : 'flex-start', gap: 3 }}>
-      {!message.mine && <div style={{ fontSize: 11.5, color: 'var(--text-mute)', paddingLeft: 2 }}>{message.from}</div>}
-      <div
-        style={{
-          maxWidth: '85%',
-          padding: img ? 3 : '8px 11px',
-          borderRadius: 10,
-          fontSize: 13.5,
-          lineHeight: 1.4,
-          background: message.mine ? 'var(--teal-tint)' : 'var(--surface)',
-          color: 'var(--text)',
-          border: '1px solid var(--border)',
-          wordBreak: 'break-word',
-        }}
-      >
-        {img ? (
-          <a href={img.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block' }}>
-            <img
-              src={img.url}
-              alt={img.name || 'image'}
-              style={{ display: 'block', maxWidth: '100%', maxHeight: 300, borderRadius: 7, cursor: 'zoom-in' }}
-            />
-          </a>
-        ) : (
-          linkify(message.text)
+    <div className={group.mine ? 'cc-grp own' : 'cc-grp'} style={{ '--nh': hueFor(group.from) } as CSSProperties}>
+      <div className="cc-rail" aria-hidden="true" />
+      <div className="cc-body">
+        <div className="cc-hd">
+          <div className="cc-av">{initialsFor(group.from)}</div>
+          <span className="cc-name">{group.mine ? t('You') : group.from}</span>
+          <span className="cc-time">{fmtTime(group.ts)}</span>
+        </div>
+        {group.messages.map((m) =>
+          m.image ? (
+            <a key={m.id} href={m.image.url} target="_blank" rel="noopener noreferrer" style={{ display: 'block' }}>
+              <img className="cc-img" src={m.image.url} alt={m.image.name || 'image'} />
+            </a>
+          ) : (
+            <div key={m.id} className="cc-msg">
+              {linkify(m.text)}
+            </div>
+          ),
         )}
       </div>
     </div>
