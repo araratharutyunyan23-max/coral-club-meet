@@ -129,7 +129,9 @@ export function useRoomConnection(join: JoinInfo, onLeave: () => void): Connecti
         // Krisp's model / blur's segmenter just turn on a beat later).
         if (join.speakerDeviceId) void r.switchActiveDevice('audiooutput', join.speakerDeviceId).catch(() => {})
         if (join.krisp !== false && join.audioEnabled) void applyNoiseFilter(r).catch(() => {})
-        if (join.bg && join.bg !== 'none' && join.videoEnabled) void applyCameraBg(r, join.bg).catch(() => {})
+        // The initial background is applied by useCallBackground on mount (through
+        // its serialized apply chain) so an early in-call switch can't be raced by
+        // a still-in-flight connect-time apply.
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Could not connect to the call')
       }
@@ -242,6 +244,10 @@ export function useCallBackground(room: Room): { bg: BgId; setBackground: (id: B
   )
 
   useEffect(() => {
+    // Apply the saved background to the camera track that's already live when we
+    // mount (the connect-time publish happens before this hook exists, so we can't
+    // rely on the event for the initial track).
+    if (bgRef.current !== 'none') applyToCamera(bgRef.current)
     const onPublished = (pub: LocalTrackPublication) => {
       if (pub.source === Track.Source.Camera) applyToCamera(bgRef.current)
     }
@@ -261,12 +267,6 @@ export function useCallBackground(room: Room): { bg: BgId; setBackground: (id: B
   )
 
   return { bg, setBackground }
-}
-
-async function applyCameraBg(room: Room, id: BgId) {
-  const track = room.localParticipant.getTrackPublication(Track.Source.Camera)?.track as LocalVideoTrack | undefined
-  if (!track) return
-  await applyBackground(track, id)
 }
 
 async function applyNoiseFilter(room: Room) {

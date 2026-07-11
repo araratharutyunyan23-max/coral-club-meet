@@ -10,7 +10,7 @@ import { CameraIcon, CameraOffIcon, MicIcon, MicOffIcon } from '../lib/icons'
 import { useIsMobile } from '../lib/hooks'
 import { useT } from '../lib/i18n'
 import { BackgroundPicker } from '../components/BackgroundPicker'
-import { type BgId, bgById, getSavedBg, saveBg } from '../lib/backgrounds'
+import { type BgId, bgById, getCustomImage, getSavedBg, saveBg } from '../lib/backgrounds'
 
 const selectStyle: CSSProperties = {
   flex: 1,
@@ -241,7 +241,7 @@ export function Lobby({ room, role, onJoin }: { room: string; role: Role; onJoin
           {/* camera background picker — sits over the preview's bottom-right */}
           {camOn && (
             <div style={{ position: 'absolute', right: 12, bottom: 12, zIndex: 5 }}>
-              <BackgroundPicker value={bg} onChange={chooseBg} />
+              <BackgroundPicker value={bg} onChange={chooseBg} customUrl={getCustomImage()} />
             </div>
           )}
         </div>

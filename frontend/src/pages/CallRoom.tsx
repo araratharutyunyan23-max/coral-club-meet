@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
-import { ConnectionQuality, ConnectionState, type Room, Track } from 'livekit-client'
+import { ConnectionQuality, ConnectionState, type LocalVideoTrack, type Room, Track } from 'livekit-client'
 import type { CallView, JoinInfo } from '../lib/types'
 import { useCallBackground, useConnectionQuality, useIsMobile, useParticipants, useRoomConnection } from '../lib/hooks'
 import { useChat, useReactions } from '../lib/datachannel'
@@ -21,6 +21,7 @@ import { CommitmentsBoard } from '../components/CommitmentsBoard'
 import { RippleLoader } from '../components/RippleLoader'
 import { MeetTopBar } from '../components/MeetTopBar'
 import { MeetControls } from '../components/MeetControls'
+import { BackgroundModal } from '../components/BackgroundModal'
 import { GridView } from '../components/GridView'
 import { FocusView } from '../components/FocusView'
 import { SoloStage } from '../components/SoloStage'
@@ -68,6 +69,7 @@ function CallStage({ room, roomName, reconnecting, isHost, onLeave, onMoveToRoom
   const commitments = useCommitments(room, roomName)
   const [showCommit, setShowCommit] = useState(false)
   const [showBoard, setShowBoard] = useState(false)
+  const [showBackgrounds, setShowBackgrounds] = useState(false)
   // Follow-through: ask about last session's commitment (per-browser, until auth).
   const [showPrompt, setShowPrompt] = useState(true)
   // Carry the live mic/cam state into the destination room (not the stale lobby default).
@@ -87,6 +89,10 @@ function CallStage({ room, roomName, reconnecting, isHost, onLeave, onMoveToRoom
   const background = useCallBackground(room)
   const participants = useParticipants(room)
   const alone = participants.length <= 1
+  // The live camera track for the effects-modal preview. useParticipants re-renders
+  // on publish/unpublish/mute, so this stays current across camera toggles.
+  const cameraTrack = room.localParticipant.getTrackPublication(Track.Source.Camera)?.track as LocalVideoTrack | undefined
+  const cameraOff = !room.localParticipant.isCameraEnabled
   // Someone presenting a screen → auto-spotlight it (Telemost-style: shared
   // screen centred, everyone else in the right-hand filmstrip).
   const sharing = participants.some((p) => {
@@ -187,8 +193,17 @@ function CallStage({ room, roomName, reconnecting, isHost, onLeave, onMoveToRoom
           />
         )}
         {mutedByHost && <MutedByHostToast />}
-        <MeetControls room={room} activePanel={panel} onTogglePanel={togglePanel} unread={unread} view={view} onViewChange={setView} sharing={sharing} isHost={isHost} recording={recording.active} onToggleRecord={recording.toggle} onReaction={reactions.send} onOpenPip={pip.supported ? pip.open : undefined} bg={background.bg} onBackgroundChange={background.setBackground} onLeave={onLeave} onCelebrate={isHost ? moments.celebrate : undefined} onMoveAside={() => setShowAside(true)} onLeaveCommitment={() => setShowCommit(true)} onOpenCommitmentsBoard={isHost ? () => setShowBoard(true) : undefined} />
+        <MeetControls room={room} activePanel={panel} onTogglePanel={togglePanel} unread={unread} view={view} onViewChange={setView} sharing={sharing} isHost={isHost} recording={recording.active} onToggleRecord={recording.toggle} onReaction={reactions.send} onOpenPip={pip.supported ? pip.open : undefined} onOpenBackgrounds={() => setShowBackgrounds(true)} onLeave={onLeave} onCelebrate={isHost ? moments.celebrate : undefined} onMoveAside={() => setShowAside(true)} onLeaveCommitment={() => setShowCommit(true)} onOpenCommitmentsBoard={isHost ? () => setShowBoard(true) : undefined} />
         {showBoard && <CommitmentsBoard items={[...commitments.list].reverse()} onClose={() => setShowBoard(false)} />}
+        {showBackgrounds && (
+          <BackgroundModal
+            track={cameraTrack}
+            cameraOff={cameraOff}
+            value={background.bg}
+            onChange={background.setBackground}
+            onClose={() => setShowBackgrounds(false)}
+          />
+        )}
         {showCommit && (
           <CommitmentComposer
             onSend={(text) => { void commitments.send(text); setShowCommit(false) }}

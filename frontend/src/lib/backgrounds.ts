@@ -1,9 +1,16 @@
 import type { LocalVideoTrack } from 'livekit-client'
+import type { BackgroundProcessorWrapper } from '@livekit/track-processors'
 
-// Camera virtual backgrounds. "None" clears any processor; the blur presets use
-// MediaPipe segmentation (BackgroundBlur); the image presets composite the user
-// over a generated brand gradient (VirtualBackground). The heavy WASM/ML bundle
-// is dynamically imported so it only loads when a background is actually applied.
+// Camera virtual backgrounds. Blur presets use MediaPipe segmentation; image
+// presets composite the user over a generated brand gradient (or an uploaded
+// photo). The heavy WASM/ML bundle is dynamically imported so it only loads when
+// a background is actually applied.
+//
+// One processor is created per camera track and REUSED for every switch via
+// `switchTo` — building a new processor per change spins up a fresh WebGL2
+// context + MediaPipe segmenter each time, and the library never frees the GL
+// context deterministically, so rapid switching used to leak past the browser's
+// ~16-context cap and hang the tab. `switchTo` mutates the live pipeline in place.
 
 export type BgId =
   | 'none'
@@ -16,6 +23,7 @@ export type BgId =
   | 'studio'
   | 'office'
   | 'brand'
+  | 'custom'
 
 export type BgKind = 'none' | 'blur' | 'image'
 
@@ -76,7 +84,11 @@ export const BACKGROUNDS: BgPreset[] = [
   },
 ]
 
+/** The user's uploaded image is not a fixed preset — synthesize it on demand. */
+const CUSTOM_PRESET: BgPreset = { id: 'custom', kind: 'image', label: 'Your image' }
+
 export function bgById(id: BgId | undefined | null): BgPreset {
+  if (id === 'custom') return CUSTOM_PRESET
   return BACKGROUNDS.find((b) => b.id === id) ?? BACKGROUNDS[0]
 }
 
@@ -129,30 +141,117 @@ export function backgroundsSupported(): boolean {
   return typeof window !== 'undefined' && typeof document.createElement('canvas').getContext === 'function'
 }
 
+type BgMode =
+  | { mode: 'disabled' }
+  | { mode: 'background-blur'; blurRadius: number }
+  | { mode: 'virtual-background'; imagePath: string }
+
+/** The processor pipeline mode a preset maps to (image URL resolved here). */
+function targetMode(p: BgPreset): BgMode {
+  if (p.kind === 'none') return { mode: 'disabled' }
+  if (p.kind === 'blur') return { mode: 'background-blur', blurRadius: p.blur ?? 10 }
+  const imagePath = p.id === 'custom' ? (getCustomImage() ?? '') : bgImageUrl(p)
+  return imagePath ? { mode: 'virtual-background', imagePath } : { mode: 'disabled' }
+}
+
+// One processor per camera track, reused across switches. WeakMap so a stopped/
+// republished track (a new object) drops its entry and gets a fresh processor.
+const processors = new WeakMap<LocalVideoTrack, BackgroundProcessorWrapper>()
+
 /**
- * Apply a background preset to a local camera track. Clears the processor for
- * "none", swaps to blur/virtual-background otherwise. Safe to call repeatedly to
- * switch backgrounds. Throws if the processor fails to initialise (caller falls
- * back to "none" and surfaces the "unavailable" state).
+ * Apply a background preset to a local camera track. The first non-"none" apply
+ * builds the processor once; every later change (including "none", which becomes
+ * a cheap disabled pass-through) is an in-place `switchTo` — no new WebGL/ML
+ * context, so rapid switching can't leak contexts and hang the tab. Throws if the
+ * processor fails to initialise (caller falls back to "none").
  */
 export async function applyBackground(track: LocalVideoTrack, id: BgId): Promise<void> {
-  const p = bgById(id)
-  if (p.kind === 'none') {
+  const target = targetMode(bgById(id))
+  const cached = processors.get(track)
+  // Only reuse if it's still the track's live processor (guards against an
+  // external stopProcessor / a stale WeakMap entry from a replaced track).
+  const active = cached && track.getProcessor() === cached ? cached : undefined
+
+  if (active) {
+    await active.switchTo(target)
+    return
+  }
+  if (target.mode === 'disabled') {
+    // Nothing running and nothing to show — make sure the track is clean.
     await track.stopProcessor()
     return
   }
-  const { BackgroundBlur, VirtualBackground } = await import('@livekit/track-processors')
-  if (p.kind === 'blur') {
-    await track.setProcessor(BackgroundBlur(p.blur ?? 10))
-    return
-  }
-  const url = bgImageUrl(p)
-  if (!url) {
-    // Couldn't render the background image (no 2D canvas) — leave the camera clean.
+  const { BackgroundProcessor } = await import('@livekit/track-processors')
+  const processor = BackgroundProcessor(target)
+  await track.setProcessor(processor)
+  processors.set(track, processor)
+}
+
+/**
+ * Fully tear down the processor on a track (WebGL context + segmenter). Only the
+ * lobby preview needs this — before it hands the camera to the joining call. The
+ * in-call track releases its processor when the track itself stops on leave.
+ */
+export async function releaseBackground(track: LocalVideoTrack): Promise<void> {
+  processors.delete(track)
+  try {
     await track.stopProcessor()
-    return
+  } catch {
+    /* ignore */
   }
-  await track.setProcessor(VirtualBackground(url))
+}
+
+// The user's uploaded background image, kept as a downscaled data URL. Persisted
+// so it survives lobby → call and across sessions (best-effort; large uploads may
+// exceed the localStorage quota, in which case it stays in memory for the session).
+const CUSTOM_KEY = 'cc-bg-custom'
+let customImage: string | null = null
+let customLoaded = false
+function loadCustom(): void {
+  if (customLoaded) return
+  customLoaded = true
+  try {
+    customImage = localStorage.getItem(CUSTOM_KEY)
+  } catch {
+    /* ignore */
+  }
+}
+
+export function getCustomImage(): string | null {
+  loadCustom()
+  return customImage
+}
+
+export function setCustomImage(dataUrl: string): void {
+  loadCustom()
+  customImage = dataUrl
+  try {
+    localStorage.setItem(CUSTOM_KEY, dataUrl)
+  } catch {
+    /* quota exceeded / unavailable — keep the in-memory copy for this session */
+  }
+}
+
+/**
+ * Load an uploaded image file and return a downscaled (≤1280×720) JPEG data URL
+ * suitable for VirtualBackground and for persisting. Throws on unreadable files.
+ */
+export async function prepareCustomImage(file: File): Promise<string> {
+  const bitmap = await createImageBitmap(file)
+  try {
+    const scale = Math.min(1, 1280 / bitmap.width, 720 / bitmap.height)
+    const w = Math.max(1, Math.round(bitmap.width * scale))
+    const h = Math.max(1, Math.round(bitmap.height * scale))
+    const canvas = document.createElement('canvas')
+    canvas.width = w
+    canvas.height = h
+    const ctx = canvas.getContext('2d')
+    if (!ctx) throw new Error('no 2d context')
+    ctx.drawImage(bitmap, 0, 0, w, h)
+    return canvas.toDataURL('image/jpeg', 0.85)
+  } finally {
+    bitmap.close()
+  }
 }
 
 const STORE_KEY = 'cc-bg'
@@ -161,6 +260,8 @@ const STORE_KEY = 'cc-bg'
 export function getSavedBg(): BgId {
   try {
     const v = localStorage.getItem(STORE_KEY)
+    // "custom" is only valid while the uploaded image is still around.
+    if (v === 'custom') return getCustomImage() ? 'custom' : 'none'
     if (v && BACKGROUNDS.some((b) => b.id === v)) return v as BgId
   } catch {
     /* ignore */
