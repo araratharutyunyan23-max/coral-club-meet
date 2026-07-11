@@ -1902,20 +1902,23 @@ input {
 
 .cc-grp { display: flex; gap: 11px; padding: 4px 0 10px; }
 .cc-rail { width: 2.5px; border-radius: 3px; flex: 0 0 auto; align-self: stretch; margin: 3px 0 1px; background: hsl(var(--nh) 58% 55%); }
-.cc-body { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.cc-body { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 5px; align-items: flex-start; }
 .cc-hd { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
 .cc-av { width: 24px; height: 24px; border-radius: 50%; flex: 0 0 auto; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 10px; color: #fff; line-height: 1; background: hsl(var(--nh) 52% 46%); }
 .cc-name { font-size: 12.5px; font-weight: 700; letter-spacing: -.01em; color: hsl(var(--nh) 68% 70%); }
 [data-theme='light'] .cc-name { color: hsl(var(--nh) 60% 40%); }
 .cc-time { font-family: var(--mono); font-size: 9.5px; color: var(--text-mute); font-weight: 500; flex: 0 0 auto; }
-.cc-msg { font-size: 13px; line-height: 1.46; color: var(--text); word-break: break-word; }
+/* Each message is its own soft chip so a burst of short messages reads as
+   separate messages, not one run-on block. */
+.cc-msg { font-size: 13px; line-height: 1.46; color: var(--text); word-break: break-word; max-width: 100%; width: fit-content; padding: 6px 10px; border-radius: 10px; background: var(--fill-subtle); }
 .cc-msg a { color: var(--teal-soft); text-decoration: underline; word-break: break-all; }
-.cc-img { margin-top: 4px; max-width: 100%; max-height: 300px; border-radius: 10px; border: 1px solid var(--border); display: block; cursor: zoom-in; }
+.cc-img { margin-top: 1px; max-width: 100%; max-height: 300px; border-radius: 10px; border: 1px solid var(--border); display: block; cursor: zoom-in; }
 
 .cc-grp.own { background: var(--teal-tint); border-radius: 0 12px 12px 0; padding: 5px 11px 8px 0; margin: 2px 0; }
 .cc-grp.own .cc-rail { background: var(--teal); }
 .cc-grp.own .cc-name { color: var(--teal); }
 [data-theme='light'] .cc-grp.own .cc-name { color: var(--teal-soft); }
 .cc-grp.own .cc-av { background: hsl(174 52% 40%); }
+.cc-grp.own .cc-msg { background: color-mix(in srgb, var(--teal) 15%, transparent); }
 @media (prefers-reduced-motion: no-preference) { .cc-grp { animation: ccIn .18s ease-out; } }
 @keyframes ccIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
