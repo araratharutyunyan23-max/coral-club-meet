@@ -75,7 +75,7 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
   // it needs a bigger fit-budget and a lower floor to still fit narrow phones —
   // the whole dock scales down as one unit. Mobile drops the mic/cam chevrons
   // (compact split), so its natural width is smaller.
-  const clusterScale = useFitScale(isMobile ? 490 : 552, 16, 0.6)
+  const clusterScale = useFitScale(isMobile ? 490 : 498, 16, 0.6)
   const t = useT()
   const [popover, setPopover] = useState<null | 'reactions' | 'more' | 'mic' | 'cam'>(null)
   const [showComposer, setShowComposer] = useState(false)
@@ -194,7 +194,9 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
             </Popover>
           )}
         </div>
-        {onOpenBackgrounds && (
+        {/* On desktop the effects button lives in the bottom-right corner next to
+            Chat/People; on mobile the corner is hidden, so keep it in the dock. */}
+        {isMobile && onOpenBackgrounds && (
           <RoundBtn title={t('Background & effects')} onClick={onOpenBackgrounds}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3 1.9 4.6L18.5 9l-4.6 1.9L12 15.5 10.1 11 5.5 9l4.6-1.4L12 3z" /><circle cx="18.5" cy="18.5" r="2.5" /></svg>
           </RoundBtn>
@@ -320,6 +322,11 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
       {/* Bottom-right corner chrome (desktop only — on mobile Chat/People live in the ⋮ menu). */}
       {!isMobile && (
         <div style={{ position: 'absolute', right: 20, top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', gap: 3 }}>
+          {onOpenBackgrounds && (
+            <CornerBtn title={t('Background & effects')} active={false} onClick={onOpenBackgrounds}>
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3 1.9 4.6L18.5 9l-4.6 1.9L12 15.5 10.1 11 5.5 9l4.6-1.4L12 3z" /><circle cx="18.5" cy="18.5" r="2.5" /></svg>
+            </CornerBtn>
+          )}
           <CornerBtn title={t('Chat')} active={activePanel === 'chat'} badge={unread} onClick={() => onTogglePanel('chat')}><ChatIcon size={19} /></CornerBtn>
           <CornerBtn title={t('People')} active={activePanel === 'participants'} onClick={() => onTogglePanel('participants')}><PeopleIcon size={19} /></CornerBtn>
         </div>
