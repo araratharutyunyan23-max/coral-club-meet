@@ -222,11 +222,12 @@ export function useCallPip(room: Room, onLeave: () => void): { supported: boolea
     }
     openRef.current = () => void open()
 
-    // Chromium auto-triggers this media-session action every time the tab is
-    // hidden while the page is capturing (a call), providing the activation the
-    // handler needs. A bare visibilitychange requestWindow() only had transient
-    // activation on the first switch-away, so it stopped firing after the user
-    // returned to the tab once — this path re-fires reliably.
+    // The SOLE auto-open path. With an active media session (the keepalive below),
+    // Chromium fires this every time the tab is hidden, provides the activation
+    // requestWindow() needs, and — on first use — shows the "Automatic
+    // picture-in-picture" permission; once the user allows it, it re-fires on every
+    // tab switch. Must not race a visibilitychange open (see onVisibility) or
+    // Chromium won't drive the flow and the permission is never offered.
     const autoPip = () => void open(true)
     try {
       navigator.mediaSession?.setActionHandler?.('enterpictureinpicture' as MediaSessionAction, autoPip)
@@ -276,12 +277,16 @@ export function useCallPip(room: Room, onLeave: () => void): { supported: boolea
     ] as const
     events.forEach((e) => room.on(e, refresh))
 
-    // Auto-open the floating window when the user leaves the tab; tidy it up when
-    // they return. open() is a no-op if one is already open / opening.
+    // Only CLOSE on return here — do NOT open on tab-hide. Opening the window
+    // ourselves from visibilitychange (via transient activation) bypasses
+    // Chromium's auto-PiP flow: it succeeds once, but because *we* initiated it
+    // Chromium never treats it as an auto-PiP candidate, never shows the
+    // "Automatic picture-in-picture" permission, and so never fires again after
+    // the activation is gone. Auto-OPEN is left entirely to the enterpictureinpicture
+    // media-session action above, which is the permission-gated path Chromium
+    // re-fires on every tab switch (the mechanism Google Meet uses).
     const onVisibility = () => {
-      if (document.visibilityState === 'hidden') {
-        void open(true)
-      } else if (pipRef.current) {
+      if (document.visibilityState === 'visible' && pipRef.current) {
         pipRef.current.close()
         pipRef.current = null
       }
