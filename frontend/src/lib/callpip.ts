@@ -16,6 +16,48 @@ function getDocPiP(): DocPiP | undefined {
   return (window as unknown as { documentPictureInPicture?: DocPiP }).documentPictureInPicture
 }
 
+// A looped, inaudible tone kept playing for the whole call so the page has an
+// ACTIVE media session. That is what makes Chromium treat the tab as an
+// "Automatic picture-in-picture" candidate — it then offers the permission (like
+// Google Meet: "…wants to enter picture-in-picture automatically") and, once
+// allowed, auto-opens the mini window on every tab switch, even when the user's
+// mic/camera are off.
+//
+// Two thresholds have to be cleared for Chromium to grant a *persistent* media
+// session (a short/quiet clip is treated as a one-shot "sound effect" that never
+// holds audio focus): the clip must be longer than ~5s (looping does NOT change
+// the reported duration, so the underlying clip itself must be long), and it must
+// carry enough audio power to count as audible. So this is a 6s clip of a 25 Hz
+// tone at ~-30 dBFS. 25 Hz is below what laptop/phone speakers can reproduce, and
+// even on headphones ~25 Hz needs ~75 dB SPL to be heard — so at -30 dBFS it stays
+// inaudible while still being loud enough for Chromium to register the session.
+// Generated once (per tab) as a data URL; the base64 is built at runtime, so it
+// never inflates the JS bundle.
+let silentUrl = ''
+function keepaliveAudio(): HTMLAudioElement {
+  if (!silentUrl) {
+    const sr = 8000
+    const n = 48000 // 6s — over Chromium's ~5s "persistent media" cutoff; 25 Hz divides sr evenly so the loop is seamless
+    const amp = 1000 // ~-30 dBFS
+    const bytes = new Uint8Array(44 + n * 2)
+    const dv = new DataView(bytes.buffer)
+    const w = (o: number, s: string) => {
+      for (let i = 0; i < s.length; i++) dv.setUint8(o + i, s.charCodeAt(i))
+    }
+    w(0, 'RIFF'); dv.setUint32(4, 36 + n * 2, true); w(8, 'WAVEfmt '); dv.setUint32(16, 16, true)
+    dv.setUint16(20, 1, true); dv.setUint16(22, 1, true); dv.setUint32(24, sr, true)
+    dv.setUint32(28, sr * 2, true); dv.setUint16(32, 2, true); dv.setUint16(34, 16, true)
+    w(36, 'data'); dv.setUint32(40, n * 2, true)
+    for (let i = 0; i < n; i++) dv.setInt16(44 + i * 2, Math.round(amp * Math.sin((2 * Math.PI * 25 * i) / sr)), true)
+    let bin = ''
+    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i])
+    silentUrl = 'data:audio/wav;base64,' + btoa(bin)
+  }
+  const a = new Audio(silentUrl)
+  a.loop = true
+  return a
+}
+
 export function useCallPip(room: Room, onLeave: () => void): { supported: boolean; open: () => void } {
   const supported = typeof window !== 'undefined' && !!getDocPiP()
   const pipRef = useRef<Window | null>(null)
@@ -192,6 +234,36 @@ export function useCallPip(room: Room, onLeave: () => void): { supported: boolea
       /* action unsupported on this browser */
     }
 
+    // Keep an ACTIVE media session for the whole call (a looped inaudible tone +
+    // metadata) so Chromium offers the "Automatic picture-in-picture" permission
+    // and auto-fires the action above on every tab switch — even when the user's
+    // own mic/camera are off. Without a playing session Chromium never prompts and
+    // only the first (transient-activation) switch-away opens the window. This is
+    // the mechanism Google Meet uses. Needs the sticky activation from joining the
+    // call; if autoplay is blocked it fails quietly and we fall back to capture.
+    let keepAudio: HTMLAudioElement | null = null
+    try {
+      keepAudio = keepaliveAudio()
+      void keepAudio.play().catch(() => {})
+      const ms = navigator.mediaSession
+      if (ms) {
+        ms.metadata = new MediaMetadata({ title: room.name || 'Coral Club Meet' })
+        ms.playbackState = 'playing'
+        try {
+          ms.setActionHandler('play', () => void keepAudio?.play().catch(() => {}))
+        } catch {
+          /* ignore */
+        }
+        try {
+          ms.setActionHandler('pause', () => {})
+        } catch {
+          /* ignore */
+        }
+      }
+    } catch {
+      /* media session / autoplay unavailable */
+    }
+
     const events = [
       RoomEvent.ActiveSpeakersChanged,
       RoomEvent.TrackSubscribed,
@@ -221,6 +293,23 @@ export function useCallPip(room: Room, onLeave: () => void): { supported: boolea
       document.removeEventListener('visibilitychange', onVisibility)
       try {
         navigator.mediaSession?.setActionHandler?.('enterpictureinpicture' as MediaSessionAction, null)
+      } catch {
+        /* ignore */
+      }
+      if (keepAudio) {
+        keepAudio.pause()
+        keepAudio.removeAttribute('src')
+        keepAudio.load()
+        keepAudio = null
+      }
+      try {
+        const ms = navigator.mediaSession
+        if (ms) {
+          ms.playbackState = 'none'
+          ms.metadata = null
+          ms.setActionHandler('play', null)
+          ms.setActionHandler('pause', null)
+        }
       } catch {
         /* ignore */
       }
