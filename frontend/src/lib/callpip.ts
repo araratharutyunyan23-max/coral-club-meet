@@ -180,6 +180,18 @@ export function useCallPip(room: Room, onLeave: () => void): { supported: boolea
     }
     openRef.current = () => void open()
 
+    // Chromium auto-triggers this media-session action every time the tab is
+    // hidden while the page is capturing (a call), providing the activation the
+    // handler needs. A bare visibilitychange requestWindow() only had transient
+    // activation on the first switch-away, so it stopped firing after the user
+    // returned to the tab once — this path re-fires reliably.
+    const autoPip = () => void open(true)
+    try {
+      navigator.mediaSession?.setActionHandler?.('enterpictureinpicture' as MediaSessionAction, autoPip)
+    } catch {
+      /* action unsupported on this browser */
+    }
+
     const events = [
       RoomEvent.ActiveSpeakersChanged,
       RoomEvent.TrackSubscribed,
@@ -207,6 +219,11 @@ export function useCallPip(room: Room, onLeave: () => void): { supported: boolea
     return () => {
       events.forEach((e) => room.off(e, refresh))
       document.removeEventListener('visibilitychange', onVisibility)
+      try {
+        navigator.mediaSession?.setActionHandler?.('enterpictureinpicture' as MediaSessionAction, null)
+      } catch {
+        /* ignore */
+      }
       if (pipRef.current) {
         pipRef.current.close()
         pipRef.current = null
