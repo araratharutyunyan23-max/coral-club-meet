@@ -1,4 +1,4 @@
-import { Fragment, type CSSProperties } from 'react'
+import { Fragment, type CSSProperties, useState } from 'react'
 import { Logo, RippleMark } from '../components/Logo'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { LangToggle } from '../components/LangToggle'
@@ -6,17 +6,43 @@ import { GoogleSignIn } from '../components/GoogleSignIn'
 import { useIsMobile } from '../lib/hooks'
 import { useT } from '../lib/i18n'
 import { useAuth } from '../lib/auth'
+import { isValidRoomSlug, slugifyRoom } from '../lib/rooms'
 
 /**
  * Landing screen — the "Arrival" hero. Same Signal ripple language as the lobby,
  * but the brand mark on the right is the source that emits the ripples. One clear
  * action: create a meeting → get a link to share.
  */
-export function Home({ onCreate }: { onCreate: () => void }) {
+export function Home({ onCreate }: { onCreate: (name?: string) => Promise<'taken' | null> }) {
   const t = useT()
   const { authRequired, user } = useAuth()
   const isMobile = useIsMobile()
   const needsSignIn = authRequired && !user
+  const [name, setName] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
+  const slug = slugifyRoom(name)
+
+  const submit = async () => {
+    if (busy) return
+    setErr(null)
+    let customId: string | undefined
+    if (name.trim()) {
+      if (!isValidRoomSlug(slug)) {
+        setErr(t('Use at least 3 Latin letters or digits — reserved names aren’t allowed.'))
+        return
+      }
+      customId = slug
+    }
+    setBusy(true)
+    try {
+      const reason = await onCreate(customId)
+      if (reason === 'taken') setErr(t('That name is already taken — choose another.'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
   return (
     <div className="home-screen">
       {/* "Signal" ambient — ripples emitted from the brand mark on the right. */}
@@ -62,7 +88,7 @@ export function Home({ onCreate }: { onCreate: () => void }) {
             </div>
 
             <div className="cta-row">
-              <button className="cta" onClick={onCreate}>
+              <button className="cta" onClick={submit} disabled={busy}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M23 7l-7 5 7 5z" />
                   <rect x="1" y="5" width="15" height="14" rx="2" />
@@ -70,6 +96,21 @@ export function Home({ onCreate }: { onCreate: () => void }) {
                 {t('Create video meeting')}
               </button>
             </div>
+
+            {/* Optional custom name → a stable, memorable path like /daily. Empty = a
+                fresh random id, exactly as before. */}
+            <div className="create-name">
+              <input
+                value={name}
+                onChange={(e) => { setName(e.target.value); setErr(null) }}
+                onKeyDown={(e) => { if (e.key === 'Enter') void submit() }}
+                placeholder={t('Meeting name (optional)')}
+                aria-label={t('Meeting name (optional)')}
+                maxLength={80}
+              />
+              {name.trim() && isValidRoomSlug(slug) && <span className="create-slug" aria-hidden="true">/{slug}</span>}
+            </div>
+            {err && <div className="create-err" role="alert">{err}</div>}
             {needsSignIn && (
               <div style={{ marginTop: 12, fontSize: 13.5, color: 'var(--text-mute)' }}>{t('Sign in with Google to start a meeting. Guests join by link — no account needed.')}</div>
             )}

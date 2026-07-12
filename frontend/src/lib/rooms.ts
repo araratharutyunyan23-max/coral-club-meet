@@ -13,6 +13,40 @@ export function generateRoomId(): string {
   return `${part()}-${part()}-${part()}`
 }
 
+// Cyrillic → Latin, so a typed name like "Планирование" becomes a clean
+// "planirovanie" slug rather than a %-escaped URL.
+const TRANSLIT: Record<string, string> = {
+  а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'e', ж: 'zh', з: 'z',
+  и: 'i', й: 'y', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r',
+  с: 's', т: 't', у: 'u', ф: 'f', х: 'h', ц: 'ts', ч: 'ch', ш: 'sh', щ: 'sch',
+  ъ: '', ы: 'y', ь: '', э: 'e', ю: 'yu', я: 'ya',
+}
+
+// Names that would clash with edge-routed paths (Caddy proxies /rtc, /healthz,
+// /api, /recordings, /assets away from the SPA) and must never become rooms —
+// otherwise the shareable link would open the SFU/backend, not the meeting.
+const RESERVED_SLUGS = new Set(['rtc', 'healthz', 'api', 'recordings', 'assets', 'admin', 'index', 'favicon', 'robots'])
+
+/**
+ * Turns a user-typed meeting name into a URL-safe slug: transliterated,
+ * lowercased, runs of spaces/punctuation/unknown chars collapsed to a single
+ * hyphen, capped at 64 chars. Returns '' when nothing usable remains.
+ */
+export function slugifyRoom(raw: string): string {
+  let out = ''
+  for (const ch of raw.trim().toLowerCase()) {
+    if (ch in TRANSLIT) out += TRANSLIT[ch]
+    else if (/[a-z0-9]/.test(ch)) out += ch
+    else out += '-'
+  }
+  return out.replace(/-+/g, '-').slice(0, 64).replace(/^-+|-+$/g, '')
+}
+
+/** A custom room slug is usable when it's long enough and not a reserved path. */
+export function isValidRoomSlug(slug: string): boolean {
+  return slug.length >= 3 && !RESERVED_SLUGS.has(slug)
+}
+
 /** The full shareable URL for a room. */
 export function meetingUrl(room: string): string {
   return `${window.location.origin}/${encodeURIComponent(room)}`

@@ -102,26 +102,33 @@ export function App() {
     setScreen('home')
   }
 
-  const createMeeting = async () => {
-    if (!ready) return // wait for /api/config so we don't create a client-only room when auth is required
+  // Create a meeting. An optional customId (a slug typed on Home) becomes the
+  // room's stable path, e.g. /daily; omitted, a fresh random id is minted as
+  // before. Returns 'taken' when a custom name is already owned by someone else.
+  const createMeeting = async (customId?: string): Promise<'taken' | null> => {
+    if (!ready) return null // wait for /api/config so we don't create a client-only room when auth is required
     if (authRequired) {
       // Only signed-in users can create; the server owns the room id.
       if (!user) {
         signIn()
-        return
+        return null
       }
       try {
-        const id = await createRoom()
+        const id = await createRoom(customId)
         markRoomCreated(id) // keep the local host hint in sync (server stays authoritative)
         openRoom(id)
-      } catch {
-        signIn() // session likely expired — re-prompt
+        return null
+      } catch (e) {
+        // A custom name owned by another user comes back as "room already exists".
+        if (e instanceof Error && /already exists/i.test(e.message)) return 'taken'
+        signIn() // otherwise the session likely expired — re-prompt
+        return null
       }
-      return
     }
-    const id = generateRoomId()
+    const id = customId || generateRoomId()
     markRoomCreated(id)
     openRoom(id)
+    return null
   }
   const role: Role = room && isRoomCreator(room) ? 'host' : 'participant'
 

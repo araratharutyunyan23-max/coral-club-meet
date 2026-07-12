@@ -71,7 +71,11 @@ interface Props {
 export function MeetControls({ room, activePanel, onTogglePanel, unread, view, onViewChange, sharing = false, isHost = false, recording = false, onToggleRecord, onReaction, onOpenPip, onOpenBackgrounds, onLeave, onCelebrate, onMoveAside, onLeaveCommitment, onOpenCommitmentsBoard }: Props) {
   useRoomEvents(room, CONTROL_EVENTS)
   const isMobile = useIsMobile()
-  const clusterScale = useFitScale(onOpenBackgrounds ? 438 : 384) // shrink the control cluster to fit phones ≥320px wide (wider with the effects button)
+  // The dock (padded pill + 48px buttons) is wider than the old bare cluster, so
+  // it needs a bigger fit-budget and a lower floor to still fit narrow phones —
+  // the whole dock scales down as one unit. Mobile drops the mic/cam chevrons
+  // (compact split), so its natural width is smaller.
+  const clusterScale = useFitScale(isMobile ? 490 : 552, 16, 0.6)
   const t = useT()
   const [popover, setPopover] = useState<null | 'reactions' | 'more' | 'mic' | 'cam'>(null)
   const [showComposer, setShowComposer] = useState(false)
@@ -147,8 +151,8 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
       {showComposer && onCelebrate && (
         <MomentComposer room={room} onCelebrate={onCelebrate} onClose={() => setShowComposer(false)} />
       )}
-      {/* Centered cluster */}
-      <div style={{ position: 'absolute', left: '50%', top: '50%', transform: `translate(-50%,-50%) scale(${clusterScale})`, display: 'flex', alignItems: 'center', gap: isMobile ? 5 : 8 }}>
+      {/* Centered cluster — a glass "dock" (styles: .meet-dock) */}
+      <div className="meet-dock" style={{ position: 'absolute', left: '50%', top: '50%', transform: `translate(-50%,-50%) scale(${clusterScale})`, display: 'flex', alignItems: 'center', gap: 6 }}>
         <SplitButton
           compact={isMobile}
           danger={!micOn}
@@ -308,7 +312,7 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
 
         <Divider compact={isMobile} />
 
-        <button onClick={leave} title={t('Leave call')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: isMobile ? 54 : 60, height: 46, borderRadius: 23, background: 'var(--danger)', color: '#fff', border: 'none', cursor: 'pointer' }}>
+        <button onClick={leave} title={t('Leave call')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: isMobile ? 58 : 66, height: 48, borderRadius: 24, background: 'var(--danger)', color: '#fff', border: 'none', cursor: 'pointer' }}>
           <LeaveIcon />
         </button>
       </div>
@@ -374,15 +378,15 @@ function SplitButton({ compact, danger, icon, title, onMain, onChevron, popover 
   // single ~44px round toggle, keeping the whole cluster in one row.
   if (compact) {
     return (
-      <button onClick={onMain} title={title} style={{ width: 46, height: 46, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 23, border: 'none', background: bg, color, cursor: 'pointer' }}>{icon}</button>
+      <button onClick={onMain} title={title} style={{ width: 48, height: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 24, border: 'none', background: bg, color, cursor: 'pointer' }}>{icon}</button>
     )
   }
   return (
     <div style={{ position: 'relative' }}>
-      <div style={{ display: 'flex', alignItems: 'center', height: 46, borderRadius: 23, overflow: 'hidden', background: bg, color }}>
-        <button onClick={onMain} title={title} style={{ width: 48, height: 46, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', color: 'inherit', cursor: 'pointer' }}>{icon}</button>
-        <div style={{ width: 1, height: 22, background: 'var(--border-strong)' }} />
-        <button onClick={onChevron} title={t('Choose device')} style={{ width: 26, height: 46, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', color: 'var(--text-mute)', cursor: 'pointer' }}>
+      <div style={{ display: 'flex', alignItems: 'center', height: 48, borderRadius: 24, overflow: 'hidden', background: bg, color }}>
+        <button onClick={onMain} title={title} style={{ width: 50, height: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', color: 'inherit', cursor: 'pointer' }}>{icon}</button>
+        <div style={{ width: 1, height: 24, background: 'var(--border-strong)' }} />
+        <button onClick={onChevron} title={t('Choose device')} style={{ width: 26, height: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', color: 'var(--text-mute)', cursor: 'pointer' }}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6" /></svg>
         </button>
       </div>
@@ -397,13 +401,15 @@ function RoundBtn({ active, accent, coral, danger, disabled, onClick, title, chi
   const bg = danger ? 'rgba(239,75,67,.18)' : accent ? (coral ? 'rgba(255,126,99,.18)' : 'var(--teal)') : active ? 'var(--fill-hover)' : 'transparent'
   const color = danger ? 'var(--danger-soft)' : accent ? (coral ? 'var(--coral)' : '#04211e') : active ? 'var(--text)' : 'var(--text-dim)'
   return (
-    <button onClick={onClick} title={title} disabled={disabled} style={{ width: 46, height: 46, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 23, border: 'none', background: bg, color, cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.38 : 1 }}>{children}</button>
+    <button onClick={onClick} title={title} disabled={disabled} style={{ width: 48, height: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 24, border: 'none', background: bg, color, cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.38 : 1 }}>{children}</button>
   )
 }
 
 function CornerBtn({ active, badge, onClick, title, children }: { active: boolean; badge?: number; onClick: () => void; title: string; children: ReactNode }) {
+  // A glass pill matching the dock (chat/people stay separate — they toggle side
+  // panels, not call state).
   return (
-    <button onClick={onClick} title={title} style={{ position: 'relative', width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 21, border: 'none', background: active ? 'var(--teal-tint)' : 'transparent', color: active ? 'var(--teal-soft)' : 'var(--text-dim)', cursor: 'pointer' }}>
+    <button onClick={onClick} title={title} style={{ position: 'relative', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 22, border: '1px solid var(--border-strong)', background: active ? 'var(--teal-tint)' : 'var(--glass)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', color: active ? 'var(--teal-soft)' : 'var(--text-dim)', cursor: 'pointer' }}>
       {children}
       {badge ? (
         <span style={{ position: 'absolute', top: 3, right: 3, minWidth: 16, height: 16, padding: '0 4px', borderRadius: 8, background: 'var(--coral)', color: '#241008', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{badge > 9 ? '9+' : badge}</span>
