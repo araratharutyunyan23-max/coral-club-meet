@@ -2,9 +2,8 @@ import type { LocalVideoTrack } from 'livekit-client'
 import type { BackgroundProcessorWrapper } from '@livekit/track-processors'
 
 // Camera virtual backgrounds. Blur presets use MediaPipe segmentation; image
-// presets composite the user over a generated brand gradient (or an uploaded
-// photo). The heavy WASM/ML bundle is dynamically imported so it only loads when
-// a background is actually applied.
+// presets composite the user over a generated brand gradient. The heavy WASM/ML
+// bundle is dynamically imported so it only loads when a background is applied.
 //
 // One processor is created per camera track and REUSED for every switch via
 // `switchTo` — building a new processor per change spins up a fresh WebGL2
@@ -12,18 +11,7 @@ import type { BackgroundProcessorWrapper } from '@livekit/track-processors'
 // context deterministically, so rapid switching used to leak past the browser's
 // ~16-context cap and hang the tab. `switchTo` mutates the live pipeline in place.
 
-export type BgId =
-  | 'none'
-  | 'blur-light'
-  | 'blur-strong'
-  | 'signal'
-  | 'grad'
-  | 'green'
-  | 'reef'
-  | 'studio'
-  | 'office'
-  | 'brand'
-  | 'custom'
+export type BgId = 'none' | 'blur-strong' | 'green' | 'office'
 
 export type BgKind = 'none' | 'blur' | 'image'
 
@@ -52,43 +40,18 @@ export interface BgPreset {
 
 export const BACKGROUNDS: BgPreset[] = [
   { id: 'none', kind: 'none', label: 'None' },
-  { id: 'blur-light', kind: 'blur', label: 'Blur', sub: 'light', blur: 6 },
   { id: 'blur-strong', kind: 'blur', label: 'Blur', sub: 'strong', blur: 14 },
-  {
-    id: 'signal', kind: 'image', label: 'Signal field', brand: true,
-    grad: { angle: 158, stops: [[0, '#08171a'], [0.7, '#0b2327'], [1, '#0d2a2b']], glow: { x: 0.72, y: 0.2, r: 0.9, color: 'rgba(37,208,192,.36)' } },
-  },
-  {
-    id: 'grad', kind: 'image', label: 'Brand gradient',
-    grad: { angle: 135, stops: [[0, '#2fd4c4'], [0.52, '#0f9c8d'], [1, '#ff9077']] },
-  },
   {
     id: 'green', kind: 'image', label: 'Greenery',
     grad: { angle: 160, stops: [[0, '#16321f'], [0.7, '#274b32'], [1, '#31543b']], glow: { x: 0.3, y: 0.28, r: 0.75, color: 'rgba(126,186,146,.4)' } },
   },
   {
-    id: 'reef', kind: 'image', label: 'Reef',
-    grad: { angle: 160, stops: [[0, '#0f2b33'], [0.74, '#164a58'], [1, '#1d6274']], glow: { x: 0.7, y: 0.26, r: 0.7, color: 'rgba(52,230,211,.28)' } },
-  },
-  {
-    id: 'studio', kind: 'image', label: 'Neutral studio',
-    grad: { angle: 160, stops: [[0, '#23272d'], [0.72, '#333a42'], [1, '#3d454e']], glow: { x: 0.5, y: 0.08, r: 0.8, color: 'rgba(255,255,255,.08)' } },
-  },
-  {
     id: 'office', kind: 'image', label: 'Light office',
     grad: { angle: 160, stops: [[0, '#eeece5'], [0.7, '#dde1da'], [1, '#d0d5cd']], glow: { x: 0.26, y: 0.24, r: 0.7, color: 'rgba(255,250,236,.85)' } },
   },
-  {
-    id: 'brand', kind: 'image', label: 'Brand backdrop', brand: true,
-    grad: { angle: 150, stops: [[0, '#0b0e12'], [1, '#111820']], glow: { x: 0.84, y: 0.12, r: 0.85, color: 'rgba(37,208,192,.16)' } },
-  },
 ]
 
-/** The user's uploaded image is not a fixed preset — synthesize it on demand. */
-const CUSTOM_PRESET: BgPreset = { id: 'custom', kind: 'image', label: 'Your image' }
-
 export function bgById(id: BgId | undefined | null): BgPreset {
-  if (id === 'custom') return CUSTOM_PRESET
   return BACKGROUNDS.find((b) => b.id === id) ?? BACKGROUNDS[0]
 }
 
@@ -150,7 +113,7 @@ type BgMode =
 function targetMode(p: BgPreset): BgMode {
   if (p.kind === 'none') return { mode: 'disabled' }
   if (p.kind === 'blur') return { mode: 'background-blur', blurRadius: p.blur ?? 10 }
-  const imagePath = p.id === 'custom' ? (getCustomImage() ?? '') : bgImageUrl(p)
+  const imagePath = bgImageUrl(p)
   return imagePath ? { mode: 'virtual-background', imagePath } : { mode: 'disabled' }
 }
 
@@ -201,67 +164,12 @@ export async function releaseBackground(track: LocalVideoTrack): Promise<void> {
   }
 }
 
-// The user's uploaded background image, kept as a downscaled data URL. Persisted
-// so it survives lobby → call and across sessions (best-effort; large uploads may
-// exceed the localStorage quota, in which case it stays in memory for the session).
-const CUSTOM_KEY = 'cc-bg-custom'
-let customImage: string | null = null
-let customLoaded = false
-function loadCustom(): void {
-  if (customLoaded) return
-  customLoaded = true
-  try {
-    customImage = localStorage.getItem(CUSTOM_KEY)
-  } catch {
-    /* ignore */
-  }
-}
-
-export function getCustomImage(): string | null {
-  loadCustom()
-  return customImage
-}
-
-export function setCustomImage(dataUrl: string): void {
-  loadCustom()
-  customImage = dataUrl
-  try {
-    localStorage.setItem(CUSTOM_KEY, dataUrl)
-  } catch {
-    /* quota exceeded / unavailable — keep the in-memory copy for this session */
-  }
-}
-
-/**
- * Load an uploaded image file and return a downscaled (≤1280×720) JPEG data URL
- * suitable for VirtualBackground and for persisting. Throws on unreadable files.
- */
-export async function prepareCustomImage(file: File): Promise<string> {
-  const bitmap = await createImageBitmap(file)
-  try {
-    const scale = Math.min(1, 1280 / bitmap.width, 720 / bitmap.height)
-    const w = Math.max(1, Math.round(bitmap.width * scale))
-    const h = Math.max(1, Math.round(bitmap.height * scale))
-    const canvas = document.createElement('canvas')
-    canvas.width = w
-    canvas.height = h
-    const ctx = canvas.getContext('2d')
-    if (!ctx) throw new Error('no 2d context')
-    ctx.drawImage(bitmap, 0, 0, w, h)
-    return canvas.toDataURL('image/jpeg', 0.85)
-  } finally {
-    bitmap.close()
-  }
-}
-
 const STORE_KEY = 'cc-bg'
 
 /** Remembered background choice (carries lobby → call and across sessions). */
 export function getSavedBg(): BgId {
   try {
     const v = localStorage.getItem(STORE_KEY)
-    // "custom" is only valid while the uploaded image is still around.
-    if (v === 'custom') return getCustomImage() ? 'custom' : 'none'
     if (v && BACKGROUNDS.some((b) => b.id === v)) return v as BgId
   } catch {
     /* ignore */

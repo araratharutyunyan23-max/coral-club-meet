@@ -1,17 +1,17 @@
-import { type ChangeEvent, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import type { LocalVideoTrack } from 'livekit-client'
-import { type BgId, getCustomImage, prepareCustomImage, setCustomImage } from '../lib/backgrounds'
+import type { BgId } from '../lib/backgrounds'
 import { useIsMobile } from '../lib/hooks'
 import { useT } from '../lib/i18n'
 import { BackgroundGrid } from './BackgroundPicker'
 
 /**
  * Google-Meet-style "Backgrounds and effects" modal: a large live self-preview
- * (the real processed camera, mirrored) next to the preset grid + an "upload your
- * own image" tile. The preview attaches the live camera track as a SECOND element
- * — the self-tile keeps its own attachment and there's no extra segmentation cost
- * (both render the same processedTrack). Switching a preset updates both at once.
+ * (the real processed camera, mirrored) next to the preset grid. The preview
+ * attaches the live camera track as a SECOND element — the self-tile keeps its
+ * own attachment and there's no extra segmentation cost (both render the same
+ * processedTrack). Switching a preset updates both at once.
  */
 export function BackgroundModal({
   track,
@@ -30,8 +30,6 @@ export function BackgroundModal({
   const t = useT()
   const isMobile = useIsMobile()
   const videoRef = useRef<HTMLVideoElement>(null)
-  const fileRef = useRef<HTMLInputElement>(null)
-  const [customUrl, setCustomUrl] = useState<string | null>(() => getCustomImage())
 
   const showVideo = !!track && !cameraOff
 
@@ -52,20 +50,6 @@ export function BackgroundModal({
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [onClose])
-
-  const onFile = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    e.target.value = '' // let the user re-pick the same file
-    if (!file) return
-    try {
-      const url = await prepareCustomImage(file)
-      setCustomImage(url)
-      setCustomUrl(url)
-      onChange('custom')
-    } catch {
-      /* unreadable image — ignore */
-    }
-  }
 
   return createPortal(
     <div className="bgm-backdrop" onClick={onClose}>
@@ -91,15 +75,9 @@ export function BackgroundModal({
             )}
           </div>
           <div className="bgm-controls">
-            <BackgroundGrid
-              value={value}
-              onChange={onChange}
-              customUrl={customUrl}
-              onPickUpload={() => fileRef.current?.click()}
-            />
+            <BackgroundGrid value={value} onChange={onChange} />
           </div>
         </div>
-        <input ref={fileRef} type="file" accept="image/*" hidden onChange={onFile} />
       </div>
     </div>,
     document.body,
