@@ -1898,6 +1898,8 @@ input {
 /* "Upload your own image" tile (in the .bgp-grid). */
 .bgp-addview { display: flex; align-items: center; justify-content: center; border-style: dashed; color: var(--text-mute); background: var(--surface-2); }
 .bgp-addview svg { width: 22px; height: 22px; }
+.bgp-noneview { display: flex; align-items: center; justify-content: center; color: var(--text-dim); background: var(--surface-2); }
+.bgp-noneview svg { width: 22px; height: 22px; }
 .bgp-add:hover .bgp-addview { border-color: var(--teal-soft); color: var(--teal-soft); transform: translateY(-2px); }
 .bgp-add:focus-visible { outline: none; }
 .bgp-add:focus-visible .bgp-addview { outline: 2.5px solid var(--teal-bright); outline-offset: 2px; }

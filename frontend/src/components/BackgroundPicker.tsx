@@ -24,7 +24,6 @@ export function BackgroundGrid({
   onPickUpload?: () => void
 }) {
   const t = useT()
-  const chips = BACKGROUNDS.filter((b) => b.kind !== 'image')
   const images = BACKGROUNDS.filter((b) => b.kind === 'image')
 
   const pick = (p: BgPreset) => {
@@ -32,34 +31,26 @@ export function BackgroundGrid({
     onChange(p.id)
   }
 
-  const Chip = (p: BgPreset) => {
-    const on = value === p.id
-    const dis = unavailable && p.id !== 'none'
+  // "No background" as a grid tile (always enabled, even when effects are
+  // unavailable) — the way to clear the current background.
+  const NoneTile = () => {
+    const on = value === 'none'
     return (
       <button
-        key={p.id}
         type="button"
         role="radio"
         aria-checked={on}
-        aria-label={p.kind === 'none' ? t('No background') : `${t('Blur')} · ${t(p.sub === 'strong' ? 'strong' : 'light')}`}
-        disabled={dis}
-        className="bgp-chip"
-        onClick={() => pick(p)}
+        aria-label={t('No background')}
+        className="bgp-thumb"
+        onClick={() => pick(bgById('none'))}
       >
-        <span className="bgp-ci">
-          {p.kind === 'none' ? (
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="9" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-          ) : (
-            <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="9.5" cy="10" r="4.2" /><circle cx="15" cy="14.5" r="4.2" opacity=".55" /></svg>
-          )}
+        <span className="bgp-view bgp-noneview" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="9" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+          <span className="bgp-check" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+          </span>
         </span>
-        <span className="bgp-cl">
-          <b>{p.kind === 'none' ? t('None') : t('Blur')}</b>
-          {p.sub && <i>{t(p.sub === 'strong' ? 'strong' : 'light')}</i>}
-        </span>
-        <span className="bgp-cx" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
-        </span>
+        <span className="bgp-cap">{t('None')}</span>
       </button>
     )
   }
@@ -137,9 +128,8 @@ export function BackgroundGrid({
           <span>{t("Effects aren't available on this device — only “None”.")}</span>
         </div>
       )}
-      <div className="bgp-chips" role="radiogroup" aria-label={t('Background')}>{chips.map(Chip)}</div>
-      <div className="bgp-sec">{t('Images')}</div>
-      <div className="bgp-grid" role="radiogroup" aria-label={t('Image backgrounds')}>
+      <div className="bgp-grid" role="radiogroup" aria-label={t('Background')}>
+        <NoneTile />
         {onPickUpload && <UploadTile />}
         {customUrl && <CustomThumb />}
         {images.map(Thumb)}
