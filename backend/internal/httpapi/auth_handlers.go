@@ -11,7 +11,7 @@ import (
 
 const (
 	sessionCookie = "cc_session"
-	sessionTTL    = 12 * time.Hour
+	sessionTTL    = 30 * 24 * time.Hour // ~1 month; fixed expiry (no sliding renewal)
 	roomGrantTTL  = 30 * 24 * time.Hour // durable host proof, survives restarts
 )
 
