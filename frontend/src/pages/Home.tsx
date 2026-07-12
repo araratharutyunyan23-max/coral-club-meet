@@ -22,6 +22,7 @@ export function Home({ onCreate }: { onCreate: (name?: string) => Promise<'taken
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
   const slug = slugifyRoom(name)
+  const host = typeof window !== 'undefined' ? window.location.host : ''
 
   const submit = async () => {
     if (busy) return
@@ -106,10 +107,10 @@ export function Home({ onCreate }: { onCreate: (name?: string) => Promise<'taken
                 onKeyDown={(e) => { if (e.key === 'Enter') void submit() }}
                 placeholder={t('Meeting name (optional)')}
                 aria-label={t('Meeting name (optional)')}
-                maxLength={80}
+                maxLength={15}
               />
-              {name.trim() && isValidRoomSlug(slug) && <span className="create-slug" aria-hidden="true">/{slug}</span>}
             </div>
+            {name.trim() && isValidRoomSlug(slug) && <div className="create-slug" aria-hidden="true">{host}/{slug}</div>}
             {err && <div className="create-err" role="alert">{err}</div>}
             {needsSignIn && (
               <div style={{ marginTop: 12, fontSize: 13.5, color: 'var(--text-mute)' }}>{t('Sign in with Google to start a meeting. Guests join by link — no account needed.')}</div>

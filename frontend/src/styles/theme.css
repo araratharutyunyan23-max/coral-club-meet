@@ -833,13 +833,11 @@ input {
 .home-hero .create-name input::placeholder { color: var(--text-mute); }
 .home-hero .create-name input:focus { border-color: var(--teal-soft); background: var(--surface); }
 .home-hero .create-slug {
-  flex: 0 0 auto;
-  font: 600 12.5px/1 var(--mono);
+  margin-top: 8px;
+  font: 600 12.5px/1.4 var(--mono);
   color: var(--teal-soft);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 45%;
+  word-break: break-all;
+  max-width: 440px;
 }
 .home-hero .create-err { margin-top: 9px; max-width: 440px; font-size: 13px; line-height: 1.4; color: var(--danger-soft); }
 .home-hero .helper {
