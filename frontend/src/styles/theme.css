@@ -816,7 +816,7 @@ input {
   gap: 10px;
   margin-top: 14px;
   width: 100%; /* stretch to the copy column (a flex item won't, so max-width alone leaves it input-narrow) */
-  max-width: 440px;
+  max-width: 340px; /* enough for the placeholder, roughly the CTA's width — not a long empty field */
 }
 .home-hero .create-name input {
   flex: 1;
