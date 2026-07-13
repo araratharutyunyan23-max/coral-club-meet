@@ -1762,7 +1762,11 @@ input {
 .rep-scroll::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 99px; border: 3px solid var(--bg-elev); }
 .rep-rows { display: flex; flex-direction: column; }
 .rep-row { display: grid; grid-template-columns: var(--rep-cols); column-gap: 16px; align-items: center; padding: 11px 22px; border-top: 1px solid var(--border); }
-/* No column header now — the meeting title's divider is the top edge, so drop the first row's own border. */
+/* Column header: labels each time column so a duration like "12:01" isn't misread
+   as a wall-clock time. Same grid as the rows, sticks to the top while scrolling. */
+.report .rep-headrow { display: grid; grid-template-columns: var(--rep-cols); column-gap: 16px; align-items: end; padding: 12px 22px 8px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 2; background: var(--bg-elev); }
+.report .rep-headrow .cell { font: 700 9.5px/1 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-mute); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Header sits above the first row, so the first row keeps no top border of its own. */
 .rep-row:first-child { border-top: none; }
 .rep-row.you { background: linear-gradient(90deg, rgba(37, 208, 192, 0.05), transparent 55%); }
 [data-theme='light'] .rep-row.you { background: linear-gradient(90deg, rgba(15, 156, 141, 0.06), transparent 55%); }
@@ -1799,7 +1803,8 @@ input {
 
 /* mobile reflow — driven by the card's own width (container query on .report) */
 @container (max-width: 560px) {
-  .report .rep-row { grid-template-columns: 1fr auto; row-gap: 10px; padding: 13px 18px; }
+  .report .rep-row, .report .rep-headrow { grid-template-columns: 1fr auto; row-gap: 6px; padding-left: 18px; padding-right: 18px; }
+  .report .rep-row { row-gap: 10px; padding: 13px 18px; }
   .report .joined, .report .left { display: none; }
   .report .sub-times { display: flex; align-items: center; gap: 6px; font: 500 11px/1 var(--mono); color: var(--text-mute); }
   .report .present { font-size: 17px; }
