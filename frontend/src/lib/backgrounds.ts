@@ -121,6 +121,17 @@ function targetMode(p: BgPreset): BgMode {
 // republished track (a new object) drops its entry and gets a fresh processor.
 const processors = new WeakMap<LocalVideoTrack, BackgroundProcessorWrapper>()
 
+// Self-hosted MediaPipe assets. By default @livekit/track-processors pulls the
+// segmenter WASM from cdn.jsdelivr.net and the model from storage.googleapis.com —
+// both throttled/blocked in RU, so the background silently failed there (the fetch
+// is swallowed and the real camera background shows). These are copied into
+// frontend/public/mediapipe and served same-origin. Only read on the FIRST
+// processor init below; later switchTo() reuses the loaded segmenter.
+const MEDIAPIPE_ASSETS = {
+  tasksVisionFileSet: '/mediapipe/wasm',
+  modelAssetPath: '/mediapipe/selfie_segmenter.tflite',
+}
+
 /**
  * Apply a background preset to a local camera track. The first non-"none" apply
  * builds the processor once; every later change (including "none", which becomes
@@ -145,7 +156,7 @@ export async function applyBackground(track: LocalVideoTrack, id: BgId): Promise
     return
   }
   const { BackgroundProcessor } = await import('@livekit/track-processors')
-  const processor = BackgroundProcessor(target)
+  const processor = BackgroundProcessor({ ...target, assetPaths: MEDIAPIPE_ASSETS })
   await track.setProcessor(processor)
   processors.set(track, processor)
 }

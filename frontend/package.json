@@ -9,6 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fontsource/hanken-grotesk": "^5.2.8",
+    "@fontsource/jetbrains-mono": "^5.2.8",
     "@livekit/krisp-noise-filter": "^0.4.3",
     "@livekit/track-processors": "^0.7.2",
     "livekit-client": "^2.6.0",

@@ -33,6 +33,17 @@ meet-coralclub.com, 178-105-146-99.sslip.io {
 			file_server
 		}
 
+		# Self-hosted MediaPipe segmenter assets (WASM + .tflite model), served
+		# same-origin so the camera background works where cdn.jsdelivr.net /
+		# storage.googleapis.com are blocked. Not fingerprinted (fixed names), so
+		# cache for a month rather than "immutable"; served as static files, never
+		# rewritten to the SPA index. Caddy sets application/wasm for .wasm itself.
+		@mediapipe path /mediapipe/*
+		handle @mediapipe {
+			header Cache-Control "public, max-age=2592000"
+			file_server
+		}
+
 		# Everything else is the SPA shell: index.html is served for "/" and every
 		# client route via try_files. It must never be cached, or browsers keep
 		# loading a stale index.html that points at old asset hashes. An
