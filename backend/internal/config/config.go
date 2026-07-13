@@ -20,12 +20,12 @@ type Config struct {
 	RecordingsDir  string // where the backend serves finished recordings from
 	EgressOutDir   string // path the Egress service writes files to (its mount)
 
-	// Google sign-in. When GoogleClientID is set, creating a meeting requires a
-	// signed-in Google user and host role is derived server-side; empty keeps the
-	// current open behavior. SessionSecret signs our own session cookie and is
-	// required whenever GoogleClientID is set.
-	GoogleClientID string
-	SessionSecret  string
+	// Create-meeting gate. When CreateCode is set, creating a meeting requires the
+	// shared access code (staff know it; guests join by link freely) and host role
+	// is derived server-side; empty keeps the current open behavior. SessionSecret
+	// signs our own session cookie and is required whenever CreateCode is set.
+	CreateCode    string
+	SessionSecret string
 }
 
 // Load reads configuration from the environment, applying local-development
@@ -59,16 +59,21 @@ func Load() (Config, error) {
 
 	cfg.LiveKitHostURL = env("LIVEKIT_HOST_URL", httpFromWS(cfg.LiveKitURL))
 
-	cfg.GoogleClientID = env("GOOGLE_CLIENT_ID", "")
+	cfg.CreateCode = env("CREATE_CODE", "")
 	cfg.SessionSecret = os.Getenv("SESSION_SECRET")
 
 	if cfg.LiveKitAPIKey == "" || cfg.LiveKitSecret == "" {
 		return Config{}, fmt.Errorf("LIVEKIT_API_KEY and LIVEKIT_API_SECRET must be set (or set LIVEKIT_DEV=true for local dev credentials)")
 	}
-	// A session signing key is mandatory once Google sign-in is enabled, so prod
-	// can never issue unsigned/forgeable sessions.
-	if cfg.GoogleClientID != "" && cfg.SessionSecret == "" {
-		return Config{}, fmt.Errorf("SESSION_SECRET must be set when GOOGLE_CLIENT_ID is set (generate with: openssl rand -base64 48)")
+	// A session signing key is mandatory once the create-code gate is enabled, so
+	// prod can never issue unsigned/forgeable sessions.
+	if cfg.CreateCode != "" && cfg.SessionSecret == "" {
+		return Config{}, fmt.Errorf("SESSION_SECRET must be set when CREATE_CODE is set (generate with: openssl rand -base64 48)")
+	}
+	// Fail closed in production: without the gate, anyone could create rooms and
+	// claim host/moderation. Only explicit dev mode is allowed to run open.
+	if cfg.CreateCode == "" && !isTrue(os.Getenv("LIVEKIT_DEV")) {
+		return Config{}, fmt.Errorf("CREATE_CODE must be set in production (or set LIVEKIT_DEV=true for open local dev)")
 	}
 	return cfg, nil
 }

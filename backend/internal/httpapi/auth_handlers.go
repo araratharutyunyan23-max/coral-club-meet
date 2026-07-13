@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"crypto/subtle"
 	"encoding/json"
 	"net/http"
 	"strings"
@@ -15,23 +16,30 @@ const (
 	roomGrantTTL  = 30 * 24 * time.Hour // durable host proof, survives restarts
 )
 
-// authEnabled reports whether Google sign-in is configured. When false, the app
-// keeps its original open behavior (no gate, client-asserted role).
-func (s *Server) authEnabled() bool {
-	return s.googleClientID != "" && s.verifier != nil && s.sessionSecret != ""
+// Shared identity for everyone who signs in with the access code. One identity
+// means any staff member can host any staff-created room — appropriate for a
+// trusted, shared code (guests never get a session, so they stay participants).
+const (
+	staffSub  = "staff"
+	staffName = "Coral Club"
+)
+
+// codeEnabled reports whether the create-meeting access code is configured. When
+// false, the app keeps its original open behavior (no gate, client-asserted role).
+func (s *Server) codeEnabled() bool {
+	return s.createCode != "" && s.sessionSecret != ""
 }
 
 // handleConfig exposes the public client config the SPA needs at runtime,
 // mirroring how the LiveKit url is delivered in the token response.
 func (s *Server) handleConfig(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{
-		"googleClientId": s.googleClientID,
-		"authRequired":   s.authEnabled(),
+		"authRequired": s.codeEnabled(),
 	})
 }
 
-type googleLoginRequest struct {
-	Credential string `json:"credential"`
+type codeLoginRequest struct {
+	Code string `json:"code"`
 }
 
 type authUser struct {
@@ -40,53 +48,40 @@ type authUser struct {
 	Picture string `json:"picture"`
 }
 
-// handleGoogleLogin verifies the Google credential, mints a session cookie and
-// returns the signed-in user's public profile.
-func (s *Server) handleGoogleLogin(w http.ResponseWriter, r *http.Request) {
-	if !s.authEnabled() {
-		writeError(w, http.StatusNotImplemented, "google sign-in is not configured")
+// handleCodeLogin checks the shared access code and, on a match, mints a session
+// cookie for the shared "staff" identity.
+func (s *Server) handleCodeLogin(w http.ResponseWriter, r *http.Request) {
+	if !s.codeEnabled() {
+		writeError(w, http.StatusNotImplemented, "access code is not configured")
 		return
 	}
-	// Require a JSON content-type so this state-changing endpoint cannot be driven
-	// by a cross-site form POST (text/plain is a CORS "simple" request); JSON forces
-	// a preflight that our same-origin CORS policy blocks.
+	// Require a JSON content-type so this state-changing endpoint can't be driven by
+	// a simple cross-site form POST. The real cross-site defense is the cookie: it is
+	// SameSite=Lax and CORS runs with credentials disabled, so a cross-origin caller
+	// can neither send nor receive a session here (and login-CSRF is moot anyway —
+	// one shared identity).
 	if ct := r.Header.Get("Content-Type"); !strings.HasPrefix(ct, "application/json") {
 		writeError(w, http.StatusUnsupportedMediaType, "content-type must be application/json")
 		return
 	}
-	var req googleLoginRequest
+	var req codeLoginRequest
 	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, maxBodyBytes)).Decode(&req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid JSON body")
 		return
 	}
-	req.Credential = strings.TrimSpace(req.Credential)
-	if req.Credential == "" {
-		writeError(w, http.StatusBadRequest, "credential is required")
+	// Constant-time compare so a wrong code can't be teased out by timing.
+	if subtle.ConstantTimeCompare([]byte(strings.TrimSpace(req.Code)), []byte(s.createCode)) != 1 {
+		writeError(w, http.StatusUnauthorized, "wrong code")
 		return
 	}
 
-	claims, err := s.verifier.Verify(r.Context(), req.Credential)
-	if err != nil {
-		writeError(w, http.StatusUnauthorized, "invalid Google credential")
-		return
-	}
-	if !claims.EmailVerified {
-		writeError(w, http.StatusForbidden, "email is not verified")
-		return
-	}
-
-	token, err := auth.SignSession(auth.Session{
-		Sub:     claims.Sub,
-		Email:   claims.Email,
-		Name:    claims.Name,
-		Picture: claims.Picture,
-	}, s.sessionSecret, sessionTTL)
+	token, err := auth.SignSession(auth.Session{Sub: staffSub, Name: staffName}, s.sessionSecret, sessionTTL)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to create session")
 		return
 	}
 	s.setSessionCookie(w, token, int(sessionTTL.Seconds()))
-	writeJSON(w, http.StatusOK, authUser{Email: claims.Email, Name: claims.Name, Picture: claims.Picture})
+	writeJSON(w, http.StatusOK, authUser{Name: staffName})
 }
 
 // handleMe returns the current user, or 401 if there is no valid session.
@@ -162,7 +157,7 @@ func (s *Server) setSessionCookie(w http.ResponseWriter, value string, maxAge in
 
 // sessionFromRequest returns the verified session for a request, if any.
 func (s *Server) sessionFromRequest(r *http.Request) (auth.Session, bool) {
-	if !s.authEnabled() {
+	if !s.codeEnabled() {
 		return auth.Session{}, false
 	}
 	c, err := r.Cookie(sessionCookie)
@@ -180,7 +175,7 @@ func (s *Server) sessionFromRequest(r *http.Request) (auth.Session, bool) {
 // room. With sign-in disabled the app keeps its legacy open behavior; with it
 // enabled, the caller must have a valid session and be the room's host.
 func (s *Server) ownsRoom(r *http.Request, room string) bool {
-	if !s.authEnabled() {
+	if !s.codeEnabled() {
 		return true
 	}
 	sess, ok := s.sessionFromRequest(r)

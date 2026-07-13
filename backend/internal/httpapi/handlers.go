@@ -62,9 +62,9 @@ func (s *Server) handleToken(w http.ResponseWriter, r *http.Request) {
 		role = livekit.RoleParticipant
 	}
 
-	// With sign-in enabled the server decides the role, ignoring the body: host
-	// only for the room's verified owner (in-memory map or durable grant).
-	if s.authEnabled() {
+	// With the create-code gate enabled the server decides the role, ignoring the
+	// body: host only for the room's verified owner (in-memory map or durable grant).
+	if s.codeEnabled() {
 		role = livekit.RoleParticipant
 		if sess, ok := s.sessionFromRequest(r); ok && s.isRoomHost(r, req.Room, sess) {
 			role = livekit.RoleHost

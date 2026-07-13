@@ -1,41 +1,22 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { fetchConfig, fetchMe, loginWithGoogle, logout as apiLogout } from './api'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { fetchConfig, fetchMe, submitCode as apiSubmitCode, logout as apiLogout } from './api'
 import type { AuthUser } from './types'
 
-// Google sign-in, mirroring the LangProvider pattern. The provider fetches the
-// public runtime config (whether sign-in is required + the OAuth client id),
-// restores any existing session cookie, and lazily loads Google Identity
-// Services only when it is actually needed.
-
-const GIS_SRC = 'https://accounts.google.com/gsi/client'
-
-// Minimal shape of the bits of the GIS SDK we call.
-interface GoogleIdentity {
-  accounts: {
-    id: {
-      initialize: (opts: { client_id: string; callback: (r: { credential: string }) => void; auto_select?: boolean }) => void
-      renderButton: (parent: HTMLElement, opts: Record<string, unknown>) => void
-      prompt: () => void
-      disableAutoSelect: () => void
-    }
-  }
-}
-function gis(): GoogleIdentity | undefined {
-  return (window as unknown as { google?: GoogleIdentity }).google
-}
+// Access-code sign-in, mirroring the LangProvider pattern. The provider fetches
+// the public runtime config (whether creating a meeting requires the shared
+// code) and restores any existing session cookie. No third-party SDK is loaded —
+// this is entirely first-party, so it works where Google's hosts are blocked.
 
 interface AuthCtx {
   /** True once config + any existing session have resolved. */
   ready: boolean
-  /** Whether the backend requires sign-in to create a meeting. */
+  /** Whether the backend requires the access code to create a meeting. */
   authRequired: boolean
-  /** True once the Google SDK has initialized (button can be rendered). */
-  gisReady: boolean
+  /** Non-null once the code has been accepted (a valid session exists). */
   user: AuthUser | null
-  /** Renders the official Google button into an element (preferred entry point). */
-  renderButton: (el: HTMLElement, opts?: Record<string, unknown>) => void
-  /** One Tap / account-chooser prompt — a fallback for gating the Create button. */
-  signIn: () => void
+  /** Submit the shared access code; resolves true on success, false on a wrong code. */
+  submitCode: (code: string) => Promise<boolean>
+  /** Clear the session (also called when a create request finds the session expired). */
   signOut: () => Promise<void>
 }
 
@@ -44,29 +25,15 @@ const Ctx = createContext<AuthCtx | null>(null)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false)
   const [authRequired, setAuthRequired] = useState(false)
-  const [clientId, setClientId] = useState('')
-  const [gisReady, setGisReady] = useState(false)
   const [user, setUser] = useState<AuthUser | null>(null)
-  const initedRef = useRef(false)
 
-  // Latest user setter for the GIS callback (which is registered once).
-  const onCredential = useCallback(async (credential: string) => {
-    try {
-      const u = await loginWithGoogle(credential)
-      setUser(u)
-    } catch {
-      /* surfaced by the sign-in UI; leave the user signed out */
-    }
-  }, [])
-
-  // 1) Load runtime config + restore any existing session.
+  // Load runtime config + restore any existing session.
   useEffect(() => {
     let cancelled = false
     void (async () => {
       const cfg = await fetchConfig()
       if (cancelled) return
       setAuthRequired(cfg.authRequired)
-      setClientId(cfg.googleClientId)
       if (cfg.authRequired) {
         const me = await fetchMe()
         if (!cancelled && me) setUser(me)
@@ -78,69 +45,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  // 2) Lazily load + initialize Google Identity Services once we know we need it.
-  useEffect(() => {
-    if (!authRequired || !clientId || initedRef.current) return
-
-    const init = () => {
-      const g = gis()
-      if (!g?.accounts?.id || initedRef.current) return
-      g.accounts.id.initialize({
-        client_id: clientId,
-        auto_select: false,
-        callback: (r) => void onCredential(r.credential),
-      })
-      initedRef.current = true
-      setGisReady(true)
+  const submitCode = useCallback(async (code: string): Promise<boolean> => {
+    try {
+      const u = await apiSubmitCode(code)
+      setUser(u)
+      return true
+    } catch {
+      return false
     }
-
-    if (gis()?.accounts?.id) {
-      init()
-      return
-    }
-    const existing = document.querySelector<HTMLScriptElement>(`script[src="${GIS_SRC}"]`)
-    if (existing) {
-      existing.addEventListener('load', init, { once: true })
-      return
-    }
-    const sc = document.createElement('script')
-    sc.src = GIS_SRC
-    sc.async = true
-    sc.defer = true
-    sc.addEventListener('load', init, { once: true })
-    document.head.appendChild(sc)
-  }, [authRequired, clientId, onCredential])
-
-  const renderButton = useCallback((el: HTMLElement, opts?: Record<string, unknown>) => {
-    const g = gis()
-    if (!g?.accounts?.id) return
-    // Match the app theme: filled on the dark surface, outline on Tide.
-    const dark = document.documentElement.dataset.theme !== 'light'
-    el.innerHTML = ''
-    g.accounts.id.renderButton(el, {
-      type: 'standard',
-      theme: dark ? 'filled_black' : 'outline',
-      size: 'large',
-      text: 'signin_with',
-      shape: 'pill',
-      logo_alignment: 'left',
-      ...opts,
-    })
-  }, [])
-
-  const signIn = useCallback(() => {
-    gis()?.accounts?.id?.prompt()
   }, [])
 
   const signOut = useCallback(async () => {
     await apiLogout()
-    gis()?.accounts?.id?.disableAutoSelect()
     setUser(null)
   }, [])
 
   const value = useMemo<AuthCtx>(
-    () => ({ ready, authRequired, gisReady, user, renderButton, signIn, signOut }),
-    [ready, authRequired, gisReady, user, renderButton, signIn, signOut],
+    () => ({ ready, authRequired, user, submitCode, signOut }),
+    [ready, authRequired, user, submitCode, signOut],
   )
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
