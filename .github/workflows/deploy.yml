@@ -1,55 +1,35 @@
-name: Deploy to prod
+name: Build check
 
-# Push to main -> sync code to the Hetzner box, rebuild the frontend and restart
-# the prod stack (docker-compose.prod.yml). Secrets: SSH_HOST, SSH_PRIVATE_KEY.
+# Deployment is PULL-based: the production box (Timeweb, Moscow) polls `main`
+# every ~2 min and redeploys itself via a systemd timer (cc-deploy.timer ->
+# /usr/local/bin/cc-deploy.sh: git reset --hard origin/main, rebuild frontend,
+# docker compose up). GitHub's Azure runners can't reliably reach the RU server
+# over inbound SSH (RU DPI throttles cross-border connections), so this workflow
+# no longer pushes over SSH — it only verifies that the code compiles, giving a
+# red/green signal on each push.
 on:
   push:
     branches: [main]
   workflow_dispatch:
 
-concurrency:
-  group: deploy-prod
-  cancel-in-progress: true
-
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up SSH
-        run: |
-          mkdir -p ~/.ssh
-          printf '%s\n' "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_deploy
-          chmod 600 ~/.ssh/id_deploy
-          ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null || true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-      - name: Sync code to server
-        run: |
-          rsync -az --delete \
-            --exclude='.git' \
-            --exclude='node_modules' \
-            --exclude='frontend/node_modules' \
-            --exclude='frontend/dist' \
-            --exclude='.env' \
-            --exclude='recordings/*' \
-            -e "ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new" \
-            ./ "root@${{ secrets.SSH_HOST }}:/opt/coral-club-meet/"
+      - name: Frontend build
+        working-directory: frontend
+        run: npm ci && npm run build
 
-      - name: Build frontend + restart stack
-        run: |
-          ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new \
-            "root@${{ secrets.SSH_HOST }}" '
-              set -e
-              cd /opt/coral-club-meet
-              ( cd frontend && npm ci && npm run build )
-              docker compose -f docker-compose.prod.yml up -d --build --remove-orphans
-              docker image prune -f >/dev/null 2>&1 || true
-            '
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
 
-      - name: Report public URL
-        run: |
-          ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new \
-            "root@${{ secrets.SSH_HOST }}" \
-            "docker compose -f /opt/coral-club-meet/docker-compose.prod.yml logs tunnel 2>&1 | grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' | tail -1" \
-            || echo "(tunnel URL not found in logs)"
+      - name: Backend build + vet
+        working-directory: backend
+        run: go build ./... && go vet ./...
