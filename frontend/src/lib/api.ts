@@ -39,29 +39,29 @@ export async function fetchToken(params: TokenParams): Promise<TokenResult> {
   return { ...data, identity: params.identity, name: params.name }
 }
 
-/** Public runtime config: whether creating a meeting requires the access code. */
+/** Public runtime config: whether Google sign-in is required and its client id. */
 export interface AppConfig {
+  googleClientId: string
   authRequired: boolean
 }
 
 export async function fetchConfig(): Promise<AppConfig> {
   try {
     const res = await fetch('/api/config')
-    if (!res.ok) return { authRequired: false }
+    if (!res.ok) return { googleClientId: '', authRequired: false }
     return (await res.json()) as AppConfig
   } catch {
-    // No backend reachable — treat as gate-disabled so the app still loads.
-    return { authRequired: false }
+    // No backend reachable — treat as auth-disabled so the app still loads.
+    return { googleClientId: '', authRequired: false }
   }
 }
 
-/** Exchanges the shared access code for a session cookie; returns the user.
- *  Throws on a wrong code (or any non-2xx). */
-export async function submitCode(code: string): Promise<AuthUser> {
-  const res = await fetch('/api/auth/code', {
+/** Exchanges a Google credential for a session cookie; returns the user. */
+export async function loginWithGoogle(credential: string): Promise<AuthUser> {
+  const res = await fetch('/api/auth/google', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ code }),
+    body: JSON.stringify({ credential }),
   })
   if (!res.ok) {
     const body = (await res.json().catch(() => null)) as { error?: string } | null
@@ -121,9 +121,7 @@ export async function createRoom(room?: string): Promise<string> {
   })
   if (!res.ok) {
     const body = (await res.json().catch(() => null)) as { error?: string } | null
-    const err = new Error(body?.error ?? `Could not create meeting (${res.status})`) as Error & { status?: number }
-    err.status = res.status
-    throw err
+    throw new Error(body?.error ?? `Could not create meeting (${res.status})`)
   }
   const data = (await res.json()) as { room: string; grant?: string }
   if (data.grant) {

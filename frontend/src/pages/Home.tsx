@@ -2,9 +2,10 @@ import { Fragment, type CSSProperties, useState } from 'react'
 import { Logo, RippleMark } from '../components/Logo'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { LangToggle } from '../components/LangToggle'
-import { AuthChip } from '../components/AuthChip'
+import { GoogleSignIn } from '../components/GoogleSignIn'
 import { useIsMobile } from '../lib/hooks'
 import { useT } from '../lib/i18n'
+import { useAuth } from '../lib/auth'
 import { isValidRoomSlug, slugifyRoom } from '../lib/rooms'
 
 /**
@@ -14,7 +15,9 @@ import { isValidRoomSlug, slugifyRoom } from '../lib/rooms'
  */
 export function Home({ onCreate }: { onCreate: (name?: string) => Promise<'taken' | null> }) {
   const t = useT()
+  const { authRequired, user } = useAuth()
   const isMobile = useIsMobile()
+  const needsSignIn = authRequired && !user
   const [name, setName] = useState('')
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
@@ -62,7 +65,7 @@ export function Home({ onCreate }: { onCreate: (name?: string) => Promise<'taken
         {isMobile ? <RippleMark size={30} /> : <Logo size={30} />}
       </div>
       <div style={{ position: 'fixed', zIndex: 4, top: 24, right: 28, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <AuthChip />
+        <GoogleSignIn />
         <LangToggle />
         <ThemeToggle />
       </div>
@@ -109,6 +112,9 @@ export function Home({ onCreate }: { onCreate: (name?: string) => Promise<'taken
             </div>
             {name.trim() && isValidRoomSlug(slug) && <div className="create-slug" aria-hidden="true">{host}/{slug}</div>}
             {err && <div className="create-err" role="alert">{err}</div>}
+            {needsSignIn && (
+              <div style={{ marginTop: 12, fontSize: 13.5, color: 'var(--text-mute)' }}>{t('Sign in with Google to start a meeting. Guests join by link — no account needed.')}</div>
+            )}
 
             <div className="home-feats">
               <div className="cap">{t('Built in — beyond Zoom & Google Meet')}</div>

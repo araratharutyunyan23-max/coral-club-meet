@@ -12,7 +12,7 @@ import { WaitingRoom } from './pages/WaitingRoom'
 
 /** Flow: home → (create/join → /j/<id>) → lobby → call → post-call. */
 export function App() {
-  const { authRequired, user, signOut, ready } = useAuth()
+  const { authRequired, user, signIn, ready } = useAuth()
   const [screen, setScreen] = useState<AppScreen>(() => (roomFromUrl() ? 'lobby' : 'home'))
   const [room, setRoom] = useState<string | null>(() => roomFromUrl())
   const [join, setJoin] = useState<JoinInfo | null>(null)
@@ -108,9 +108,11 @@ export function App() {
   const createMeeting = async (customId?: string): Promise<'taken' | null> => {
     if (!ready) return null // wait for /api/config so we don't create a client-only room when auth is required
     if (authRequired) {
-      // Only code-authenticated staff can create; the server owns the room id.
-      // WelcomeScreen already gates Home on a session, so !user here is defensive.
-      if (!user) return null
+      // Only signed-in users can create; the server owns the room id.
+      if (!user) {
+        signIn()
+        return null
+      }
       try {
         const id = await createRoom(customId)
         markRoomCreated(id) // keep the local host hint in sync (server stays authoritative)
@@ -119,9 +121,7 @@ export function App() {
       } catch (e) {
         // A custom name owned by another user comes back as "room already exists".
         if (e instanceof Error && /already exists/i.test(e.message)) return 'taken'
-        // Only a 401 means the session is gone — drop it so WelcomeScreen re-prompts
-        // for the code. A transient blip (5xx / network) must NOT sign the user out.
-        if (e instanceof Error && (e as { status?: number }).status === 401) void signOut()
+        signIn() // otherwise the session likely expired — re-prompt
         return null
       }
     }

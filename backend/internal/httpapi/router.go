@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 
+	"github.com/coralclub/meet-backend/internal/auth"
 	"github.com/coralclub/meet-backend/internal/livekit"
 )
 
@@ -21,26 +22,26 @@ type Server struct {
 	livekitURL    string
 	recordingsDir string
 
-	// Create-meeting gate (empty createCode ⇒ gate disabled, app stays open).
-	createCode    string
-	sessionSecret string
-	rooms         *roomOwners
-	codeLimiter   *rateLimiter // throttles access-code guesses per IP
+	// Google sign-in (nil verifier / empty client id ⇒ auth disabled).
+	verifier       *auth.GoogleVerifier
+	googleClientID string
+	sessionSecret  string
+	rooms          *roomOwners
 }
 
-// NewServer constructs a Server. An empty createCode leaves the create-meeting
-// gate disabled and the app in its original open behavior.
-func NewServer(issuer *livekit.Issuer, moderator *livekit.Moderator, recorder *livekit.Recorder, createCode, sessionSecret, livekitURL, recordingsDir string) *Server {
+// NewServer constructs a Server. A nil verifier (empty GOOGLE_CLIENT_ID) leaves
+// Google sign-in disabled and the app in its original open behavior.
+func NewServer(issuer *livekit.Issuer, moderator *livekit.Moderator, recorder *livekit.Recorder, verifier *auth.GoogleVerifier, googleClientID, sessionSecret, livekitURL, recordingsDir string) *Server {
 	return &Server{
-		issuer:        issuer,
-		moderator:     moderator,
-		recorder:      recorder,
-		livekitURL:    livekitURL,
-		recordingsDir: recordingsDir,
-		createCode:    createCode,
-		sessionSecret: sessionSecret,
-		rooms:         newRoomOwners(),
-		codeLimiter:   newRateLimiter(10, time.Minute),
+		issuer:         issuer,
+		moderator:      moderator,
+		recorder:       recorder,
+		livekitURL:     livekitURL,
+		recordingsDir:  recordingsDir,
+		verifier:       verifier,
+		googleClientID: googleClientID,
+		sessionSecret:  sessionSecret,
+		rooms:          newRoomOwners(),
 	}
 }
 
@@ -71,9 +72,9 @@ func (s *Server) Router(allowedOrigins []string) http.Handler {
 		// Open to guests: how many people are already in a room (pre-join count).
 		r.Get("/presence", s.handlePresence)
 
-		// Access-code sign-in: verify the shared code → session cookie; who-am-i; logout.
+		// Google sign-in: verify credential → session cookie; who-am-i; logout.
 		r.Route("/auth", func(r chi.Router) {
-			r.With(s.codeLimiter.middleware).Post("/code", s.handleCodeLogin)
+			r.Post("/google", s.handleGoogleLogin)
 			r.Get("/me", s.handleMe)
 			r.Post("/logout", s.handleLogout)
 		})

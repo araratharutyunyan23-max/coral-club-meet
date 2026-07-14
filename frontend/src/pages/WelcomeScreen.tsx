@@ -1,4 +1,4 @@
-import { useState, type CSSProperties, type FormEvent } from 'react'
+import { useEffect, useRef, type CSSProperties } from 'react'
 import { LangToggle } from '../components/LangToggle'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { useAuth } from '../lib/auth'
@@ -17,32 +17,24 @@ const WM_WORDS: { warm: boolean; letters: { ch: string; i: number }[] }[] = (() 
 })()
 
 /**
- * Signed-out front door (Direction A · "Beacon"). Shown on the bare home when the
- * create-code gate is on and there is no session. The Ripple mark sits at centre
- * as the emitter of the Signal field; one action — enter the shared access code.
+ * Signed-out front door (Direction A · "Beacon"). Shown on the bare home when
+ * sign-in is required and there is no session. The Ripple mark sits at centre as
+ * the emitter of the Signal field; one action — the official Google button.
  * Guests who open a room link never see this (they route straight to the lobby).
  */
 export function WelcomeScreen() {
   const t = useT()
-  const { submitCode } = useAuth()
-  const [code, setCode] = useState('')
-  const [busy, setBusy] = useState(false)
-  const [wrong, setWrong] = useState(false)
+  const { gisReady, renderButton } = useAuth()
+  const slot = useRef<HTMLDivElement>(null)
 
-  const submit = async (e: FormEvent) => {
-    e.preventDefault()
-    const c = code.trim()
-    if (busy || !c) return
-    setBusy(true)
-    setWrong(false)
-    const ok = await submitCode(c)
-    setBusy(false)
-    // On success the app re-renders to Home (user is now set); on failure, clear + flag.
-    if (!ok) {
-      setWrong(true)
-      setCode('')
-    }
-  }
+  // The visible button (below) is our own, styled exactly to the design. The real
+  // Google button is rendered here invisibly (opacity 0) on top of it, so it keeps
+  // the native sign-in flow (popup / One Tap) while the user sees our styling.
+  useEffect(() => {
+    const el = slot.current
+    if (!el || !gisReady) return
+    renderButton(el, { width: 250 })
+  }, [gisReady, renderButton])
 
   return (
     <div className="welcome-screen">
@@ -104,31 +96,22 @@ export function WelcomeScreen() {
           </span>
         </div>
 
-        <h1 className="wc-hl">{t('Enter the code to create a meeting.')}</h1>
+        <h1 className="wc-hl">{t('Sign in to create a meeting.')}</h1>
 
-        <form className="wc-code" onSubmit={submit}>
-          <input
-            className={`wc-code-input${wrong ? ' wrong' : ''}`}
-            type="password"
-            autoComplete="off"
-            autoFocus
-            value={code}
-            onChange={(e) => {
-              setCode(e.target.value)
-              setWrong(false)
-            }}
-            placeholder={t('Access code')}
-            aria-label={t('Access code')}
-          />
-          <button className="wc-code-btn" type="submit" disabled={busy || !code.trim()}>
-            {busy ? t('Checking…') : t('Continue')}
-          </button>
-        </form>
-        {wrong && (
-          <p className="wc-code-err" role="alert">
-            {t('Wrong code — try again.')}
-          </p>
-        )}
+        {/* Custom-styled button (visual) with the real Google button layered on top,
+            invisible, as the actual click target. */}
+        <div className="wc-gbtn-wrap">
+          <div className="wc-gbtn-custom" aria-hidden="true">
+            <svg className="g" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+            </svg>
+            <span>{t('Sign in with Google')}</span>
+          </div>
+          <div className="wc-gbtn-real" ref={slot} />
+        </div>
 
         <p className="wc-sub">{t('Guests join by link — no account needed.')}</p>
       </div>

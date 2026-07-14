@@ -1576,32 +1576,32 @@ input {
   text-wrap: balance;
   color: var(--text);
 }
-/* Access-code entry — the single action on the welcome screen. */
-.wc-code { display: flex; gap: 10px; width: 100%; max-width: 340px; }
-.wc-code-input {
-  flex: 1; min-width: 0; height: 44px; padding: 0 16px;
+/* Custom Google button matching the design; the real (invisible) Google button
+   is layered on top as the click target so the native flow is preserved. */
+.wc-gbtn-wrap { position: relative; width: 250px; height: 40px; }
+.wc-gbtn-custom {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none; /* clicks fall through to the real button on top */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   border-radius: 999px;
-  background: var(--fill-subtle);
-  border: 1px solid var(--border-strong);
-  color: var(--text);
-  font: 500 15px/1 var(--font);
-  letter-spacing: .06em;
-  outline: none;
-  transition: border-color .15s ease, box-shadow .15s ease;
+  background: #131314;
+  color: #e3e3e3;
+  border: 1px solid #5f6368;
+  font-family: var(--font);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: .01em;
+  white-space: nowrap;
 }
-.wc-code-input::placeholder { color: var(--text-mute); letter-spacing: normal; }
-.wc-code-input:focus { border-color: var(--teal); box-shadow: 0 0 0 3px var(--teal-tint); }
-.wc-code-input.wrong { border-color: var(--danger, #ef4b43); }
-.wc-code-btn {
-  flex: 0 0 auto; height: 44px; padding: 0 22px;
-  border-radius: 999px; border: none; cursor: pointer;
-  background: var(--teal); color: #04201d;
-  font: 700 14px/1 var(--font); letter-spacing: .01em;
-  transition: filter .15s ease, opacity .15s ease;
-}
-.wc-code-btn:hover:not(:disabled) { filter: brightness(1.06); }
-.wc-code-btn:disabled { opacity: .5; cursor: default; }
-.wc-code-err { margin: 0; color: var(--danger-soft, #ff8a82); font-size: 13px; font-weight: 500; }
+.wc-gbtn-wrap:hover .wc-gbtn-custom { background: #1c1c1e; border-color: #6c7075; }
+[data-theme='light'] .wc-gbtn-custom { background: #131314; color: #e3e3e3; border-color: #3c4043; }
+.wc-gbtn-custom .g { width: 18px; height: 18px; flex: 0 0 auto; }
+.wc-gbtn-real { position: absolute; inset: 0; z-index: 2; opacity: 0; }
 .wc-sub {
   margin: 0;
   color: var(--text-dim);
