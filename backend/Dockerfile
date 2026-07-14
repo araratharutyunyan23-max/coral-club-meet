@@ -12,7 +12,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/server 
 
 # ---- runtime stage ----
 FROM alpine:3.20
-RUN apk add --no-cache ca-certificates && adduser -D -u 10001 app
+RUN sed -i 's|dl-cdn.alpinelinux.org/alpine|mirror.yandex.ru/mirrors/alpine|g' /etc/apk/repositories && apk add --no-cache ca-certificates && adduser -D -u 10001 app
 COPY --from=build /out/server /usr/local/bin/server
 USER app
 EXPOSE 8080

@@ -71,7 +71,9 @@ services:
     restart: unless-stopped
 
   caddy:
-    image: caddy:2-alpine
+    build: ./infra/caddy
+    environment:
+      CF_API_TOKEN: ${CF_API_TOKEN}
     network_mode: host
     volumes:
       - ./infra/Caddyfile:/etc/caddy/Caddyfile:ro
