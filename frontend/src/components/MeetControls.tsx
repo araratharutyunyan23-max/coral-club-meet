@@ -88,6 +88,7 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
   const camOn = lp.isCameraEnabled
   const screenOn = lp.isScreenShareEnabled
   const handRaised = !!lp.attributes?.handRaised
+  const dockRef = useRef<HTMLDivElement>(null)
 
   // Surface getUserMedia failures (denied permission, or in-app browsers like
   // Telegram/Instagram that block media) instead of silently swallowing them.
@@ -146,13 +147,33 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
     return () => window.clearTimeout(t)
   }, [mediaError])
 
+  // Close the open control popover (reactions / more / mic / cam) on Escape or a
+  // click outside the dock — matching BackgroundPicker. All popovers render inside
+  // .meet-dock, so a click on the stage, a corner button or the top bar dismisses
+  // them; toggling from their own trigger button still works (that's inside dockRef).
+  useEffect(() => {
+    if (!popover) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setPopover(null)
+    }
+    const onDown = (e: MouseEvent) => {
+      if (dockRef.current && !dockRef.current.contains(e.target as Node)) setPopover(null)
+    }
+    document.addEventListener('keydown', onKey)
+    document.addEventListener('mousedown', onDown)
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.removeEventListener('mousedown', onDown)
+    }
+  }, [popover])
+
   return (
     <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 92, zIndex: 30, fontFamily: 'var(--font)' }}>
       {showComposer && onCelebrate && (
         <MomentComposer room={room} onCelebrate={onCelebrate} onClose={() => setShowComposer(false)} />
       )}
       {/* Centered cluster — a glass "dock" (styles: .meet-dock) */}
-      <div className="meet-dock" style={{ position: 'absolute', left: '50%', top: '50%', transform: `translate(-50%,-50%) scale(${clusterScale})`, display: 'flex', alignItems: 'center', gap: 6 }}>
+      <div ref={dockRef} className="meet-dock" style={{ position: 'absolute', left: '50%', top: '50%', transform: `translate(-50%,-50%) scale(${clusterScale})`, display: 'flex', alignItems: 'center', gap: 6 }}>
         <SplitButton
           compact={isMobile}
           danger={!micOn}
