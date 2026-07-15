@@ -11,6 +11,7 @@ import {
   CameraIcon,
   CameraOffIcon,
   ChatIcon,
+  CaptionsIcon,
   HandIcon,
   LeaveIcon,
   MicIcon,
@@ -277,6 +278,13 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
                 {isMobile && (
                   <>
                     <button
+                      onClick={() => { onTogglePanel('transcript'); close() }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '10px', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, background: 'var(--fill-subtle)', color: 'var(--text)' }}
+                    >
+                      <CaptionsIcon size={16} />
+                      {t('Live transcript')}
+                    </button>
+                    <button
                       onClick={() => { onTogglePanel('chat'); close() }}
                       style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '10px', borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, background: 'var(--fill-subtle)', color: 'var(--text)' }}
                     >
@@ -348,6 +356,7 @@ export function MeetControls({ room, activePanel, onTogglePanel, unread, view, o
               <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3 1.9 4.6L18.5 9l-4.6 1.9L12 15.5 10.1 11 5.5 9l4.6-1.4L12 3z" /><circle cx="18.5" cy="18.5" r="2.5" /></svg>
             </CornerBtn>
           )}
+          <CornerBtn title={t('Live transcript')} active={activePanel === 'transcript'} onClick={() => onTogglePanel('transcript')}><CaptionsIcon size={19} /></CornerBtn>
           <CornerBtn title={t('Chat')} active={activePanel === 'chat'} badge={unread} onClick={() => onTogglePanel('chat')}><ChatIcon size={19} /></CornerBtn>
           <CornerBtn title={t('People')} active={activePanel === 'participants'} onClick={() => onTogglePanel('participants')}><PeopleIcon size={19} /></CornerBtn>
         </div>

@@ -66,6 +66,14 @@ export const ChatIcon = ({ size = 20, style }: IconProps) => (
   </svg>
 )
 
+export const CaptionsIcon = ({ size = 20, style }: IconProps) => (
+  <svg {...base(size)} style={style}>
+    <rect x="3" y="5" width="18" height="14" rx="2.5" />
+    <path d="M9 10.5a2 2 0 1 0 0 3" />
+    <path d="M16 10.5a2 2 0 1 0 0 3" />
+  </svg>
+)
+
 export const PeopleIcon = ({ size = 20, style }: IconProps) => (
   <svg {...base(size)} style={style}>
     <path d="M16 19v-1.4a3.4 3.4 0 0 0-3.4-3.4H7.4A3.4 3.4 0 0 0 4 17.6V19" />

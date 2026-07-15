@@ -7,6 +7,7 @@ import { useMoments } from '../lib/moment'
 import { MomentOverlay } from '../components/MomentOverlay'
 import { useAttendance } from '../lib/attendance'
 import { useQA } from '../lib/qa'
+import { useTranscription } from '../lib/transcription'
 import { useMutedByHost } from '../lib/moderation'
 import { useRecording } from '../lib/recording'
 import { useRaiseHandChime } from '../lib/raisehand'
@@ -60,6 +61,7 @@ function CallStage({ room, roomName, reconnecting, isHost, onLeave, onMoveToRoom
   const chat = useChat(room)
   const reactions = useReactions(room)
   const qa = useQA(room)
+  const transcription = useTranscription(room)
   const recording = useRecording(room, isHost)
   const quality = useConnectionQuality(room)
   const mutedByHost = useMutedByHost(room)
@@ -233,6 +235,7 @@ function CallStage({ room, roomName, reconnecting, isHost, onLeave, onMoveToRoom
             isHost={isHost}
             messages={chat.messages}
             qa={qa}
+            transcription={transcription}
             onSend={chat.send}
             onSendImage={chat.sendImage}
             onClose={() => setPanel(null)}

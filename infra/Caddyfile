@@ -47,6 +47,14 @@ meet-coralclub.com {
 			file_server
 		}
 
+		# Offline speech-to-text model (~45 MB, fixed name) — cache long so it isn't
+		# re-downloaded every time captions are turned on. Served same-origin.
+		@vosk path /vosk/*
+		handle @vosk {
+			header Cache-Control "public, max-age=2592000"
+			file_server
+		}
+
 		# Everything else is the SPA shell: index.html is served for "/" and every
 		# client route via try_files. It must never be cached, or browsers keep
 		# loading a stale index.html that points at old asset hashes. An

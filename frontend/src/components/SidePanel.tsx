@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { Room } from 'livekit-client'
 import type { ChatMessage } from '../lib/datachannel'
 import type { QAApi } from '../lib/qa'
+import type { Transcription } from '../lib/transcription'
 import { CloseIcon } from '../lib/icons'
 import { useIsMobile } from '../lib/hooks'
 import { meetingUrl } from '../lib/rooms'
@@ -9,14 +10,16 @@ import { useT } from '../lib/i18n'
 import { ChatPanel } from './ChatPanel'
 import { ParticipantsPanel } from './ParticipantsPanel'
 import { QAPanel } from './QAPanel'
+import { TranscriptPanel } from './TranscriptPanel'
 
-export type PanelName = 'chat' | 'participants' | 'qa' | 'info'
+export type PanelName = 'chat' | 'participants' | 'qa' | 'info' | 'transcript'
 
 const TITLES: Record<PanelName, string> = {
   chat: 'Chat',
   participants: 'People',
   qa: 'Q&A',
   info: 'Meeting info',
+  transcript: 'Transcript',
 }
 
 interface Props {
@@ -25,6 +28,7 @@ interface Props {
   isHost: boolean
   messages: ChatMessage[]
   qa: QAApi
+  transcription: Transcription
   onSend: (text: string) => void
   onSendImage: (file: File) => void
   onClose: () => void
@@ -34,7 +38,7 @@ interface Props {
  * Flat Meet-style sheet: slides in from the right and sits beside the (shrunk)
  * stage — it never floats over the video. Matches the inset stage's rounding.
  */
-export function SidePanel({ room, panel, isHost, messages, qa, onSend, onSendImage, onClose }: Props) {
+export function SidePanel({ room, panel, isHost, messages, qa, transcription, onSend, onSendImage, onClose }: Props) {
   const t = useT()
   const isMobile = useIsMobile()
   return (
@@ -102,6 +106,7 @@ export function SidePanel({ room, panel, isHost, messages, qa, onSend, onSendIma
         {panel === 'chat' && <ChatPanel messages={messages} onSend={onSend} onSendImage={onSendImage} />}
         {panel === 'participants' && <ParticipantsPanel room={room} isHost={isHost} />}
         {panel === 'qa' && <QAPanel questions={qa.questions} onAsk={qa.ask} onUpvote={qa.upvote} />}
+        {panel === 'transcript' && <TranscriptPanel transcription={transcription} roomName={room.name} />}
         {panel === 'info' && <InfoPanel roomName={room.name} />}
       </div>
     </aside>
